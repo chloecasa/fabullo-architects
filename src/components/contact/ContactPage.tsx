@@ -1,18 +1,21 @@
+// src/components/contact/ContactPage.tsx
 "use client";
 
-import { useRef, useState, useMemo } from "react";
+import { useRef, useState, useMemo, useEffect } from "react";
 import gsap from "gsap";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { submitInquiry } from "@/lib/actions/submitInquiry"; // 1. Import your secure Server Action
+
+if (typeof window !== "undefined") {
+  gsap.registerPlugin(ScrollTrigger);
+}
 
 const ContactPage = () => {
   const pageRef = useRef<HTMLElement>(null);
   const imageRef = useRef<HTMLDivElement>(null);
   const titleRef = useRef<HTMLHeadingElement>(null);
-  const mgkRef = useRef<HTMLDivElement>(null);
   const sendRef = useRef<HTMLDivElement>(null);
-
-  // Survey modal state
-  const [isSurveyOpen, setIsSurveyOpen] = useState(false);
 
   // State: Tracks contact form input values
   const [formData, setFormData] = useState({
@@ -33,9 +36,33 @@ const ContactPage = () => {
     message: false
   });
 
-  // State: Tracks checkbox acceptance and submit completion
-  const [isAccepted, setIsAccepted] = useState(false);
+  // State: Tracks checkbox acceptance, submitting state, error feedback, and submit completion [1]
+  const [isPending, setIsPending] = useState(false); // Idempotency check state [1]
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // Error feedback state [1]
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+ useEffect(() => {
+  const updateHeaderVisibility = () => {
+    const contactBottom = pageRef.current?.getBoundingClientRect().bottom ?? 0;
+
+    if (contactBottom > 0) {
+      document.body.classList.add("contact-page-active");
+    } else {
+      document.body.classList.remove("contact-page-active");
+    }
+  };
+
+  updateHeaderVisibility();
+
+  window.addEventListener("scroll", updateHeaderVisibility);
+  window.addEventListener("resize", updateHeaderVisibility);
+
+  return () => {
+    document.body.classList.remove("contact-page-active");
+    window.removeEventListener("scroll", updateHeaderVisibility);
+    window.removeEventListener("resize", updateHeaderVisibility);
+  };
+}, []);
 
   // Entrance animations via GSAP
   useGSAP(
@@ -43,13 +70,7 @@ const ContactPage = () => {
       const formLines = gsap.utils.toArray<HTMLElement>(".contact-form-line");
       const formFields = gsap.utils.toArray<HTMLElement>(".contact-form-field");
 
-      const tl = gsap.timeline({
-        onComplete: () => {
-          setTimeout(() => {
-            setIsSurveyOpen(true);
-          }, 1200);
-        }
-      });
+      const tl = gsap.timeline();
 
       tl.set(imageRef.current, {
         opacity: 1,
@@ -57,10 +78,6 @@ const ContactPage = () => {
       })
         .set(titleRef.current, {
           clipPath: "inset(100% 0% 0% 0%)",
-        })
-        .set(mgkRef.current, {
-          opacity: 0,
-          y: 40,
         })
         .set(formLines, {
           scaleX: 0,
@@ -87,16 +104,6 @@ const ContactPage = () => {
             ease: "power4.out",
           },
           0.15
-        )
-        .to(
-          mgkRef.current,
-          {
-            opacity: 1,
-            y: 0,
-            duration: 0.8,
-            ease: "power3.out",
-          },
-          0.65
         )
         .to(
           formLines,
@@ -129,6 +136,20 @@ const ContactPage = () => {
           },
           1.15
         );
+        ScrollTrigger.create({
+  trigger: pageRef.current,
+  start: "bottom 80%",
+  end: "bottom top",
+  scrub: true,
+  onUpdate: (self) => {
+    gsap.to(pageRef.current, {
+      opacity: 1 - self.progress * 0.45,
+      y: -self.progress * 80,
+      duration: 0.1,
+      overwrite: true,
+    });
+  },
+});
     },
     { scope: pageRef }
   );
@@ -151,55 +172,83 @@ const ContactPage = () => {
       formData.surname.trim() !== "" &&
       formData.email.trim() !== "" &&
       formData.subject !== "" &&
-      formData.message.trim() !== "" &&
-      isAccepted
+     formData.message.trim() !== "" &&
+!isPending
     );
-  }, [formData, isAccepted]);
+ }, [formData, isPending]);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  // Handle Form Submission asynchronously [1]
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!isFormValid) return;
-    setIsSubmitted(true);
+    if (!isFormValid || isPending) return;
+
+    // 2. Lock inputs and buttons to prevent double-submitting (Idempotency) [1]
+    setIsPending(true);
+    setErrorMessage(null);
+
+    // 3. Trigger the secure Server Action on Vercel [1]
+    const result = await submitInquiry({
+      firstName: formData.firstName,
+      surname: formData.surname,
+      email: formData.email,
+      phone: formData.phone,
+      subject: formData.subject,
+      message: formData.message,
+    });
+
+    // 4. Release submission lock [1]
+    setIsPending(false);
+
+    if (result.success) {
+      // Show success screen [1]
+      setIsSubmitted(true);
+    } else {
+      // Display secure error feedback directly to the editor [1]
+      setErrorMessage(result.error || "An unexpected error occurred. Please try again.");
+    }
   };
 
   return (
     <main
       ref={pageRef}
-      className="relative min-h-screen bg-amber-50 text-black"
+      className="relative min-h-screen bg-white text-black"
     >
-      <section className="relative min-h-screen bg-amber-50">
+      <section className="relative min-h-screen bg-white">
         
-        {/* Left Hand Split-Screen Image (stretches to match the height of content) */}
-        <div
-          ref={imageRef}
-          className="absolute left-0 top-0 h-full w-[45.7vw] overflow-hidden bg-zinc-400"
-        >
-          <img
-            src="/assets/images/hero.png"
-            alt=""
-            className="h-full w-full object-cover"
-          />
-        </div>
+        {/* Left Hand Split-Screen Image */}
+       <div
+  ref={imageRef}
+  className="absolute left-0 top-0 h-full w-[45.7vw] overflow-hidden bg-zinc-400"
+>
+  <img
+    src="/assets/images/Contact/ContactPage.png"
+    alt=""
+    className="h-full w-full object-cover"
+  />
+
+  <div className="absolute left-[20px] bottom-[738px] w-[634px] max-w-[calc(100%-40px)] text-justify justify-start">
+    <span className="text-white text-xl font-bold font-['LT_Superior'] uppercase">
+      NOMINATED ARCHITECT MARK CASHMAN 6232
+      <br />
+      <br />
+    </span>
+    <span className="text-white text-base font-medium font-['LT_Superior'] uppercase">
+      To find out more information about any of the projects on the website, or to talk about your project please contact our studio
+    </span>
+  </div>
+</div>
 
         {/* Dynamic Big Page Title */}
-        <h1
-          ref={titleRef}
-          className="absolute left-0 top-[-2.5vw] w-full text-[clamp(7rem,20.5vw,310px)] font-bold uppercase leading-[0.82] tracking-[-0.04em] pointer-events-none select-none z-10"
-        >
-          <span className="text-white">Con</span>
-          <span className="text-black">tacT</span>
-        </h1>
+<h1
+  ref={titleRef}
+  className="absolute left-[20px] top-[20px] w-[1485px] max-w-[calc(100vw-40px)] justify-start font-['LT_Superior'] text-[clamp(7rem,20.5vw,310px)] font-bold uppercase leading-[0.82] pointer-events-none select-none z-10"
+>
+  <span className="text-white">Con</span>
+  <span className="text-black">tacT</span>
+</h1>
 
-        {/* Visual MGK Marker */}
-        <div
-          ref={mgkRef}
-          className="absolute left-[25.3vw] top-[35vh] text-[clamp(4rem,8vw,128px)] font-bold uppercase leading-none text-white select-none pointer-events-none z-15"
-        >
-          mgk
-        </div>
-
-        {/* Right Hand Side Content Area - Uses natural flex layout with safe padding-bottom */}
-        <div className="relative ml-[50.6vw] pt-[30vh] pb-[15vh] w-[38.2vw] flex flex-col justify-start">
+        {/* Right Hand Side Content Area */}
+<div className="relative ml-[50.6vw] pt-[40vh] pb-[15vh] w-[38.2vw] flex flex-col justify-start">
           {isSubmitted ? (
             <div className="flex flex-col gap-4 animate-fade-in">
               <h2 className="text-5xl font-bold uppercase tracking-tighter font-['LT_Superior']">
@@ -222,6 +271,7 @@ const ContactPage = () => {
                 <input
                   type="text"
                   name="firstName"
+                  disabled={isPending}
                   placeholder="First name (Required)"
                   value={formData.firstName}
                   onChange={(e) => {
@@ -232,12 +282,14 @@ const ContactPage = () => {
                   onBlur={() => handleConfirmField("firstName")}
                   className={`contact-form-field bg-transparent text-lg uppercase placeholder:text-black/50 outline-none transition-opacity duration-300
                     ${confirmedFields.firstName ? "opacity-100 font-medium" : "opacity-40 focus:opacity-100"}
+                    ${isPending ? "pointer-events-none opacity-20" : ""}
                   `}
                 />
 
                 <input
                   type="text"
                   name="surname"
+                  disabled={isPending}
                   placeholder="Last name (Required)"
                   value={formData.surname}
                   onChange={(e) => {
@@ -248,6 +300,7 @@ const ContactPage = () => {
                   onBlur={() => handleConfirmField("surname")}
                   className={`contact-form-field bg-transparent text-lg uppercase placeholder:text-black/50 outline-none transition-opacity duration-300
                     ${confirmedFields.surname ? "opacity-100 font-medium" : "opacity-40 focus:opacity-100"}
+                    ${isPending ? "pointer-events-none opacity-20" : ""}
                   `}
                 />
               </div>
@@ -256,6 +309,7 @@ const ContactPage = () => {
               <div className="contact-form-line border-b border-black py-2">
                 <input
                   type="email"
+                  disabled={isPending}
                   placeholder="Email address (Required)"
                   value={formData.email}
                   onChange={(e) => {
@@ -266,6 +320,7 @@ const ContactPage = () => {
                   onBlur={() => handleConfirmField("email")}
                   className={`contact-form-field w-full bg-transparent text-lg uppercase placeholder:text-black/50 outline-none transition-opacity duration-300
                     ${confirmedFields.email ? "opacity-100 font-medium" : "opacity-40 focus:opacity-100"}
+                    ${isPending ? "pointer-events-none opacity-20" : ""}
                   `}
                 />
               </div>
@@ -274,6 +329,7 @@ const ContactPage = () => {
               <div className="contact-form-line border-b border-black py-2">
                 <input
                   type="tel"
+                  disabled={isPending}
                   placeholder="Phone"
                   value={formData.phone}
                   onChange={(e) => {
@@ -284,12 +340,13 @@ const ContactPage = () => {
                   onBlur={() => handleConfirmField("phone")}
                   className={`contact-form-field w-full bg-transparent text-lg uppercase placeholder:text-black/50 outline-none transition-opacity duration-300
                     ${confirmedFields.phone ? "opacity-100 font-medium" : "opacity-40 focus:opacity-100"}
+                    ${isPending ? "pointer-events-none opacity-20" : ""}
                   `}
                 />
               </div>
 
-              {/* Input Row: SUBJECT CHECKBOXES (Required) */}
-              <div className="contact-form-line flex flex-col gap-2 py-2 border-b border-black">
+              {/* Input Row: SUBJECT RADIO BUTTONS */}
+             <div className="contact-form-line flex flex-col gap-2 pt-2 pb-6 border-b border-black">
                 <span className="contact-form-field text-xs uppercase opacity-40 font-mono tracking-wider">
                   Subject (Required)
                 </span>
@@ -301,11 +358,14 @@ const ContactPage = () => {
                   ].map((option) => (
                     <label
                       key={option}
-                      className="contact-form-field flex items-center gap-3 cursor-pointer select-none text-sm uppercase opacity-60 hover:opacity-100 transition-opacity duration-200"
+                      className={`contact-form-field flex items-center gap-3 cursor-pointer select-none text-sm uppercase opacity-60 hover:opacity-100 transition-opacity duration-200
+                        ${isPending ? "pointer-events-none opacity-20" : ""}
+                      `}
                     >
                       <input
                         type="radio"
                         name="subject"
+                        disabled={isPending}
                         value={option}
                         checked={formData.subject === option}
                         onChange={() => setFormData((prev) => ({ ...prev, subject: option }))}
@@ -320,10 +380,11 @@ const ContactPage = () => {
                 </div>
               </div>
 
-              {/* Input Row: MESSAGE */}
-              <div className="contact-form-line border-b border-black py-2 h-28">
+             {/* Input Row: MESSAGE */}
+<div className="contact-form-line border-b border-black pt-2 pb-16 h-44">
                 <textarea
                   name="message"
+                  disabled={isPending}
                   placeholder="Message (Required)"
                   value={formData.message}
                   onChange={(e) => {
@@ -333,48 +394,36 @@ const ContactPage = () => {
                   onBlur={() => handleConfirmField("message")}
                   className={`contact-form-field h-full w-full resize-none bg-transparent text-lg uppercase placeholder:text-black/50 outline-none transition-opacity duration-300
                     ${confirmedFields.message ? "opacity-100 font-medium" : "opacity-40 focus:opacity-100"}
+                    ${isPending ? "pointer-events-none opacity-20" : ""}
                   `}
                 />
               </div>
 
-              {/* Checkbox & Google Disclosure Area */}
-              <div className="contact-form-field mt-1 flex items-start gap-4">
-                
-                {/* Interactive Custom Checkbox */}
-                <button
-                  type="button"
-                  onClick={() => setIsAccepted(!isAccepted)}
-                  className="mt-1 size-3.5 border border-black flex items-center justify-center cursor-pointer shrink-0"
-                >
-                  {isAccepted && <div className="size-2 bg-black" />}
-                </button>
+              
 
-                <p className="max-w-72 text-[10px] uppercase leading-tight text-zinc-600">
-                  This site is protected by reCAPTCHA and the Google{" "}
-                  <span className="underline">Privacy Policy</span> and{" "}
-                  <span className="underline">Terms of Service</span> apply
-                  <br />
-                  <br />
-                  For information on how to unsubscribe, please review{" "}
-                  <span className="underline">our privacy policy.</span>
-                </p>
-              </div>
+              {/* Error Feedback Message [1] */}
+              {errorMessage && (
+                <div className="contact-form-field mt-4 text-xs font-mono uppercase text-red-600 leading-normal max-w-sm animate-fade-in">
+                  [Error]: {errorMessage}
+                </div>
+              )}
 
-              {/* Submit Button Wrapper aligned dynamic-right */}
+              {/* Submit Button Wrapper */}
               <div
                 ref={sendRef}
                 className="self-end mt-12"
               >
                 <button
                   type="submit"
+                  disabled={!isFormValid || isPending}
                   className={`text-[clamp(4rem,7.5vw,115px)] font-bold uppercase leading-none transition-all duration-300
-                    ${isFormValid 
+                    ${isFormValid && !isPending
                       ? "opacity-100 hover:opacity-50 cursor-pointer" 
                       : "opacity-25 pointer-events-none"
                     }
                   `}
                 >
-                  Send
+                  {isPending ? "Sending" : "Send"}
                 </button>
               </div>
 

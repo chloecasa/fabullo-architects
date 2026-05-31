@@ -1,5 +1,5 @@
+// src/components/profile/Awards.tsx
 "use client";
-
 
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
@@ -22,75 +22,6 @@ interface YearGroup {
   entries: AwardEntry[];
 }
 
-const AWARDS_DATA: YearGroup[] = [
-  { 
-    year: "2025", 
-    entries: [
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-    ]
-  },
-  { 
-    year: "2024", 
-    entries: [
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-    ]
-  },
-  { 
-    year: "2023", 
-    entries: [
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-    ]
-  },
-  { 
-    year: "2022", 
-    entries: [
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-    ]
-  },
-];
-
-const BOOKS_DATA: YearGroup[] = [
-  { 
-    year: "2025", 
-    entries: [
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-    ]
-  },
-  { 
-    year: "2024", 
-    entries: [
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-    ]
-  },
-  { 
-    year: "2023", 
-    entries: [
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-    ]
-  },
-  { 
-    year: "2022", 
-    entries: [
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-      { recognition: "TIDA HOMES RUNNER UP (ARCHITECT) NEW HOME OF THE YEAR", project: "FOREVER HOUSE" },
-    ]
-  },
-];
 // Component for collapsed year row (before click)
 const YearRow = ({ 
   year, 
@@ -107,7 +38,7 @@ const YearRow = ({
     <div
       ref={rowRef}
       onClick={onClick}
-      className="group/row grid grid-cols-[1fr_1fr_1fr] items-center py-3 border-b border-black cursor-pointer transition-opacity duration-300 hover:opacity-100"
+      className="group/row grid grid-cols-[1fr_2fr_1fr] items-center py-3 border-b border-black cursor-pointer transition-opacity duration-300 hover:opacity-100"
     >
       <span className="text-base font-semibold">{year}</span>
       <span className="text-base font-semibold text-center">See</span>
@@ -137,7 +68,7 @@ const DetailRow = ({
 
     const tl = gsap.timeline({ paused: true });
 
-    // Line animates from left to right
+    // Line animates from left to right on hover
     tl.to(scope.current.querySelector(".moving-line"), { 
       scaleX: 1, 
       duration: 0.5, 
@@ -223,7 +154,7 @@ const AwardSection = ({
                   <span className="text-base font-semibold text-center">See</span>
                   <span className="text-base font-semibold text-right">More</span>
                 </div>
-                                           ) : (
+              ) : (
                 <div className="group/details [&:hover>.detail-row]:opacity-30 [&:hover>.detail-row:hover]:opacity-100">
                   {group.entries.map((entry, idx) => (
                     <DetailRow
@@ -245,7 +176,22 @@ const AwardSection = ({
   );
 };
 
-const Awards = () => {
+interface AwardsProps {
+  initialAwards: YearGroup[]; // Accept live database awards as a prop [2]
+  initialBooks: YearGroup[];  // Accept live database books as a prop [2]
+}
+
+const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
+  // Initialize states using pre-grouped database entries [2]
+  const [awardsData, setAwardsData] = useState<YearGroup[]>(initialAwards || []);
+  const [booksData, setBooksData] = useState<YearGroup[]>(initialBooks || []);
+
+  // Keep states in sync if database props update dynamically [2]
+  useEffect(() => {
+    if (initialAwards) setAwardsData(initialAwards);
+    if (initialBooks) setBooksData(initialBooks);
+  }, [initialAwards, initialBooks]);
+
   useEffect(() => {
     const ctx = gsap.context(() => {
       // INTRO REVEAL ANIMATION
@@ -290,12 +236,10 @@ const Awards = () => {
 
       <div className="mx-auto px-5 pb-24" style={{ maxWidth: '1514px' }}>
         
-
-        
         {/* AWARDS SECTION */}
         <AwardSection 
           title="/awards" 
-          data={AWARDS_DATA}
+          data={awardsData}
           columnHeaders={{ col2: "recognition", col3: "project" }}
         />
 
@@ -303,7 +247,7 @@ const Awards = () => {
         <div className="mt-24">
           <AwardSection 
             title="/books" 
-            data={BOOKS_DATA}
+            data={booksData}
             columnHeaders={{ col2: "details", col3: "name" }}
           />
         </div>
@@ -312,4 +256,5 @@ const Awards = () => {
     </section>
   );
 };
+
 export default Awards;

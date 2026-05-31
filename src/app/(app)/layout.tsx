@@ -39,7 +39,7 @@ const ttHoves = localFont({
   variable: "--font-hoves",
 });
 
-import MenuProvider from "@/context/MenuProvider";
+import MenuProvider from "@/components/context/MenuProvider";
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import GsapInitializer from "@/components/helpers/GsapInitializer";
 

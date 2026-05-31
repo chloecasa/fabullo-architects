@@ -29,7 +29,7 @@ const PreviewPanelVersion5 = ({
   onClose,
 }: PreviewPanelVersion5Props) => {
   return (
-    <div ref={panelRef} className="fixed inset-0 bg-amber-50 opacity-0 pointer-events-none overflow-hidden" style={{ zIndex: 2000 }}>
+    <div ref={panelRef} className="fixed inset-0 bg-white opacity-0 pointer-events-none overflow-hidden" style={{ zIndex: 2000 }}>
       {activeSlide === 0 && (
         <div className="relative w-full h-full">
           <div className="absolute left-0 top-0 h-full w-[39.5vw] overflow-hidden bg-zinc-400">

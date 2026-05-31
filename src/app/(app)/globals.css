@@ -138,3 +138,7 @@ body {
 body.video-open header {
   display: none !important;
 }
+
+body.contact-page-active header {
+  display: none !important;
+}

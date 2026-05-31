@@ -1,8 +1,17 @@
+// src/payload.config.ts
 import { postgresAdapter } from '@payloadcms/db-postgres';
 import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import path from 'path';
 import { buildConfig } from 'payload';
 import { fileURLToPath } from 'url';
+import { Media } from './collections/Media';
+import { Projects } from './collections/Projects';
+import { Journal } from './collections/Journal';
+import { Leads } from './collections/Leads';
+import { Team } from './collections/Team'; // Import Team [1.1.2]
+import { Awards } from './collections/Awards'; // Import Awards [1.1.2]
+import { Books } from './collections/Books'; // Import Books [1.1.2]
+import { Homepage } from './globals/Homepage';
 
 const filename = fileURLToPath(import.meta.url);
 const dirname = path.dirname(filename);
@@ -12,7 +21,16 @@ export default buildConfig({
     // We will configure white-labeling and visual settings here later
   },
   collections: [
-    // Your Project, Journal, and Lead schemas will be added here in Phase 1
+    Media,
+    Projects,
+    Journal,
+    Leads,
+    Team,      // Register Team [1.1.2]
+    Awards,    // Register Awards [1.1.2]
+    Books,     // Register Books [1.1.2]
+  ],
+  globals: [
+    Homepage,
   ],
   editor: lexicalEditor({}),
   secret: process.env.PAYLOAD_SECRET || '',

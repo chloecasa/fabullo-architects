@@ -101,23 +101,21 @@ useGSAP(
         {/* Title */}
         <div className="absolute left-5 top-5 z-20">
           <div className="overflow-hidden">
-            <h1 className="hero-title-line text-[clamp(5rem,12vw,128px)] font-bold uppercase leading-[0.82] tracking-[-0.05em]">
+            {/* Added pr-4 pb-2 to prevent character clipping [1.1.7] */}
+            <h1 className="hero-title-line pr-4 pb-2 text-[clamp(5rem,12vw,128px)] font-bold uppercase leading-[0.82] tracking-tighter">
               Detail
             </h1>
           </div>
 
           <div className="overflow-hidden">
-            <h1 className="hero-title-line text-[clamp(5rem,12vw,128px)] font-bold uppercase leading-[0.82] tracking-[-0.05em]">
+            {/* Added pr-4 pb-2 to prevent character clipping [1.1.7] */}
+            <h1 className="hero-title-line pr-4 pb-2 text-[clamp(5rem,12vw,128px)] font-bold uppercase leading-[0.82] tracking-tighter">
               Matters
             </h1>
           </div>
         </div>
 
-        {/* Main Statement */}
-        <p className="hero-copy absolute left-[38vw] top-[22.5vh] z-20 w-[36.6vw] max-w-[520px] text-xl font-bold leading-none text-black/70">
-           A team of multi-award winning architects based in Sydney, Australia.
-        </p>
-
+       
         {/* Lower Copy */}
         <p className="hero-copy absolute left-[60.5vw] top-[43vh] z-20 w-64 text-justify text-base font-medium leading-none">
           We design context-driven architecture that transforms your vision into
@@ -136,7 +134,7 @@ useGSAP(
   aria-label="Lets talk"
 >
   <div className="relative h-full w-full transition-opacity duration-300 group-hover:opacity-40">
-    <span className="absolute right-8 top-9 z-10 text-base font-bold uppercase leading-none">
+    <span className="absolute right-10.5 top-10 z-10 text-base font-bold uppercase leading-none">
       Let's talk
     </span>
 
@@ -152,7 +150,7 @@ useGSAP(
 >
   <Image
     ref={imageRef}
-    src="/assets/images/hero.png"
+    src="/assets/images/Homepage/Hero.png"
     alt="Architectural detail"
     fill
     priority

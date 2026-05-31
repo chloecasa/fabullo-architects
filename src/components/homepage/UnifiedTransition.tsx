@@ -1,6 +1,7 @@
+// src/components/homepage/UnifiedTransition.tsx
 "use client";
 
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { useRouter } from 'next/navigation';
 import gsap from 'gsap';
@@ -11,23 +12,39 @@ if (typeof window !== "undefined") {
     gsap.registerPlugin(ScrollTrigger);
 }
 
-// --- Data Types ---
 interface ProjectSlide {
     id: number;
     image: string;
     line1: string;
     line2: string;
-    path: string;
+    slug: string;
 }
 
-const slideData: ProjectSlide[] = [
-    { id: 1, image: "/assets/images/Tareola Image.png", line1: "EXTRUDED", line2: "HOUSE", path: "/projects/tareola" },
-    { id: 2, image: "/assets/images/Strong Arm House.png", line1: "SUNRISE", line2: "HOUSE", path: "/profile" },
-    { id: 3, image: "/assets/images/MANNING CARTELL STRAND.png", line1: "MANNING", line2: "CARTELL CHADSTONE", path: "/projects/manning" },
-    { id: 4, image: "/assets/images/EVELEIGH STREET.png", line1: "MANNING", line2: "CARTELL STRAND", path: "/journal" }
-];
+// Helper to safely format Payload's database data into the exact format your horizontal GSAP timeline expects [1, 2]
+const mapPayloadFeaturedSlides = (payloadSlides: any[]): ProjectSlide[] => {
+  if (!payloadSlides || !Array.isArray(payloadSlides)) return [];
+  
+  return payloadSlides.map((project, index) => {
+    // Fail-safe: If the architect didn't specify custom line-breaks, split the title by the first word!
+    const titleWords = project.title.split(' ');
+    const defaultLine1 = titleWords[0] || 'VIEW';
+    const defaultLine2 = titleWords.slice(1).join(' ') || 'PROJECT';
 
-const UnifiedTransition = () => {
+    return {
+      id: index + 1,
+      image: project.heroImg?.url || '', // Resolves the populated Media relation URL [1]
+      line1: project.homepageFeatured?.line1 || defaultLine1,
+      line2: project.homepageFeatured?.line2 || defaultLine2,
+      slug: `/projects/${project.slug}`, // Directs cleanly to your dynamic project detail page
+    };
+  });
+};
+
+interface UnifiedTransitionProps {
+  featuredProjects: any[]; // 1. Accept dynamic featured projects as a prop [2]
+}
+
+const UnifiedTransition = ({ featuredProjects }: UnifiedTransitionProps) => {
     const sectionRef = useRef<HTMLElement>(null);
     const slidesContainerRef = useRef<HTMLDivElement>(null);
     const cursorRef = useRef<HTMLDivElement>(null);
@@ -40,9 +57,14 @@ const UnifiedTransition = () => {
         return () => clearTimeout(timer);
     }, []);
 
+    // 2. Map database projects dynamically, falling back to an empty array if none selected [2]
+    const slideData = useMemo(() => 
+        mapPayloadFeaturedSlides(featuredProjects), 
+        [featuredProjects]
+    );
+
     useGSAP(() => {
-        if (!isReady || !slidesContainerRef.current || !sectionRef.current) return;
-        
+        if (!isReady || !slidesContainerRef.current || !sectionRef.current || slideData.length === 0) return;
 
         const slides = gsap.utils.toArray<HTMLElement>(".slide-item");
         const titles = gsap.utils.toArray<HTMLElement>(".slide-title");
@@ -50,31 +72,29 @@ const UnifiedTransition = () => {
         gsap.set(titles, { y: 50, opacity: 0 });
         gsap.set(cursorRef.current, { scale: 0, autoAlpha: 0 });
 
-        // Calculate the distance to scroll horizontally
         const totalMove = slidesContainerRef.current.scrollWidth - window.innerWidth;
 
-const scrollTween = gsap.to(slidesContainerRef.current, {
-    x: -totalMove,
-    ease: "none",
-    scrollTrigger: {
-        trigger: sectionRef.current,
-        pin: true,
-        scrub: 1,
-        start: "top top",
-        end: () => `+=${totalMove}`,
-        invalidateOnRefresh: true, 
-        anticipatePin: 1,
-        refreshPriority: 0,
-        snap: {
-    snapTo: 1 / (slideData.length - 1), // This calculates the stop points for 4 slides
-    duration: 0.1,                     // How fast the snap happens (keep it low to prevent jumping)
-    delay: 0,                          // Snap immediately when scrolling stops
-    ease: "power1.inOut"               // Smooth movement
-}, // <--- ADD OR UPDATE THIS
-    }
-});
+        const scrollTween = gsap.to(slidesContainerRef.current, {
+            x: -totalMove,
+            ease: "none",
+            scrollTrigger: {
+                trigger: sectionRef.current,
+                pin: true,
+                scrub: 1,
+                start: "top top",
+                end: () => `+=${totalMove}`,
+                invalidateOnRefresh: true, 
+                anticipatePin: 1,
+                refreshPriority: 0,
+                snap: {
+                    snapTo: 1 / (slideData.length - 1), // Calculates stop points dynamically based on actual database count
+                    duration: 0.1,                     
+                    delay: 0,                          
+                    ease: "power1.inOut"               
+                }, 
+            }
+        });
 
-        // --- Per-Slide Title Stagger ---
         titles.forEach((title, i) => {
             gsap.to(title, {
                 y: 0,
@@ -89,8 +109,8 @@ const scrollTween = gsap.to(slidesContainerRef.current, {
             });
         });
 
-         ScrollTrigger.refresh();
-        // --- Professional Cursor Performance (quickTo) ---
+        ScrollTrigger.refresh();
+
         const xTo = gsap.quickTo(cursorRef.current, "x", { duration: 0.4, ease: "power3" });
         const yTo = gsap.quickTo(cursorRef.current, "y", { duration: 0.4, ease: "power3" });
 
@@ -100,55 +120,55 @@ const scrollTween = gsap.to(slidesContainerRef.current, {
         };
 
         window.addEventListener("mousemove", handleMouseMove);
-       
 
         return () => window.removeEventListener("mousemove", handleMouseMove);
-        
 
-    }, { scope: sectionRef, dependencies: [isReady] });
+    }, { scope: sectionRef, dependencies: [isReady, slideData] });
 
-    // Cursor Interactions
     const onEnter = () => gsap.to(cursorRef.current, { scale: 1, autoAlpha: 1, duration: 0.3 });
-const onLeave = () => gsap.to(cursorRef.current, { scale: 0, autoAlpha: 0, duration: 0.3 });
+    const onLeave = () => gsap.to(cursorRef.current, { scale: 0, autoAlpha: 0, duration: 0.3 });
+
+    // Fallback display if the client has not configured any featured projects yet
+    if (slideData.length === 0) {
+        return (
+            <section className="h-screen w-full bg-black flex items-center justify-center text-white/50 font-mono uppercase text-xs tracking-widest">
+                Please select exactly 4 projects in [Homepage Settings] to initialize the slider.
+            </section>
+        );
+    }
 
     return (
-        
         <section 
-        
             ref={sectionRef} 
-           
             onMouseEnter={onEnter}
             onMouseLeave={onLeave}
             className="relative h-screen w-full overflow-hidden bg-black cursor-none"
-             
         >
             {/* Custom Glass Cursor */}
             <div 
-    ref={cursorRef} 
-    style={{ visibility: 'hidden', zIndex: 9999 }} // Hard-hide and fix z-index
-    
-    className="fixed top-0 left-0 w-30 h-11.25 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center pointer-events-none -ml-15 mt-[-22.5px]"
->
+                ref={cursorRef} 
+                style={{ visibility: 'hidden', zIndex: 9999 }}
+                className="fixed top-0 left-0 w-30 h-11.25 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center pointer-events-none -ml-15 mt-[-22.5px]"
+            >
                 <span className="text-white font-mono text-[11px] uppercase tracking-wider font-bold">
                     View Project
                 </span>
             </div>
 
             {/* Horizontal Slider Wrapper */}
-            <div   className="h-screen w-full flex items-center">
+            <div className="h-screen w-full flex items-center">
                 <div ref={slidesContainerRef} className="flex flex-nowrap h-screen w-fit will-change-transform">
                     {slideData.map((slide) => (
                         <div 
                             key={slide.id} 
-                            
                             className="slide-item relative w-screen h-screen shrink-0 cursor-pointer group"
                             onClick={() => {
                                 window.scrollTo(0, 0); 
-                                router.push(slide.path);
+                                router.push(slide.slug);
                             }}
                         >
                             {/* Optimized Project Image */}
-                            <div  className="absolute inset-0 z-1 bg-[#1a1a1a]">
+                            <div className="absolute inset-0 z-1 bg-[#1a1a1a]">
                                 <Image 
                                     src={slide.image} 
                                     alt={slide.line1} 

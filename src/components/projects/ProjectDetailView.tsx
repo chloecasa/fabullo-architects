@@ -5,7 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import SplitType from "split-type";
-import { ProjectData } from "@/app/projects/[slug]/page";
+import { ProjectData } from "@/app/(app)/projects/[slug]/page";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -183,19 +183,34 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         }
       });
 
+     // SECTION 3: HORIZONTAL GALLERY COMPILATION
       if (horizontalRef.current && horizontalTrackRef.current) {
         const track = horizontalTrackRef.current;
         const getScrollAmount = () => -(track.scrollWidth - window.innerWidth);
 
+        // 1. Audit & Fix: Recalculate track widths as images load to prevent jumps/offsets [3]
+        const trackImages = track.querySelectorAll("img");
+        trackImages.forEach((img) => {
+          if (img.complete) {
+            ScrollTrigger.refresh(); // Image was already cached [3]
+          } else {
+            img.addEventListener("load", () => {
+              ScrollTrigger.refresh(); // Recalculate once image finishes downloading [3]
+            });
+          }
+        });
+
+        // 2. Audit & Fix: Set standard Webpack scroll velocity matching the track size [3]
         gsap.to(track, {
           x: getScrollAmount,
           ease: "none",
           scrollTrigger: {
             trigger: horizontalRef.current,
             start: "top top",
-            end: () => `+=${track.scrollWidth + window.innerWidth}`,
+            // Corrected: End matches exact translation distance (removes slow scroll speed) [3]
+            end: () => `+=${track.scrollWidth - window.innerWidth}`,
             pin: true,
-            scrub: 1,
+            scrub: 0.5, // Snappier response (reduced from 1 to 0.5) for immediate scroll-tracking
             invalidateOnRefresh: true,
           },
         });

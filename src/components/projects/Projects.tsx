@@ -1,3 +1,4 @@
+// src/components/projects/Projects.tsx
 "use client";
 
 import React, { useRef, useState, useMemo, useEffect } from 'react';
@@ -11,12 +12,10 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, SplitText);
 }
 
-// 1. Defining the standard categories
 type Category = 'RESIDENTIAL' | 'COMMERCIAL' | 'UNBUILT';
 
-// 2. The Project data model (Matches what your PostgreSQL schema will look like)
 interface ProjectItem {
-  id: string; // Used as the primary database key
+  id: string; 
   title: string;
   subText: string;
   img: string;
@@ -24,34 +23,26 @@ interface ProjectItem {
   category: Category;
 }
 
-// 3. Clean Mock Database: Exactly one project per category to test dynamic loading.
-// When your backend is ready, this array will be replaced by an API fetch call.
-const MOCK_PROJECTS_DATABASE: ProjectItem[] = [
-  {
-    id: "1",
-    title: "The Tareola Residence",
-    subText: "Residential • 2024",
-    img: "/assets/images/Tareola Image.png",
-    slug: "tareola-residence",
-    category: 'RESIDENTIAL',
-  },
-  {
-    id: "2",
-    title: "Apex Business HQ",
-    subText: "Commercial • 2024",
-    img: "https://placehold.co/1514x1136/222/fff?text=Commercial+Project",
-    slug: "apex-hq",
-    category: 'COMMERCIAL',
-  },
-  {
-    id: "3",
-    title: "The Pavilion Concept",
-    subText: "Concept • 2025",
-    img: "https://placehold.co/1514x1136/111/fff?text=Unbuilt+Project",
-    slug: "pavilion-concept",
-    category: 'UNBUILT',
-  }
-];
+// Helper function to map raw Payload CMS database data into the exact format your UI expects [1, 2]
+const mapPayloadProjects = (payloadDocs: any[]): ProjectItem[] => {
+  if (!payloadDocs || !Array.isArray(payloadDocs)) return [];
+  
+  return payloadDocs.map((doc) => {
+    // Determine user-friendly category string
+    let subLabel = 'Residential';
+    if (doc.category === 'COMMERCIAL') subLabel = 'Commercial';
+    if (doc.category === 'UNBUILT') subLabel = 'Concept';
+
+    return {
+      id: String(doc.id),
+      title: doc.title,
+      subText: subLabel,
+      img: doc.heroImg?.url || '', // Resolves the populated Media relation URL [1]
+      slug: doc.slug,
+      category: doc.category as Category,
+    };
+  });
+};
 
 const BlindCard = ({ project }: { project: ProjectItem }) => {
   const cardRef = useRef<HTMLDivElement>(null);
@@ -64,16 +55,12 @@ const BlindCard = ({ project }: { project: ProjectItem }) => {
     const titles = cardRef.current.querySelectorAll(".card-title, .card-subtext");
     const blindStrips = cardRef.current.querySelectorAll(".blind-strip");
     
-    // Setup SplitText
     const split = new SplitText(titles, { type: "words" });
     
-    // Hide the words immediately on load
     gsap.set(split.words, { yPercent: 105 });
 
-    // Create the hover timeline
     const tl = gsap.timeline({ paused: true });
     
-    // Blinds scale down
     tl.to(blindStrips, { 
         scaleY: 1, 
         duration: 0.5, 
@@ -81,7 +68,6 @@ const BlindCard = ({ project }: { project: ProjectItem }) => {
         stagger: 0.04 
     }, 0);
 
-    // Text slides UP into view
     tl.to(split.words, { 
         yPercent: 0, 
         duration: 0.5, 
@@ -136,21 +122,24 @@ const BlindCard = ({ project }: { project: ProjectItem }) => {
   );
 };
 
-export default function Projects() {
+interface ProjectsProps {
+  initialProjects: any[]; // Accept live database data as a prop from page.tsx [2]
+}
+
+export default function Projects({ initialProjects }: ProjectsProps) {
   const [activeCategory, setActiveCategory] = useState<Category>('RESIDENTIAL');
-  // State designed to hold dynamic projects from your future database API
-  const [projects, setProjects] = useState<ProjectItem[]>(MOCK_PROJECTS_DATABASE);
+  
+  // Initialize state with mapped database projects instead of mock data [2]
+  const [projects, setProjects] = useState<ProjectItem[]>(() => 
+    mapPayloadProjects(initialProjects)
+  );
+
+  // Sync state if initialProjects changes dynamically [2]
+  useEffect(() => {
+    setProjects(mapPayloadProjects(initialProjects));
+  }, [initialProjects]);
 
   useEffect(() => {
-    // 4. FUTURE BACKEND INTEGRATION PLACEHOLDER:
-    // When your Express backend and database are online, you will replace the line above 
-    // and fetch your database data here like this:
-    // 
-    // fetch('http://localhost:5000/api/projects')
-    //   .then(res => res.json())
-    //   .then(data => setProjects(data))
-    //   .catch(err => console.log(err));
-
     const timer = setTimeout(() => {
       ScrollTrigger.refresh();
     }, 100);

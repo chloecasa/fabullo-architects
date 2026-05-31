@@ -8,6 +8,7 @@ export interface PreviewSlide {
 }
 
 export interface JournalEntry {
+  slug: string;
   id: number;
   title: string;
   subtitle: string;
@@ -30,8 +31,8 @@ const BOX_1_SLIDES: PreviewSlide[] = [
       "WE THANK LUKE AND HIS TEAM AT CO-ARCHITECTURE FOR SHOWCASING TONGKAH AND FOR CONTINUING TO DEDICATE THEIR RESPECTIVE ENERGY TO PROMOTING AUSTRALIAN ARCHITECTURE TO THE WORLD.",
   },
   {
-    image: "/assets/images/hero.png",
-    smallImage: "/assets/images/hero.png",
+    image: "/media/Sun Garden Hero.jpeg",
+    smallImage: "/media/Sun Garden Hero.jpeg",
     textLeft:
       "Launched in 2022, THEY have established THEMSELVES as a trailblazing publication, committed to showcasing the most innovative and captivating designs from around the world.\n\nhttps://site.co-architecture.com/",
     textRight:
@@ -140,6 +141,7 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
     img: "/assets/images/hero.png",
     previewTemplate: "version-1",
     previewSlides: BOX_1_SLIDES,
+    slug: ""
   },
   {
     id: 2,
@@ -149,6 +151,7 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
     img: "/assets/images/hero.png",
     previewTemplate: "version-2",
     previewSlides: BOX_2_SLIDES,
+    slug: ""
   },
   {
     id: 3,
@@ -158,6 +161,7 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
     img: "/assets/images/hero.png",
     previewTemplate: "version-3",
     previewSlides: BOX_3_SLIDES,
+    slug: ""
   },
   {
     id: 4,
@@ -167,6 +171,7 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
     img: "/assets/images/hero.png",
     previewTemplate: "version-4",
     previewSlides: BOX_4_SLIDES,
+    slug: ""
   },
   {
     id: 5,
@@ -176,6 +181,7 @@ export const JOURNAL_ENTRIES: JournalEntry[] = [
     img: "/assets/images/hero.png",
     previewTemplate: "version-5",
     previewSlides: BOX_5_SLIDES,
+    slug: ""
   },
   
 ];

@@ -42,29 +42,16 @@ useGSAP(() => {
     <div ref={revealRef} className="grid min-h-screen grid-cols-[1fr_320px] grid-rows-[66vh_34vh] will-change-transform">
         <div className="relative row-start-1 col-start-1 overflow-hidden">
           <img
-            src="/assets/images/hero.png"
+            src="/assets/images/Contact/Contact.png"
             alt=""
             className="h-full w-full object-cover"
           />
         </div>
 
-        <div className="row-start-1 col-start-2 flex flex-col justify-end px-5 pb-20">
-          <p className="mb-12 max-w-[280px] text-base uppercase leading-none">
-            For daily updates subscribe to email list
-          </p>
-
-          <button
-            type="button"
-            onClick={() => setIsSubscribeOpen(true)}
-            data-cursor="click"
-            className="cursor-none text-left text-3xl font-bold uppercase transition-opacity hover:opacity-40"
-          >
-            Subscribe
-          </button>
-        </div>
+        
 
         <div className="row-start-2 col-span-2 relative px-4 pt-8">
-          <p className="absolute left-[41vw] top-10 max-w-[520px] text-base uppercase leading-none">
+          <p className="absolute left-[33.2vw] top-15 max-w-[520px] text-base uppercase leading-none">
             We make sure to cater to what you need. Make your idea come to life
             and make living for you
           </p>

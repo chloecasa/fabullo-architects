@@ -1,7 +1,9 @@
-import type { NextConfig } from "next";
+// next.config.mjs
+import { withPayload } from '@payloadcms/next/withPayload';
 
-const nextConfig: NextConfig = {
-  /* config options here */
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  // Your existing Next.js config options can go here if needed
 };
 
-export default nextConfig;
+export default withPayload(nextConfig);
