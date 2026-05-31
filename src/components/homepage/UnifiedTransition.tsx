@@ -21,10 +21,10 @@ interface ProjectSlide {
 }
 
 const slideData: ProjectSlide[] = [
-    { id: 1, image: "/assets/images/Tareola Image.png", line1: "Refined", line2: "Reception", path: "/projects/tareola" },
-    { id: 2, image: "/assets/images/strong-arm.png", line1: "Practical", line2: "Luxury", path: "/profile" },
-    { id: 3, image: "/assets/images/manning.png", line1: "Modern", line2: "Concrete", path: "/projects/manning" },
-    { id: 4, image: "/assets/images/eveleigh.png", line1: "Minimal", line2: "Design", path: "/journal" }
+    { id: 1, image: "/assets/images/Tareola Image.png", line1: "EXTRUDED", line2: "HOUSE", path: "/projects/tareola" },
+    { id: 2, image: "/assets/images/Strong Arm House.png", line1: "SUNRISE", line2: "HOUSE", path: "/profile" },
+    { id: 3, image: "/assets/images/MANNING CARTELL STRAND.png", line1: "MANNING", line2: "CARTELL CHADSTONE", path: "/projects/manning" },
+    { id: 4, image: "/assets/images/EVELEIGH STREET.png", line1: "MANNING", line2: "CARTELL STRAND", path: "/journal" }
 ];
 
 const UnifiedTransition = () => {
@@ -42,6 +42,7 @@ const UnifiedTransition = () => {
 
     useGSAP(() => {
         if (!isReady || !slidesContainerRef.current || !sectionRef.current) return;
+        
 
         const slides = gsap.utils.toArray<HTMLElement>(".slide-item");
         const titles = gsap.utils.toArray<HTMLElement>(".slide-title");
@@ -63,7 +64,13 @@ const scrollTween = gsap.to(slidesContainerRef.current, {
         end: () => `+=${totalMove}`,
         invalidateOnRefresh: true, 
         anticipatePin: 1,
-        refreshPriority: 0, // <--- ADD OR UPDATE THIS
+        refreshPriority: 0,
+        snap: {
+    snapTo: 1 / (slideData.length - 1), // This calculates the stop points for 4 slides
+    duration: 0.1,                     // How fast the snap happens (keep it low to prevent jumping)
+    delay: 0,                          // Snap immediately when scrolling stops
+    ease: "power1.inOut"               // Smooth movement
+}, // <--- ADD OR UPDATE THIS
     }
 });
 
@@ -82,6 +89,7 @@ const scrollTween = gsap.to(slidesContainerRef.current, {
             });
         });
 
+         ScrollTrigger.refresh();
         // --- Professional Cursor Performance (quickTo) ---
         const xTo = gsap.quickTo(cursorRef.current, "x", { duration: 0.4, ease: "power3" });
         const yTo = gsap.quickTo(cursorRef.current, "y", { duration: 0.4, ease: "power3" });
@@ -92,9 +100,10 @@ const scrollTween = gsap.to(slidesContainerRef.current, {
         };
 
         window.addEventListener("mousemove", handleMouseMove);
-        ScrollTrigger.refresh();
+       
 
         return () => window.removeEventListener("mousemove", handleMouseMove);
+        
 
     }, { scope: sectionRef, dependencies: [isReady] });
 
@@ -103,17 +112,21 @@ const scrollTween = gsap.to(slidesContainerRef.current, {
 const onLeave = () => gsap.to(cursorRef.current, { scale: 0, autoAlpha: 0, duration: 0.3 });
 
     return (
+        
         <section 
+        
             ref={sectionRef} 
-            data-header-theme="dark"
+           
             onMouseEnter={onEnter}
             onMouseLeave={onLeave}
             className="relative h-screen w-full overflow-hidden bg-black cursor-none"
+             
         >
             {/* Custom Glass Cursor */}
             <div 
     ref={cursorRef} 
     style={{ visibility: 'hidden', zIndex: 9999 }} // Hard-hide and fix z-index
+    
     className="fixed top-0 left-0 w-30 h-11.25 bg-white/10 backdrop-blur-md border border-white/20 rounded-full flex items-center justify-center pointer-events-none -ml-15 mt-[-22.5px]"
 >
                 <span className="text-white font-mono text-[11px] uppercase tracking-wider font-bold">
@@ -122,11 +135,12 @@ const onLeave = () => gsap.to(cursorRef.current, { scale: 0, autoAlpha: 0, durat
             </div>
 
             {/* Horizontal Slider Wrapper */}
-            <div className="h-screen w-full flex items-center">
+            <div   className="h-screen w-full flex items-center">
                 <div ref={slidesContainerRef} className="flex flex-nowrap h-screen w-fit will-change-transform">
                     {slideData.map((slide) => (
                         <div 
                             key={slide.id} 
+                            
                             className="slide-item relative w-screen h-screen shrink-0 cursor-pointer group"
                             onClick={() => {
                                 window.scrollTo(0, 0); 
@@ -134,7 +148,7 @@ const onLeave = () => gsap.to(cursorRef.current, { scale: 0, autoAlpha: 0, durat
                             }}
                         >
                             {/* Optimized Project Image */}
-                            <div className="absolute inset-0 z-1 bg-[#1a1a1a]">
+                            <div  className="absolute inset-0 z-1 bg-[#1a1a1a]">
                                 <Image 
                                     src={slide.image} 
                                     alt={slide.line1} 

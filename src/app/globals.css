@@ -1,23 +1,82 @@
 @import "tailwindcss";
 
-@theme {
-  /* Mapping our Font Families */
-  --font-sans: var(--font-lt-superior);
-  --font-serif: var(--font-cinzel);
-  --font-code: var(--font-code);
-  --font-hoves: var(--font-hoves);
+/* src/app/globals.css */
 
-  /* Mapping our Weights */
-  --font-weight-light: 300;
+/* 1. The Nuclear Scrollbar Hide (EXCLUDING .custom-scrollbar) */
+*:not(.custom-scrollbar) {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;     /* Firefox */
+}
+
+*:not(.custom-scrollbar)::-webkit-scrollbar {
+  display: none;             /* Chrome, Safari, Opera */
+}
+
+/* 2. Custom Scrollbar Styling (Forces display only for this class) */
+.custom-scrollbar {
+  -ms-overflow-style: auto !important; /* Enable scrollbar on IE/Edge */
+  scrollbar-width: auto !important;    /* Enable scrollbar on Firefox */
+}
+
+/* Chrome, Safari, and newer versions of Edge */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 8px !important;
+  display: block !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: var(--color-bg-selected) !important; /* Mapped to Zinc-100 */
+  border-radius: 4px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background: var(--color-scrollbar-thumb) !important; /* Mapped to Stone-300 */
+  border-radius: 4px !important;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #a8a29e !important; /* Stone-400 on hover */
+}
+
+/* 3. Prevent Horizontal shifting */
+html, body {
+  overflow-x: hidden !important;
+  width: 100%;
+  position: relative;
+}
+
+/* 4. Tailwind v4 Custom Theme Configurations */
+@theme {
+  /* Custom Color Tokens (from ui-context.md) */
+  --color-bg-base: #ffffff;
+  --color-bg-surface: #ffffff;
+  --color-bg-contrast: #000000;
+  --color-bg-selected: #f4f4f5;
+  --color-text-primary: #000000;
+  --color-text-muted: #71717a;
+  --color-accent-primary: #000000;
+  --color-border-default: #e4e4e7;
+  --color-border-active: #000000;
+  --color-scrollbar-thumb: #d6d3d1;
+
+  /* Mapping our Font Families (LT Superior is primary, fallbacks added) */
+  --font-sans: var(--font-lt-superior), sans-serif;
+  --font-serif: var(--font-cinzel), serif;
+  --font-code: var(--font-code), monospace;
+  --font-hoves: var(--font-hoves), sans-serif;
+
+  /* Mapping our exact weights */
   --font-weight-normal: 400;
   --font-weight-medium: 500;
+  --font-weight-semibold: 600; /* Added for your semibold spec */
   --font-weight-bold: 700;
 }
 
+/* 5. Document Base Elements */
 body {
   font-family: var(--font-sans);
-  background-color: #ffffff;
-  color: #000000;
+  background-color: var(--color-bg-base);
+  color: var(--color-text-primary);
 }
 
 /* Styling for the Shane Weber Trail effect */
@@ -32,4 +91,50 @@ body {
 
 header {
   visibility: hidden; /* Prevent flash before GSAP kicks in */
+}
+
+/* This hides the scrollbar for all browsers */
+
+/* Chrome, Safari, and newer versions of Edge */
+html::-webkit-scrollbar {
+    display: none;
+}
+
+/* Firefox */
+html {
+    scrollbar-width: none;
+}
+
+/* Internet Explorer and old Edge */
+html {
+    -ms-overflow-style: none;
+}
+
+/* Ensure the page flow is smooth */
+html, body {
+    overscroll-behavior-y: none;
+    scroll-behavior: auto !important; /* GSAP works best with auto scroll behavior */
+}
+
+/* Tailwind Utilities Layer */
+@layer utilities {
+  /* Hide scrollbar for Chrome, Safari and Opera */
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  /* Hide scrollbar for IE, Edge and Firefox */
+  .no-scrollbar {
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+}
+
+/* Force the body to never scroll sideways */
+body {
+  overflow-x: hidden;
+  width: 100%;
+}
+body.video-open header {
+  display: none !important;
 }

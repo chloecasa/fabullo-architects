@@ -163,8 +163,8 @@ const Navigation = ({ isOpen, onClose }: NavigationProps) => {
             </div>
           </div>
 
-          <div className="cursor-pointer font-mono text-[11px] tracking-[2px] uppercase hover:text-gray-400 transition-colors" onClick={onClose}>
-            Close
+          <div className="cursor-pointer font-sans font-bold text-[14px] tracking-[2px] uppercase hover:text-gray-400 transition-colors" onClick={onClose}>
+            [CLOSE]
           </div>
         </nav>
 
@@ -178,25 +178,43 @@ const Navigation = ({ isOpen, onClose }: NavigationProps) => {
         </div>
 
         {/* --- Links Section --- */}
-        <div className="flex-1 flex flex-col justify-between py-24 md:py-32">
+        <div className="flex-1 flex flex-col justify-between pt-24 pb-4 md:pt-32 md:pb-4">
           <div className="mt-[5vh]">
-             {['Home', 'Projects', 'Profile', 'Journal', 'Contacts'].map((link) => (
-               <div key={link} className="overflow-hidden mb-1.5">
-                 <p className="menu-link-text text-[clamp(3rem,6vw,6rem)] font-extrabold uppercase leading-[0.9]">
-                   <Link 
-                     href={link === 'Home' ? '/' : `/${link.toLowerCase()}`} 
-                     onClick={onClose}
-                     className="text-white hover:text-gray-400 transition-colors duration-300"
-                    >
-                      {link}
-                   </Link>
-                 </p>
-               </div>
-             ))}
+        {["Home", "Projects", "Profile", "Journal", "Contact"].map((link) => (
+  <div key={link} className="overflow-hidden mb-1.5">
+    <p className="menu-link-text text-[clamp(3rem,5vw,5rem)] font-extrabold uppercase leading-[0.9]">
+      <Link
+        href={link === "Home" ? "/" : `/${link.toLowerCase()}`}
+        onClick={onClose}
+        className="group relative inline-flex items-center overflow-hidden text-white px-4"
+      >
+        <span className="absolute left-4 -translate-x-full opacity-0 transition-all duration-500 ease-[cubic-bezier(0.77,0,0.175,1)] group-hover:translate-x-0.8 group-hover:opacity-100">
+          -
+        </span>
+
+        <span className="relative block h-[0.9em] overflow-hidden">
+          <span className="block transition-transform duration-500 ease-[cubic-bezier(0.77,0,0.175,1)] group-hover:-translate-y-full">
+            {link}
+          </span>
+          <span className="absolute left-0 top-full block transition-transform duration-500 ease-[cubic-bezier(0.77,0,0.175,1)] group-hover:-translate-y-full">
+            {link}
+          </span>
+        </span>
+
+        <span className="absolute right-4 translate-x-full opacity-0 transition-all duration-500 ease-[cubic-bezier(0.77,0,0.175,1)] group-hover:translate-x-0.8 group-hover:opacity-100">
+          -
+        </span>
+      </Link>
+    </p>
+  </div>
+))}
           </div>
           
-          <div className="flex gap-16 font-mono text-[10px] text-gray-500 uppercase tracking-widest">
-             <p>© MGK ARCHITECTS / 2025</p>
+            <div className="flex flex-col gap-10 pb-0">
+           
+           
+             
+             <p className="font-mono text-[10px] text-gray-500 uppercase tracking-widest">© MGK ARCHITECTS / 2025</p>
           </div>
         </div>
       </div>

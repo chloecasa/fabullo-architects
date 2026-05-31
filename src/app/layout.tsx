@@ -1,7 +1,6 @@
 import localFont from "next/font/local";
 import "./globals.css";
 
-
 // 1. LT Superior (Your primary UI font)
 const ltSuperior = localFont({
   src: [
@@ -40,27 +39,47 @@ const ttHoves = localFont({
   variable: "--font-hoves",
 });
 
-import "./globals.css";
 import MenuProvider from "@/context/MenuProvider";
 import SmoothScroll from "@/components/ui/SmoothScroll";
 import GsapInitializer from "@/components/helpers/GsapInitializer";
-import GsapDebugger from "@/components/helpers/GsapDebugger";
-import ScrollToTop from "@/components/ui/ScrollToTop";
+
 import Header from "@/components/ui/Header";
 import Footer from "@/components/ui/Footer";
+import CursorWord from "@/components/ui/CursorWord";
+
+
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${ltSuperior.variable} ${cinzel.variable} ${codeFont.variable} ${ttHoves.variable}`}>
-      <body className="antialiased">
+    <html 
+      lang="en" 
+      className={`overflow-x-hidden ${ltSuperior.variable} ${cinzel.variable} ${codeFont.variable} ${ttHoves.variable}`}
+    >
+      <body className="antialiased overflow-x-hidden w-full bg-white">
         <GsapInitializer />
-        {/* We move all Lenis logic INSIDE this component */}
+      
+        
         <SmoothScroll>
           <MenuProvider>
+            {/* Header sits on top of everything */}
             <Header />
-            <main>{children}</main>
+
+            {/* 
+              MAIN acts as the "Curtain". 
+              z-20 and bg-black ensures it stays on top of the footer.
+            */}
+            <main            className="relative z-20 w-full min-h-screen bg-white shadow-none"
+>
+              {children}
+            </main>
+<CursorWord/>
+            {/* 
+              FOOTER sits at the bottom. 
+              The internal GSAP in your Footer component handles the "reveal" movement.
+            */}
             <Footer />
-            <ScrollToTop />
+
+        
           </MenuProvider>
         </SmoothScroll>
       </body>

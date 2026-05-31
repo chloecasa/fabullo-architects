@@ -1,66 +1,141 @@
 "use client";
 
-import React from 'react';
-import Link from 'next/link';
-import Image from 'next/image';
+import React, { useRef } from 'react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
+import Link from "next/link";
+
+if (typeof window !== "undefined") {
+    gsap.registerPlugin(ScrollTrigger);
+}
 
 const Footer = () => {
-  return (
-    <footer className="bg-[#ffffff] h-screen w-full relative overflow-hidden border-t border-white/10">
-      
-      {/* --- Top Section: Links & CTA --- */}
-      <div className="absolute top-[5%] left-[5%] right-[5%] flex flex-col md:flex-row justify-between items-start z-20">
-        
-        {/* Let's Talk CTA */}
-        <div className="flex items-center gap-5 cursor-pointer group">
-          <span className="font-lt-superior bold text-4xl md:text-5xl font-semibold text-black tracking-tight">
-            LET’S TALK
-          </span>
-          <div className="relative w-10 h-10 transition-transform duration-300 group-hover:translate-x-2 group-hover:-translate-y-2">
-            <Image 
-              src="/assets/images/arrow.svg" 
-              alt="Arrow" 
-              fill 
-              className="object-contain" 
-            />
-          </div>
-        </div>
+    const containerRef = useRef<HTMLDivElement>(null);
+    const contentRef = useRef<HTMLDivElement>(null);
+    const mgkRef = useRef<HTMLSpanElement>(null);
+const architectsRef = useRef<HTMLSpanElement>(null);
 
-        {/* Navigation Columns */}
-        <div className="flex gap-12 md:gap-24 mt-12 md:mt-0">
-          <nav className="flex flex-col gap-4">
-            <h4 className="text-[12px] opacity-50 font-mono tracking-widest">MENU</h4>
-            <div className="flex flex-col gap-2 font-sans font-semibold text-xl">
-              <Link href="/" className="hover:opacity-50 transition-opacity">HOME</Link>
-              <Link href="/projects" className="hover:opacity-50 transition-opacity">PROJECTS</Link>
-              <Link href="/profile" className="hover:opacity-50 transition-opacity">PROFILE</Link>
-              <Link href="/journal" className="hover:opacity-50 transition-opacity">JOURNAL</Link>
-            </div>
-          </nav>
-          
-          <nav className="flex flex-col gap-4">
-            <h4 className="text-[12px] opacity-50 font-mono tracking-widest">SOCIALS</h4>
-            <div className="flex flex-col gap-2 font-sans font-semibold text-xl">
-              <a href="#" className="hover:opacity-50 transition-opacity">INSTAGRAM</a>
-              <a href="#" className="hover:opacity-50 transition-opacity">FACEBOOK</a>
-              <a href="#" className="hover:opacity-50 transition-opacity">LINKEDIN</a>
-              <a href="#" className="hover:opacity-50 transition-opacity">X</a>
-            </div>
-          </nav>
-        </div>
+    useGSAP(() => {
+        // Increased the y offset to -300 for a better feel on a 100vh container
+        gsap.fromTo(contentRef.current, 
+            { y: -300 }, 
+            {
+                y: 0,
+                ease: "none",
+                scrollTrigger: {
+                    trigger: containerRef.current,
+                    start: "top bottom", 
+                    end: "bottom bottom",
+                    scrub: true,
+                }
+            }
+        );
+
+gsap.fromTo(
+  mgkRef.current,
+  {
+    scale: 0.35,
+    yPercent: 65,
+    opacity: 0,
+  },
+  {
+    scale: 1,
+    yPercent: 0,
+    opacity: 1,
+    ease: "none",
+    scrollTrigger: {
+      trigger: containerRef.current,
+      start: "top bottom",
+      end: "bottom bottom",
+      scrub: true,
+    },
+  }
+);
+
+gsap.fromTo(
+  architectsRef.current,
+  {
+    scale: 0.35,
+    xPercent: 45,
+    yPercent: 65,
+    opacity: 0,
+  },
+  {
+    scale: 1,
+    xPercent: 0,
+    yPercent: 0,
+    opacity: 1,
+    ease: "none",
+    scrollTrigger: {
+      trigger: containerRef.current,
+      start: "top bottom",
+      end: "bottom bottom",
+      scrub: true,
+    },
+  }
+);
+    }, { scope: containerRef });
+
+    return (
+  <footer
+    ref={containerRef}
+    className="relative z-0 h-screen min-h-[760px] w-full overflow-hidden bg-black text-white shadow-none border-none"
+  >
+    <div
+      ref={contentRef}
+      className="relative h-full w-full"
+    >
+      <Link
+        href="/contact"
+        className="absolute left-5 top-10 flex items-center gap-3 text-5xl font-semibold uppercase transition-opacity hover:opacity-50"
+      >
+        Lets talk
+        <span className="text-6xl leading-none">↗</span>
+      </Link>
+
+      <nav className="absolute left-[61vw] top-10 flex flex-col gap-5 text-2xl font-semibold uppercase">
+        <Link href="/" className="transition-opacity hover:opacity-50">Home</Link>
+        <Link href="/projects" className="transition-opacity hover:opacity-50">Projects</Link>
+        <Link href="/profile" className="transition-opacity hover:opacity-50">Profile</Link>
+        <Link href="/journal" className="transition-opacity hover:opacity-50">Journal</Link>
+        <Link href="/contact" className="transition-opacity hover:opacity-50">Contact</Link>
+      </nav>
+
+      <div className="absolute left-[81vw] top-10 flex flex-col gap-5 text-2xl font-semibold uppercase">
+        <a href="https://instagram.com/yourhandle" target="_blank" rel="noreferrer" className="transition-opacity hover:opacity-50">
+          Instagram
+        </a>
+        <a href="https://facebook.com" target="_blank" rel="noreferrer" className="transition-opacity hover:opacity-50">
+          Facebook
+        </a>
+        <Link href="/contact" className="transition-opacity hover:opacity-50">Contact</Link>
+        <a href="mailto:hello@mgkarchitects.com" className="transition-opacity hover:opacity-50">
+          Email
+        </a>
+        <a href="https://x.com" target="_blank" rel="noreferrer" className="transition-opacity hover:opacity-50">
+          X
+        </a>
       </div>
 
-      {/* --- Large Background Typography --- */}
-      <h1 className="text-black font-code font-bold text-[clamp(200px,30vw,446px)] absolute left-[1%] bottom-[5%] md:bottom-[-5%] leading-[0.8] select-none pointer-events-none">
-        MGK
-      </h1>
-      
-      <h2 className="text-black font-code font-bold text-[clamp(40px,8vw,108px)] absolute right-[2%] bottom-[10%] md:bottom-[12%] select-none pointer-events-none">
-        architects
-      </h2>
+      <div className="absolute left-5 bottom-0 flex items-end whitespace-nowrap font-bold uppercase leading-[0.72] tracking-[-0.06em]">
+        <span
+  ref={mgkRef}
+  className="inline-block origin-bottom-left text-[clamp(10rem,31vw,420px)]"
+>
+  MGK
+</span>
+        <span
+  ref={architectsRef}
+  className="mb-5 inline-block origin-bottom-right text-[clamp(3rem,6.5vw,86px)]"
+>
+  architects
+</span>
+      </div>
+    </div>
+  </footer>
+);
 
-    </footer>
-  );
 };
 
 export default Footer;

@@ -1,31 +1,96 @@
+// src/app/projects/[slug]/page.tsx
 import { notFound } from "next/navigation";
 import ProjectDetailView from "@/components/projects/ProjectDetailView";
+import { Metadata } from "next";
+import ContactSection from "@/components/contact/ContactSection";
 
-// --- This will eventually come from your Backend Dashboard ---
-const ALL_PROJECTS = {
-  "tareola": {
-    title: "Monochrome Signal",
-    description: "A stripped-back visual experience blending luxury fashion with streetwear edge. Designed for bold statements and minimal distractions.",
-    url: "#",
-    tags: ["Monochrome", "Editorial", "Fashion", "Visual Identity"],
-    img: "/assets/projects/tareola.png",
-    index: "01 / 04"
-  },
-  "manning": {
-    title: "Manning Strand",
-    description: "A minimalist commercial space focused on material honesty and industrial refined forms.",
-    url: "#",
-    tags: ["Industrial", "Retail", "Sydney"],
-    img: "/assets/projects/manning.png",
-    index: "02 / 04"
+export interface ProjectData {
+  title: string;
+  heroImg: string;
+  credits: string;
+  team: { label: string; val: string }[];
+  consultants: { label: string; val: string }[];
+  // The 4 text parts for the pinned sequence
+  slides: string[]; 
+  // The 4 images for the pinned sequence
+  verticalImages: string[];
+  // The list of images for the bottom scroll
+  horizontalGallery: string[];
+}
+
+const ALL_PROJECTS: Record<string, ProjectData> = {
+  "res-1": {
+    title: "SUN GARDEN HOUSE",
+    heroImg: "/assets/images/Tareola Image.png", 
+    credits: "PHOTOGRAPHY BY PRUE RUSCOE STYLED BY OLGA LEWIS",
+      team: [
+      { label: "MCK TEAM", val: "MAKI YAMAJI, SU LIEW, STEVE KOOLLOOS" },
+      { label: "BUILDER", val: "RICHARDS BUILDING" },
+      { label: "STRUCTURAL ENGINEER", val: "SDA STRUCTURES" },
+      { label: "LANDSCAPE ARCHITECTS", val: "MARIKO FRASER" },
+      { label: "INTERIOR DESIGN", val: "MCK ARCHITECTS" },
+
+    ],
+    consultants: [
+        { label: "HERITAGE", val: "ZOLTAN KOVACS" },
+      { label: "PLANNING", val: "GSA PLANNING" },
+      { label: "JOINERY", val: "ELAN" },
+      { label: "SOLAR BLINDS", val: "SHADE FACTOR" },
+      { label: "GLASS BRICKS", val: "AUSTRAL" },
+      
+    ],
+    slides: [
+        "Presented to the street as a reinvogprated victorian terrace, the Ghrian-Glyph Fouse appears understated",
+        "As traditonal as the day it was built, the journey in takes no time to alert the inhabitant.",
+        "The contemporary twist presents a generous source of light at the end of the tunnel.",
+        "Beyond the seamless black balustrade that flanks the stair leading down to the new living zone."
+    ],
+    verticalImages: [
+      "/assets/images/Tareola Image.png",
+      "/assets/images/Tareola Image.png",
+      "/assets/images/Tareola Image.png",
+      "/assets/images/Tareola Image.png",
+    ],
+    horizontalGallery: [
+       "/assets/images/download (3).jpg",
+      "/assets/images/download (5).jpg",
+      "/assets/images/download (3).jpg",
+      "/assets/images/download (10).jpg",
+       "/assets/images/download (3).jpg",
+       "/assets/images/download (3).jpg",
+      "/assets/images/download (10).jpg",
+       "/assets/images/download (3).jpg",
+      "/assets/images/download (10).jpg",
+       "/assets/images/download (3).jpg",
+    ]
   }
 };
 
-export default async function ProjectPage({ params }: { params: Promise<{ slug: string }> }) {
+export async function generateMetadata({ params }: { params: Promise<{ slug: string }> }): Promise<Metadata> {
   const { slug } = await params;
-  const project = ALL_PROJECTS[slug as keyof typeof ALL_PROJECTS];
+  const project = ALL_PROJECTS[slug];
+  return { title: project ? `${project.title} | MGK` : "Project Not Found" };
+}
 
-  if (!project) notFound();
+// This version is "cleaner" and easier for TypeScript to read
+export default async function ProjectPage(props: { 
+  params: Promise<{ slug: string }> 
+}) {
+  // Await the promise first
+  const resolvedParams = await props.params;
+  const slug = resolvedParams.slug; // This defines 'slug' clearly
+  
+  const project = ALL_PROJECTS[slug];
 
-  return <ProjectDetailView project={project} />;
+  if (!project) {
+    notFound();
+  }
+
+  return (
+
+    <main>
+<ProjectDetailView project={project} />;
+<ContactSection/>
+</main>
+  ) 
 }

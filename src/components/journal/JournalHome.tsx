@@ -2,183 +2,219 @@
 
 import React, { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
-import { useGSAP } from "@gsap/react";
 
-// --- Data Types ---
-interface JournalEntry {
-  id: number;
-  title: string;
-  subtitle: string;
-  desc: string;
-  img: string;
-}
+// Import your templates
+import PreviewPanelVersion1 from "@/components/journal/templates/PreviewPanelVersion1";
+import PreviewPanelVersion2 from "@/components/journal/templates/PreviewPanelVersion2";
+import PreviewPanelVersion3 from "@/components/journal/templates/PreviewPanelVersion3";
+import PreviewPanelVersion4 from "@/components/journal/templates/PreviewPanelVersion4";
+import PreviewPanelVersion5 from "@/components/journal/templates/PreviewPanelVersion5";
 
-const JOURNAL_ENTRIES: JournalEntry[] = Array.from({ length: 16 }).map((_, i) => ({
-  id: i + 1,
-  title: `Entry — 0${i + 1}`,
-  subtitle: "Architectural Journal",
-  desc: "An exploration of context-driven design and refined structural forms within the modern landscape.",
-  img: `/assets/images/hero.png`, // Placeholder
-}));
+// Import your local journal data structure
+import { JOURNAL_ENTRIES, JournalEntry } from "@/components/journal/JournalInfo";
+
 
 const JournalHome = () => {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const panelRef = useRef<HTMLDivElement>(null);
-  const panelImgRef = useRef<HTMLDivElement>(null);
+  const panelRef = useRef<HTMLDivElement | null>(null);
   
-  const [activeEntry, setActiveEntry] = useState<JournalEntry>(JOURNAL_ENTRIES[0]);
+  // 2. Store your entries in a React state so we can dynamically fetch from the database later.
+  const [entries, setEntries] = useState<JournalEntry[]>(JOURNAL_ENTRIES);
+  const [activeEntry, setActiveEntry] = useState<JournalEntry | null>(JOURNAL_ENTRIES[0] || null);
   const [isAnimating, setIsAnimating] = useState(false);
-  const [isPanelRight, setIsPanelRight] = useState(false);
+  const [activeSlide, setActiveSlide] = useState(0);
 
-  const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
+  useEffect(() => {
+    // 3. FUTURE BACKEND INTEGRATION PLACEHOLDER:
+    // Once your database is active, uncomment this to populate the page directly from your CMS:
+    //
+    // fetch('http://localhost:5000/api/journal')
+    //   .then(res => res.json())
+    //   .then(data => {
+    //     setEntries(data);
+    //     if (data.length > 0) setActiveEntry(data[0]);
+    //   })
+    //   .catch(err => console.log(err));
+  }, []);
 
   const handleItemClick = (entry: JournalEntry, e: React.MouseEvent<HTMLElement>) => {
-    if (isAnimating || !panelRef.current || !panelImgRef.current || !containerRef.current) return;
+    if (isAnimating) return;
     
     setIsAnimating(true);
     setActiveEntry(entry);
+    setActiveSlide(0);
 
-    const clickedEl = e.currentTarget.querySelector(".grid-image") as HTMLElement;
-    const startRect = clickedEl.getBoundingClientRect();
+    const clickedEl = e.currentTarget;
+    const rect = clickedEl.getBoundingClientRect();
     
-    // Determine Panel Orientation
-    const isLeft = startRect.left < window.innerWidth / 2;
-    setIsPanelRight(isLeft);
+    const clickX = rect.left + rect.width / 2;
+    const clickY = rect.top + rect.height / 2;
 
-    // Prepare Panel Reveal
-    gsap.set(panelRef.current, { opacity: 0, pointerEvents: "none" });
-    const endRect = panelImgRef.current.getBoundingClientRect();
+    requestAnimationFrame(() => {
+      if (panelRef.current) {
+        panelRef.current.style.transformOrigin = `${clickX}px ${clickY}px`;
+      }
 
-    const mainTl = gsap.timeline({
-      onComplete: () => setIsAnimating(false)
-    });
-
-    // 1. Hide Grid
-    mainTl.to(".grid-item", {
-      opacity: 0,
-      scale: 0.8,
-      duration: 0.4,
-      stagger: { amount: 0.2, from: "center" }
-    });
-
-    // 2. Create "Mover" Trail (The Shane Weber Effect)
-    const steps = 6;
-    for (let i = 0; i < steps; i++) {
-      const t = (i + 1) / (steps + 1);
-      const mover = document.createElement("div");
-      
-      // We use a global CSS class for the mover for performance
-      mover.className = "journal-mover-element";
-      
-      const width = lerp(startRect.width, endRect.width, t);
-      const height = lerp(startRect.height, endRect.height, t);
-      const x = lerp(startRect.left + startRect.width / 2, endRect.left + endRect.width / 2, t);
-      const y = lerp(startRect.top + startRect.height / 2, endRect.top + endRect.height / 2, t);
-
-      Object.assign(mover.style, {
-        backgroundImage: `url(${entry.img})`,
-        width: `${width}px`,
-        height: `${height}px`,
-        left: `${x - width / 2}px`,
-        top: `${y - height / 2}px`,
+      const allItems = gsap.utils.toArray(".grid-item") as HTMLElement[];
+      const tl = gsap.timeline({
+        onComplete: () => setIsAnimating(false)
       });
 
-      containerRef.current.appendChild(mover);
+      tl.to(allItems, {
+        opacity: 0,
+        scale: 0.95,
+        duration: 0.3,
+        ease: "power2.inOut"
+      }, 0);
 
-      gsap.timeline({ delay: 0.4 + (i * 0.05) })
-        .fromTo(mover, 
-          { clipPath: "inset(100% 0% 0% 0%)" }, 
-          { clipPath: "inset(0% 0% 0% 0%)", duration: 0.35, ease: "sine.in" }
-        )
-        .to(mover, 
-          { clipPath: "inset(0% 0% 100% 0%)", duration: 0.35, ease: "sine" }, 
-          "+=0.14"
-        )
-        .add(() => mover.remove());
-    }
-
-    // 3. Show Panel
-    mainTl.to(panelRef.current, {
-      opacity: 1,
-      pointerEvents: "all",
-      duration: 0.5,
-      delay: 0.3
-    }, "-=0.2");
+      tl.fromTo(panelRef.current, 
+        {
+          opacity: 0,
+          scale: 0,
+          transformOrigin: `${clickX}px ${clickY}px`
+        },
+        {
+          opacity: 1,
+          scale: 1,
+          pointerEvents: "all",
+          duration: 0.6,
+          ease: "power3.out"
+        }, 
+        0.15
+      );
+    });
   };
 
   const closePanel = () => {
     if (isAnimating) return;
     setIsAnimating(true);
 
+    const allItems = gsap.utils.toArray(".grid-item") as HTMLElement[];
     const tl = gsap.timeline({
       onComplete: () => setIsAnimating(false)
     });
 
-    tl.to(panelRef.current, { opacity: 0, pointerEvents: "none", duration: 0.4 })
-      .to(".grid-item", { opacity: 1, scale: 1, duration: 0.5, stagger: 0.05 });
+    tl.to(panelRef.current, { 
+      opacity: 0, 
+      scale: 0,
+      pointerEvents: "none", 
+      duration: 0.5,
+      ease: "power3.in"
+    });
+
+    tl.to(allItems, { 
+      opacity: 1, 
+      scale: 1,
+      duration: 0.4, 
+      stagger: {
+        amount: 0.2,
+        from: "random"
+      },
+      ease: "power2.out"
+    }, 0.3);
+  };
+
+  const goPrevSlide = () => {
+    setActiveSlide((current) => Math.max(current - 1, 0));
+  };
+
+  const goNextSlide = () => {
+    if (!activeEntry) return;
+    setActiveSlide((current) =>
+      Math.min(current + 1, (activeEntry.previewSlides?.length ?? 1) - 1)
+    );
   };
 
   return (
-    <section data-header-theme="light" className="bg-white text-[#151515] min-h-screen p-8 relative overflow-x-hidden" ref={containerRef}>
-      
-      {/* Header Section */}
-      <div className="flex flex-wrap items-end justify-between gap-4 mt-20 mb-8" data-header-theme="light">
-        <h2 className="font-sans text-[clamp(2rem,10vw,5rem)] font-bold uppercase leading-[0.8]">
-          OUR JOURNAL
-        </h2>
-        <span className="font-mono text-xs opacity-60 lowercase">
-          / Index of architectural thought
-        </span>
-      </div>
+    <>
+      <section className="bg-white text-[#151515] min-h-screen px-5 pt-8 pb-64 relative overflow-x-hidden">
+        {/* Header Section */}
+        <div className="flex items-baseline gap-4 mt-44 mb-8">
+          <h2 className="font-sans text-[clamp(4rem,13vw,200px)] font-bold uppercase leading-[0.8] tracking-tighter">
+            JOURNAL
+          </h2>
+          <span className="text-3xl font-normal lowercase">
+            keep updates on us
+          </span>
+        </div>
 
-      {/* Grid Layout */}
-      <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-8 gap-x-4 gap-y-16 py-8">
-        {JOURNAL_ENTRIES.map((entry) => (
-          <figure 
-            key={entry.id} 
-            className="grid-item m-0 cursor-pointer flex flex-col gap-2 transition-transform hover:scale-[1.02]" 
-            onClick={(e) => handleItemClick(entry, e)}
-          >
-            <div 
-              className="grid-image w-full bg-cover bg-center transition-opacity duration-300 hover:opacity-80" 
-              style={{ backgroundImage: `url(${entry.img})`, aspectRatio: "4 / 5" }}
-            />
-            <figcaption className="text-right">
-              <h3 className="text-sm font-semibold m-0 uppercase tracking-wider">{entry.title}</h3>
-              <p className="text-[10px] opacity-50 m-0 uppercase font-mono">{entry.subtitle}</p>
-            </figcaption>
-          </figure>
-        ))}
-      </div>
+        {/* Grid Layout - Renders dynamic database entries cleanly */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6.25">
+          {entries.slice(0, 12).map((entry) => (
+            <figure 
+              key={entry.id} 
+              className="grid-item m-0 cursor-pointer transition-transform hover:scale-[1.02]" 
+              onClick={(e) => handleItemClick(entry, e)}
+            >
+              <div 
+                className="grid-image w-56 h-72 bg-cover bg-center bg-zinc-400 transition-opacity duration-300 hover:opacity-80 grayscale" 
+                style={{ backgroundImage: `url(${entry.img})` }}
+              />
+            </figure>
+          ))}
+        </div>
+      </section>
 
-      {/* Preview Panel */}
-      <figure 
-        ref={panelRef}
-        className={`
-          fixed inset-0 p-8 bg-white opacity-0 pointer-events-none grid gap-8
-          ${isPanelRight ? 'grid-cols-[1fr_auto]' : 'grid-cols-[auto_1fr]'}
-          {{style: zIndex: 2000}}
-        `}
-      >
-        <div 
-          ref={panelImgRef}
-          className={`h-full bg-cover bg-center ${isPanelRight ? 'order-2' : 'order-1'}`}
-          style={{ backgroundImage: `url(${activeEntry.img})`, aspectRatio: "4 / 5"}}
+      {/* Render the correct template based on entry's previewTemplate */}
+      {activeEntry?.previewTemplate === "version-1" && activeEntry.previewSlides && (
+        <PreviewPanelVersion1
+          panelRef={panelRef}
+          activeSlide={activeSlide}
+          slides={activeEntry.previewSlides}
+          onPrevSlide={goPrevSlide}
+          onNextSlide={goNextSlide}
+          onSetSlide={setActiveSlide}
+          onClose={closePanel}
         />
-        
-        <figcaption className={`flex flex-col justify-end pb-12 ${isPanelRight ? 'order-1 text-left items-start' : 'order-2 text-right items-end'}`}>
-          <h3 className="text-3xl md:text-5xl font-bold uppercase mb-4">{activeEntry.title}</h3>
-          <p className="leading-relaxed mb-8 opacity-70" style={{ maxWidth: '300px' }}>{activeEntry.desc}</p>
-          <button 
-            type="button" 
-            className="bg-transparent border-none font-mono font-bold cursor-pointer text-red-800 hover:text-black transition-colors"
-            onClick={closePanel}
-          >
-            [ CLOSE ]
-          </button>
-        </figcaption>
-      </figure>
-    </section>
+      )}
+
+      {activeEntry?.previewTemplate === "version-2" && activeEntry.previewSlides && (
+        <PreviewPanelVersion2
+          panelRef={panelRef}
+          activeSlide={activeSlide}
+          slides={activeEntry.previewSlides}
+          onPrevSlide={goPrevSlide}
+          onNextSlide={goNextSlide}
+          onSetSlide={setActiveSlide}
+          onClose={closePanel}
+        />
+      )}
+
+      {activeEntry?.previewTemplate === "version-3" && activeEntry.previewSlides && (
+        <PreviewPanelVersion3
+          panelRef={panelRef}
+          activeSlide={activeSlide}
+          slides={activeEntry.previewSlides}
+          onPrevSlide={goPrevSlide}
+          onNextSlide={goNextSlide}
+          onSetSlide={setActiveSlide}
+          onClose={closePanel}
+        />
+      )}
+
+      {activeEntry?.previewTemplate === "version-4" && activeEntry.previewSlides && (
+        <PreviewPanelVersion4
+          panelRef={panelRef}
+          activeSlide={activeSlide}
+          slides={activeEntry.previewSlides}
+          onPrevSlide={goPrevSlide}
+          onNextSlide={goNextSlide}
+          onSetSlide={setActiveSlide}
+          onClose={closePanel}
+        />
+      )}
+
+      {activeEntry?.previewTemplate === "version-5" && activeEntry.previewSlides && (
+        <PreviewPanelVersion5
+          panelRef={panelRef}
+          activeSlide={activeSlide}
+          slides={activeEntry.previewSlides}
+          onPrevSlide={goPrevSlide}
+          onNextSlide={goNextSlide}
+          onSetSlide={setActiveSlide}
+          onClose={closePanel}
+        />
+      )}
+    </>
   );
 };
 

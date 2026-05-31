@@ -1,4 +1,6 @@
 import Projects from "@/components/projects/Projects";
+import ContactSection from "@/components/contact/ContactSection";
+
 
 export const metadata = {
   title: "Projects | MGK Architects",
@@ -6,5 +8,11 @@ export const metadata = {
 };
 
 export default function ProjectsPage() {
-  return <Projects />;
-}
+  return (
+  
+  <main>
+<Projects />
+<ContactSection/>
+</main>
+  );
+  }
