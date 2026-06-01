@@ -45,12 +45,12 @@ export default buildConfig({
   plugins: [
     cloudinaryStorage({
       collections: {
-        media: true, // Binds the 'media' collection to Cloudinary [8.1.1]
+        media: true,
       },
       cloudinaryConfig: {
-        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-        api_key: process.env.CLOUDINARY_API_KEY,
-        api_secret: process.env.CLOUDINARY_API_SECRET,
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME || '',
+        api_key: process.env.CLOUDINARY_API_KEY || '',
+        api_secret: process.env.CLOUDINARY_API_SECRET || '',
       },
     }),
   ],
