@@ -4,13 +4,15 @@ import { lexicalEditor } from '@payloadcms/richtext-lexical';
 import path from 'path';
 import { buildConfig } from 'payload';
 import { fileURLToPath } from 'url';
+import { cloudinaryStorage } from 'payloadcms-storage-cloudinary'; // Import the Cloudinary storage adapter
+
 import { Media } from './collections/Media';
 import { Projects } from './collections/Projects';
 import { Journal } from './collections/Journal';
 import { Leads } from './collections/Leads';
-import { Team } from './collections/Team'; // Import Team [1.1.2]
-import { Awards } from './collections/Awards'; // Import Awards [1.1.2]
-import { Books } from './collections/Books'; // Import Books [1.1.2]
+import { Team } from './collections/Team'; 
+import { Awards } from './collections/Awards'; 
+import { Books } from './collections/Books'; 
 import { Homepage } from './globals/Homepage';
 
 const filename = fileURLToPath(import.meta.url);
@@ -25,9 +27,9 @@ export default buildConfig({
     Projects,
     Journal,
     Leads,
-    Team,      // Register Team [1.1.2]
-    Awards,    // Register Awards [1.1.2]
-    Books,     // Register Books [1.1.2]
+    Team,      
+    Awards,    
+    Books,     
   ],
   globals: [
     Homepage,
@@ -39,6 +41,19 @@ export default buildConfig({
       connectionString: process.env.DATABASE_URL || '',
     },
   }),
+  // Register the Cloudinary storage plugin
+  plugins: [
+    cloudinaryStorage({
+      collections: {
+        media: true, // Binds the 'media' collection to Cloudinary [8.1.1]
+      },
+      cloudinaryConfig: {
+        cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+        api_key: process.env.CLOUDINARY_API_KEY,
+        api_secret: process.env.CLOUDINARY_API_SECRET,
+      },
+    }),
+  ],
   typescript: {
     outputFile: path.resolve(dirname, 'payload-types.ts'),
   },

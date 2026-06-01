@@ -118,7 +118,7 @@ useGSAP(
        
         {/* Lower Copy */}
         <p className="hero-copy absolute left-[60.5vw] top-[43vh] z-20 w-64 text-justify text-base font-medium leading-none">
-          We design context-driven architecture that transforms your vision into
+          Design context-driven architecture that transforms your vision into
           refined, built form.
         </p>
 
