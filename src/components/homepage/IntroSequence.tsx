@@ -162,12 +162,14 @@ const IntroSequence: React.FC = () => {
       className="relative z-20 w-full overflow-hidden bg-white text-black"
     >
       <div className="relative mx-auto min-h-screen w-full max-w-[1440px] px-5 py-20 lg:h-[1523px] lg:px-0 lg:py-0">
-        <Link
-          href="/profile"
-          className="intro-title block font-['LT_Superior'] text-[clamp(2rem,6vw,74px)] font-bold uppercase leading-[0.85] text-black transition-opacity duration-300 hover:opacity-40 will-change-transform lg:absolute lg:left-[20px] lg:top-[208px] lg:w-[520px]"
-        >
-          WHAT WE DO
-        </Link>
+        <div className="intro-title will-change-transform lg:absolute lg:left-[20px] lg:top-[208px] lg:w-[520px]">
+          <Link
+            href="/profile"
+            className="block font-['LT_Superior'] text-[clamp(2rem,6vw,74px)] font-bold uppercase leading-[0.85] text-black transition-opacity duration-300 hover:opacity-40"
+          >
+            WHAT WE DO
+          </Link>
+        </div>
 
         <div className="intro-text-one mt-16 w-full text-justify font-['LT_Superior'] text-3xl font-bold leading-tight text-black will-change-transform lg:absolute lg:left-[710px] lg:top-[208px] lg:mt-0 lg:w-[713px] lg:text-4xl">
           We design refined, context-driven homes and commercial spaces shaped
