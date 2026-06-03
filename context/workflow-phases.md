@@ -98,6 +98,59 @@ This map outlines the complete structural phases required to connect the complet
     *   Submit a mock lead via the public contact form and verify that the inquiry is logged in the CMS, an email notification is delivered, and a CRM deal card is successfully created.
 
 ---
+# Extension Integration Map: Security, SEO, & CRM Automation
+
+This document outlines the implementation specifications for the final security and commercial automation phases of the MGK Architects platform. These integrations are positioned after the frontend styling sweep and prior to the turnkey handover.
+
+---
+
+## Phase 4.5: Premium SEO & Automated Social Graphics
+**Objective:** Empower the client with built-in Google/social preview panels and dynamically generate custom OpenGraph graphics when they publish new content.
+
+*   **Task 4.6.1: Payload CMS first-party SEO Plugin Integration**
+    *   *Implementation:* Install and register `@payloadcms/plugin-seo` inside the global config.
+    *   *CMS Interface:* This will automatically inject a visual **SEO Tab** inside the editing interface for both Project and Journal collections, presenting the client with a real-time layout preview showing exactly how their page will appear on **Google Search**, **Facebook**, and **Twitter**.
+    *   *Files Affected:* `src/payload.config.ts`, `src/collections/Projects.ts`, `src/collections/Journal.ts`
+*   **Task 4.6.2: Dynamic OpenGraph Branded Card Generation**
+    *   *Implementation:* Implement a dynamic open-graph generation pipeline using `@vercel/og` (utilizing Vercel's edge network).
+    *   *Behavior:* When a new project is shared on LinkedIn, X, or Slack, the platform automatically generates and serves a custom social-sharing graphic displaying the project's title, material tags, and branding in a high-contrast minimalist layout.
+    *   *Files Affected:* `src/app/(app)/projects/[slug]/opengraph-image.tsx`
+
+---
+
+## Phase 4.6: Automated CRM & Pipeline Sync
+**Objective:** Convert the website from a standard brochure into an automated sales machine by securely linking submissions directly to the client's existing workflow boards.
+
+*   **Task 4.7.1: Asynchronous Third-Party API Sync Hooks**
+    *   *Implementation:* Build asynchronous API connectors inside the submission lifecycle of your contact form Server Action.
+    *   *Behavior:* The exact millisecond a lead is successfully saved to the Neon database, the server initiates an outgoing API call to **Monday.com** or **HubSpot** using their secure REST APIs.
+    *   *Files Affected:* `src/lib/actions/submitInquiry.ts`
+*   **Task 4.7.2: Automated Deal Card Generation**
+    *   *Implementation:* Map, format, and push the lead payload to the client's active board.
+    *   *Parameters:* Automatically create a new "Deal Card" or "Lead Contact" on their board, mapping the fields they submitted (e.g., Name, Email, Phone, Project Type, Estimated Budget, and Project Address).
+*   **Task 4.7.3: Format and Trigger Real-Time Team Alerts**
+    *   *Implementation:* Connect a webhook to dispatch a styled JSON payload to their team communications chat (such as Slack or Microsoft Teams).
+    *   *Content:* Send a private notification saying: *"New Project Inquiry Registered — [Client Name] has requested a consultation for [Project Type]. A new card has been automatically generated on your Monday.com board."*
+
+## Phase 4.7: Enterprise Security Hardening & Vulnerability Shielding
+**Objective:** Secure the platform's backend endpoints, sanitize user inputs, apply strict HTTP security headers, and prevent unauthorized data lookups.
+
+*   **Task 4.5.1: Payload CMS Collection-Level Access Controls**
+    *   *Implementation:* Hard-code strict access security controls within the collection schemas.
+    *   *Target:* Ensure that while the public contact form can submit data (`create: () => true`), only authenticated administrative users with valid session cookies can query, view, edit, or delete leads (`read: ({ req }) => Boolean(req.user)`).
+    *   *Files Affected:* `src/collections/Leads.ts`, `src/collections/Users.ts`
+*   **Task 4.5.2: Multi-Layered Input Sanitization & XSS Shielding**
+    *   *Implementation:* Validate all incoming payloads against Zod validation schemas inside Next.js Server Actions. Strip out hazardous characters, SQL escape sequences, and HTML/script tags before writing to the Neon PostgreSQL database.
+    *   *Files Affected:* `src/lib/actions/submitInquiry.ts` (or your secure submission Server Action)
+*   **Task 4.5.3: Production HTTP Security Headers Configuration**
+    *   *Implementation:* Apply secure headers within the `next.config.ts` (or root middleware) to block clickjacking, MIME-sniffing, cross-site scripting (XSS), and session hijacking.
+    *   *Headers:* `Content-Security-Policy` (CSP), `Strict-Transport-Security` (HSTS), `X-Frame-Options: DENY`, `X-Content-Type-Options: nosniff`.
+    *   *Files Affected:* `next.config.ts` or `next.config.mjs`
+*   **Task 4.5.4: API Route Rate Limiting**
+    *   *Implementation:* Protect public endpoints like `/api/search` and your contact form Server Action from automated abuse or DDoS attempts by implementing rate limiting.
+    *   *Files Affected:* `src/app/api/search/route.ts`, Next.js middleware
+
+---
 
 ## Phase 5: Turnkey Handover & Asset Migration
 **Objective:** Transition full ownership of the digital infrastructure to the client, providing documentation and offboarding your access.
