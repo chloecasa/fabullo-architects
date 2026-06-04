@@ -41,14 +41,16 @@ import GsapInitializer from "@/components/helpers/GsapInitializer";
 import Header from "@/components/ui/Header";
 import Footer from "@/components/ui/Footer";
 import CursorWord from "@/components/ui/CursorWord";
+import CookieBanner from "@/components/ui/CookieBanner";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="en"
       className={`overflow-x-hidden ${ltSuperior.variable} ${cinzel.variable} ${codeFont.variable} ${ttHoves.variable}`}
+      suppressHydrationWarning
     >
-      <body className="w-full overflow-x-hidden bg-white antialiased">
+      <body className="overflow-x-hidden bg-[var(--bg-base)] text-[var(--text-primary)] antialiased rounded-none">
         <GsapInitializer />
 
         <MenuProvider>
@@ -63,6 +65,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <Footer />
           </SmoothScroll>
         </MenuProvider>
+        <CookieBanner />
       </body>
     </html>
   );

@@ -116,55 +116,170 @@ const Hero = () => {
     <PageTransition>
       <section
         ref={container}
-        className="relative h-screen w-full overflow-hidden bg-white text-black"
+        className="relative h-screen w-full overflow-hidden bg-white text-black rounded-none"
       >
-        {/* Title */}
-<div className="absolute left-5 top-5 z-20">
-  <div className="overflow-hidden">
-    <h1 className="hero-title-line pr-4 pb-2 text-[clamp(5rem,12vw,128px)] md:text-8xl lg:text-[clamp(5rem,12vw,128px)] font-bold uppercase leading-[0.82] tracking-tighter">
-      Detail
-    </h1>
-  </div>
+        {/* Component 1: Title Parent Container */}
+        <div className={[
+          "absolute z-20",
+          // 01. Mobile Min (320x640)
+          "left-[10px] top-[11px]",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:left-[10px] min-[375px]:top-[11px]",
+          // 03. Tablet Port (768x1024)
+          "md:left-[10px] md:top-[20px]",
+          // 04. Tablet Land (1024x768)
+          "lg:left-[10px] lg:top-[20px]",
+          // 05. Desktop Base (1280x800)
+          "xl:left-[10px] xl:top-[20px]",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:left-[10px] min-[1440px]:top-[20px]"
+        ].join(" ")}>
+          
+          <div className="overflow-hidden">
+            <h1 className={[
+              "hero-title-line pr-4 pb-2 font-bold uppercase leading-[0.82] tracking-tighter",
+              // 01. Mobile Min (320x640)
+              "text-5xl",
+              // 02. Mobile Std (390x844)
+              "min-[375px]:text-5xl",
+              // 03. Tablet Port (768x1024)
+              "md:text-8xl",
+              // 04. Tablet Land (1024x768)
+              "lg:text-8xl",
+              // 05. Desktop Base (1280x800)
+              "xl:text-9xl",
+              // 06. Original Widescreen (1440x794)
+              "min-[1440px]:text-9xl"
+            ].join(" ")}>
+              Detail
+            </h1>
+          </div>
 
-  <div className="overflow-hidden">
-    <h1 className="hero-title-line pr-4 pb-2 text-[clamp(5rem,12vw,128px)] md:text-8xl lg:text-[clamp(5rem,12vw,128px)] font-bold uppercase leading-[0.82] tracking-tighter">
-      Matters
-    </h1>
-  </div>
-</div>
+          <div className="overflow-hidden">
+            <h1 className={[
+              "hero-title-line pr-4 pb-2 font-bold uppercase leading-[0.82] tracking-tighter",
+              // 01. Mobile Min (320x640)
+              "text-5xl",
+              // 02. Mobile Std (390x844)
+              "min-[375px]:text-5xl",
+              // 03. Tablet Port (768x1024)
+              "md:text-8xl",
+              // 04. Tablet Land (1024x768)
+              "lg:text-8xl",
+              // 05. Desktop Base (1280x800)
+              "xl:text-9xl",
+              // 06. Original Widescreen (1440x794)
+              "min-[1440px]:text-9xl"
+            ].join(" ")}>
+              Matters
+            </h1>
+          </div>
+        </div>
 
-{/* Lower Copy */}
-<p className="hero-copy absolute left-[60.5vw] top-[41.5vh] z-20 w-64 text-justify text-base font-medium leading-none md:left-[269px] md:top-[457px] md:w-56 md:text-sm lg:left-[60.5vw] lg:top-[41.5vh] lg:w-64 lg:text-base">
-  Design context-driven architecture that transforms your vision into refined,
-  built form.
-</p>
+        {/* Component 2: Unified Responsive Copy Container Wrapper */}
+        <div className={[
+          "absolute z-20 rounded-none grid",
+          // 01. Mobile Min (320x640)
+          "right-[34px] top-[196px] w-[236px] gap-[60px] grid-cols-2",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:left-[86px] min-[375px]:top-[210px] min-[375px]:w-[296px] min-[375px]:gap-[8px]",
+          // 03. Tablet Port (768x1024)
+          "md:left-auto md:right-[24px] md:top-[457px] md:w-[475px] md:gap-[27px]",
+          // 04. Tablet Land (1024x768)
+          "lg:right-[20px] lg:top-[285px] lg:w-[377px] lg:gap-[25px]",
+          // 05. Desktop Base (1280x800)
+          "xl:right-[20px] xl:top-[300px] xl:w-[476px] xl:gap-[28px]",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:right-[20px] min-[1440px]:top-[300px] min-[1440px]:w-[540px] min-[1440px]:gap-[28px]"
+        ].join(" ")}>
+          
+          {/* Component 3: Copy Paragraph 1 */}
+          <p className={[
+            "hero-copy text-justify font-medium leading-[1.25] rounded-none",
+            // 01. Mobile Min (320x640)
+            "text-[10px] w-35",
+            // 02. Mobile Std (390x844)
+            "min-[375px]:text-[10px] min-[375px]:w-36",
+            // 03. Tablet Port (768x1024)
+            "md:text-sm md:w-56",
+            // 04. Tablet Land (1024x768)
+            "lg:text-sm lg:w-44",
+            // 05. Desktop Base (1280x800)
+            "xl:text-base xl:w-56",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:text-base min-[1440px]:w-64"
+          ].join(" ")}>
+            We design context‑driven architecture that transforms your vision into refined,
+            built form.
+          </p>
+          
+          {/* Component 3: Copy Paragraph 2 */}
+          <p className={[
+            "hero-copy text-justify font-medium leading-[1.25] rounded-none",
+            // 01. Mobile Min (320x640)
+            "text-[10px] w-28",
+            // 02. Mobile Std (390x844)
+            "min-[375px]:text-[10px] min-[375px]:w-36",
+            // 03. Tablet Port (768x1024)
+            "md:text-sm md:w-56",
+            // 04. Tablet Land (1024x768)
+            "lg:text-sm lg:w-44",
+            // 05. Desktop Base (1280x800)
+            "xl:text-base xl:w-56",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:text-base min-[1440px]:w-64"
+          ].join(" ")}>
+            We make sure your details are in context. We make and build with care.
+          </p>
+        </div>
 
-<p className="hero-copy absolute left-[80.2vw] top-[41.5vh] z-20 w-64 text-justify text-base font-medium leading-none md:left-[520px] md:top-[458px] md:w-56 md:text-sm lg:left-[80.2vw] lg:top-[41.5vh] lg:w-64 lg:text-base">
-  We make sure your details are in context. We make and build with care.
-</p>
+        {/* Component 4: CTA Corner Button Link */}
+        <Link
+          href="/contact"
+          data-cursor="click"
+          className={[
+            "hero-cta group absolute z-40 hidden h-36 w-36 cursor-none lg:block",
+            // 01. Mobile Min (320x640) - Hidden
+            // 02. Mobile Std (390x844) - Hidden
+            // 03. Tablet Port (768x1024) - Hidden
+            // 04. Tablet Land (1024x768)
+            "lg:right-[15px] lg:top-[20px]",
+            // 05. Desktop Base (1280x800)
+            "xl:right-[15px] xl:top-[20px] xl:left-auto",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:right-[15px] min-[1440px]:top-[20px] min-[1440px]:left-auto"
+          ].join(" ")}
+          aria-label="Lets talk"
+        >
+          <div className="relative h-full w-full transition-opacity duration-300 group-hover:opacity-40">
+            <span className="absolute right-10.5 top-10 z-10 text-base font-bold uppercase leading-none">
+              Let's talk
+            </span>
 
-{/* CTA Corner Button - desktop/mobile */}
-<Link
-  href="/contact"
-  data-cursor="click"
-  className="hero-cta group absolute right-5 top-5 z-40 block h-36 w-36 cursor-none md:hidden lg:block"
-  aria-label="Lets talk"
->
-  <div className="relative h-full w-full transition-opacity duration-300 group-hover:opacity-40">
-    <span className="absolute right-10.5 top-10 z-10 text-base font-bold uppercase leading-none">
-      Let's talk
-    </span>
+            <span className="absolute right-0 top-0 block h-8 w-32 bg-black" />
+            <span className="absolute right-0 top-0 block h-32 w-8 bg-black" />
+          </div>
+        </Link>
 
-    <span className="absolute right-0 top-0 block h-8 w-32 bg-black" />
-    <span className="absolute right-0 top-0 block h-32 w-8 bg-black" />
-  </div>
-</Link>
-
-{/* Bottom Image */}
-<div
-  ref={imageMaskRef}
-  className="absolute bottom-5 left-5 right-5 z-10 h-[48vh] overflow-hidden bg-white md:h-[482px] lg:h-[48vh]"
->
+        {/* Component 5: Bottom Image Container */}
+        <div
+          ref={imageMaskRef}
+          className={[
+            "absolute z-10 overflow-hidden bg-white",
+            // 01. Mobile Min (320x640) - Centered with symmetrical 12px margins
+            "left-[12px] right-[12px] top-[308px] h-80 w-auto",
+            // 02. Mobile Std (390x844) - Centered with symmetrical 12px margins
+            "min-[375px]:left-[12px] min-[375px]:right-[12px] min-[350px]:top-[344px] min-[375px]:h-[490px] min-[375px]:w-auto",
+            // 03. Tablet Port (768x1024)
+            "md:left-[15px] md:top-[522px] md:right-[15px] md:w-auto md:h-[488px] md:bottom-auto",
+            // 04. Tablet Land (1024x768)
+            "lg:left-[15px] lg:top-[368px] lg:right-[15px] lg:w-auto lg:h-97 lg:bottom-auto",
+            // 05. Desktop Base (1280x800)
+            "xl:left-[15px] xl:top-[394px] xl:right-[15px] xl:w-auto xl:h-97 xl:bottom-auto",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:left-[15px] min-[1440px]:top-[392px] min-[1440px]:right-[15px] min-[1440px]:w-auto min-[1440px]:h-97 min-[1440px]:bottom-auto"
+          ].join(" ")}
+        >
           <div ref={imageRef} className="relative h-full w-full will-change-transform">
             {heroImages.map((imageSrc, index) => (
               <Image

@@ -1,4 +1,3 @@
-// src/components/homepage/UnifiedTransition.tsx
 "use client";
 
 import React, { useRef, useState, useEffect, useMemo } from 'react';
@@ -20,7 +19,7 @@ interface ProjectSlide {
     slug: string;
 }
 
-// Helper to safely format Payload's database data into the exact format your horizontal GSAP timeline expects [1, 2]
+// Helper to safely format Payload's database data into the exact format your horizontal GSAP timeline expects
 const mapPayloadFeaturedSlides = (payloadSlides: any[]): ProjectSlide[] => {
   if (!payloadSlides || !Array.isArray(payloadSlides)) return [];
   
@@ -32,7 +31,7 @@ const mapPayloadFeaturedSlides = (payloadSlides: any[]): ProjectSlide[] => {
 
     return {
       id: index + 1,
-      image: project.heroImg?.url || '', // Resolves the populated Media relation URL [1]
+      image: project.heroImg?.url || '', // Resolves the populated Media relation URL
       line1: project.homepageFeatured?.line1 || defaultLine1,
       line2: project.homepageFeatured?.line2 || defaultLine2,
       slug: `/projects/${project.slug}`, // Directs cleanly to your dynamic project detail page
@@ -41,7 +40,7 @@ const mapPayloadFeaturedSlides = (payloadSlides: any[]): ProjectSlide[] => {
 };
 
 interface UnifiedTransitionProps {
-  featuredProjects: any[]; // 1. Accept dynamic featured projects as a prop [2]
+  featuredProjects: any[]; // 1. Accept dynamic featured projects as a prop
 }
 
 const UnifiedTransition = ({ featuredProjects }: UnifiedTransitionProps) => {
@@ -57,7 +56,7 @@ const UnifiedTransition = ({ featuredProjects }: UnifiedTransitionProps) => {
         return () => clearTimeout(timer);
     }, []);
 
-    // 2. Map database projects dynamically, falling back to an empty array if none selected [2]
+    // 2. Map database projects dynamically, falling back to an empty array if none selected
     const slideData = useMemo(() => 
         mapPayloadFeaturedSlides(featuredProjects), 
         [featuredProjects]
@@ -177,13 +176,63 @@ const UnifiedTransition = ({ featuredProjects }: UnifiedTransitionProps) => {
                                 />
                             </div>
 
-                            {/* Title Overlay */}
-                            <div className="slide-title absolute bottom-[10%] left-[5%] z-10 text-white pointer-events-none">
-                                <h1 className="text-[clamp(2.5rem,6vw,5rem)] leading-[0.9] m-0 uppercase font-black tracking-tighter font-sans">
-                                    <span className="block">{slide.line1}</span>
-                                    <span className="block">{slide.line2}</span>
+                           {/* Title Overlay Position (Controls absolute distance from bottom-left corner) */}
+                            <div className={[
+                              "slide-title absolute z-10 text-white pointer-events-none",
+                              // 01. Mobile Min (320x640)
+                              "left-[12px] bottom-[40px]",
+                              // 02. Mobile Std (390x844)
+                              "min-[375px]:left-[12px] min-[375px]:bottom-[40px]",
+                              // 03. Tablet Port (768x1024)
+                              "md:left-[20px] md:bottom-[60px]",
+                              // 04. Tablet Land (1024x768)
+                              "lg:left-[20px] lg:bottom-[60px]",
+                              // 05. Desktop Base (1280x800)
+                              "xl:left-[20px] xl:bottom-[80px]",
+                              // 06. Original Widescreen (1440x794)
+                              "min-[1440px]:left-[20px] min-[1440px]:bottom-[80px]"
+                            ].join(" ")}>
+                                
+                               {/* Line 1: Main Project Title (Massive Highlight) */}
+                                <h1 className={[
+                                  "leading-[0.9] m-0 uppercase font-black tracking-tighter font-sans block",
+                                  // 01. Mobile Min (320x640) - Compact Sizing
+                                  "text-3xl",
+                                  // 02. Mobile Std (390x844) - Standard Phone Sizing
+                                  "min-[375px]:text-4xl",
+                                  // 03. Tablet Port (768x1024) - Portrait iPad Sizing
+                                  "md:text-[56px]",
+                                  // 04. Tablet Land (1024x768) - Landscape iPad Sizing
+                                  "lg:text-[72px]",
+                                  // 05. Desktop Base (1280x800) - Laptop Display Sizing
+                                  "xl:text-[84px]",
+                                  // 06. Original Widescreen (1440x794) - Widescreen Sizing
+                                  "min-[1440px]:text-[100px]"
+                                ].join(" ")}>
+                                    {slide.line1}
                                 </h1>
+
+                                {/* Line 2: Project Date / Metadata (Small & Monospace) */}
+                                <span className={[
+                                  // mt-1, md:mt-[4px], and xl:mt-[6px] lessen the gap between line 1 and 2
+                                  "block uppercase font-bold tracking-widest text-white/60 font-mono mt-1 md:mt-[2px] xl:mt-[2px]",
+                                  // 01. Mobile Min (320x640) - Compact Sizing
+                                  "text-[14px]",
+                                  // 02. Mobile Std (390x844) - Standard Phone Sizing
+                                  "min-[375px]:text-[14px]",
+                                  // 03. Tablet Port (768x1024) - Portrait iPad Sizing
+                                  "md:text-[24px]",
+                                  // 04. Tablet Land (1024x768) - Landscape iPad Sizing
+                                  "lg:text-[24px]",
+                                  // 05. Desktop Base (1280x800) - Laptop Display Sizing (added px unit)
+                                  "xl:text-[42px]",
+                                  // 06. Original Widescreen (1440x794) - Widescreen Sizing (added px unit)
+                                  "min-[1440px]:text-[42px]"
+                                ].join(" ")}>
+                                    {slide.line2}
+                                </span>
                             </div>
+                            
                         </div>
                     ))}
                 </div>
