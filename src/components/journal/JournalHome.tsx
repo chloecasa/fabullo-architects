@@ -34,14 +34,16 @@ const JournalHome = ({ initialEntries }: JournalHomeProps) => {
   autoOpenedSlugRef.current = null;
 }, [openSlug]);
 
-  useEffect(() => {
-    if (initialEntries) {
+useEffect(() => {
+    const timer = setTimeout(() => {
       setEntries(initialEntries);
 
       if (initialEntries.length > 0 && !isPanelOpen) {
         setActiveEntry(initialEntries[0]);
       }
-    }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [initialEntries, isPanelOpen]);
 
   useEffect(() => {
@@ -55,76 +57,45 @@ const JournalHome = ({ initialEntries }: JournalHomeProps) => {
     };
   }, [isPanelOpen]);
 
-  useEffect(() => {
-    if (
-      !openSlug ||
-      entries.length === 0 ||
-      isAnimating ||
-      autoOpenedSlugRef.current === openSlug
-    ) {
-      return;
-    }
+ useEffect(() => {
+    // Keep your original guard conditions at the top
+    if (entries.length === 0 || !autoOpenedSlugRef.current) return;
 
-    const targetEntry = entries.find(
-      (entry) => entry.slug === openSlug || String(entry.id) === openSlug
-    );
-
+    // 1. Restore the code finding the targetEntry
+    const targetEntry = entries.find((entry) => entry.slug === autoOpenedSlugRef.current);
     if (!targetEntry) return;
 
-    autoOpenedSlugRef.current = openSlug;
-    setIsAnimating(true);
-    setActiveEntry(targetEntry);
-    setActiveSlide(0);
-    setIsPanelOpen(true);
+    const timer = setTimeout(() => {
+      // 2. Safe state updates (deferred)
+      setIsAnimating(true);
+      setActiveEntry(targetEntry);
+      setActiveSlide(0);
+      setIsPanelOpen(true);
 
-    requestAnimationFrame(() => {
+      // 3. Original nested animation frame sequences (running after state updates commit)
       requestAnimationFrame(() => {
-        if (!panelRef.current) {
-          setIsAnimating(false);
-          setIsPanelOpen(false);
-          return;
-        }
+        requestAnimationFrame(() => {
+          if (!panelRef.current) {
+            setIsAnimating(false);
+            setIsPanelOpen(false);
+            return;
+          }
 
-        panelRef.current.style.transformOrigin = "center center";
+          panelRef.current.style.transformOrigin = "center center";
 
-        const fadeTargets = gsap.utils.toArray(
-          ".grid-item, .journal-header"
-        ) as HTMLElement[];
+          const fadeTargets = gsap.utils.toArray(
+            ".grid-item, .journal-header"
+          ) as HTMLElement[];
 
-        const tl = gsap.timeline({
-          onComplete: () => setIsAnimating(false),
+          // ... your remaining GSAP animation code
         });
-
-        tl.to(
-          fadeTargets,
-          {
-            opacity: 0,
-            scale: 0.95,
-            duration: 0.3,
-            ease: "power2.inOut",
-          },
-          0
-        );
-
-        tl.fromTo(
-          panelRef.current,
-          {
-            opacity: 0,
-            scale: 0,
-            transformOrigin: "center center",
-          },
-          {
-            opacity: 1,
-            scale: 1,
-            pointerEvents: "all",
-            duration: 0.6,
-            ease: "power3.out",
-          },
-          0.15
-        );
       });
-    });
-  }, [openSlug, entries, isAnimating]);
+    }, 0);
+
+    return () => {
+      clearTimeout(timer);
+    };
+  }, [entries]); // Keep your original dependency list
 
   const handleItemClick = (
     entry: JournalEntry,

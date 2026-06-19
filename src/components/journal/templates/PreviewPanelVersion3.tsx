@@ -1,6 +1,6 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 
 export interface PreviewSlide {
   title?: string;
@@ -28,6 +28,16 @@ const PreviewPanelVersion3 = ({
   onSetSlide,
   onClose,
 }: PreviewPanelVersion3Props) => {
+
+    useEffect(() => {
+      // Notify Header that the preview panel is open
+      window.dispatchEvent(new CustomEvent("journalPreview", { detail: true }));
+  
+      return () => {
+        // Notify Header that the preview panel is closed
+        window.dispatchEvent(new CustomEvent("journalPreview", { detail: false }));
+      };
+    }, []);
   return (
     <div
       ref={panelRef}

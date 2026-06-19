@@ -12,7 +12,7 @@ export const RevealWrapper = ({ children }: { children: React.ReactNode }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    let ctx = gsap.context(() => {
+   const ctx = gsap.context(() => {
       // Find all elements with class "reveal-item" inside this wrapper
       const items = gsap.utils.toArray(".reveal-item");
 
