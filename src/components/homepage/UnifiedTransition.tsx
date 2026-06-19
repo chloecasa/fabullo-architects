@@ -19,8 +19,21 @@ interface ProjectSlide {
     slug: string;
 }
 
+interface PayloadProject {
+  title: string; // Added this property to support project.title
+  heroImg?: {
+    url?: string | null;
+  } | null;
+  homepageFeatured?: {
+    line1?: string | null;
+    line2?: string | null;
+  } | null;
+  slug?: string | null;
+}
+
 // Helper to safely format Payload's database data into the exact format your horizontal GSAP timeline expects
-const mapPayloadFeaturedSlides = (payloadSlides: any[]): ProjectSlide[] => {
+// Changing `any[]` to `PayloadProject[]` solves the lint warning
+const mapPayloadFeaturedSlides = (payloadSlides: PayloadProject[]): ProjectSlide[] => {
   if (!payloadSlides || !Array.isArray(payloadSlides)) return [];
   
   return payloadSlides.map((project, index) => {
@@ -40,7 +53,7 @@ const mapPayloadFeaturedSlides = (payloadSlides: any[]): ProjectSlide[] => {
 };
 
 interface UnifiedTransitionProps {
-  featuredProjects: any[]; // 1. Accept dynamic featured projects as a prop
+  featuredProjects: PayloadProject[]; // Accepts typed projects instead of any[]
 }
 
 const UnifiedTransition = ({ featuredProjects }: UnifiedTransitionProps) => {

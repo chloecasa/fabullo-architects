@@ -7,11 +7,11 @@ import { useRouter, usePathname } from "next/navigation";
 import { useLenis } from "lenis/react";
 
 const previewByPath: Record<string, string> = {
-  "/": "/assets/images/hero.png",
-  "/projects": "/assets/projects/tareola.png",
+  "/": "/media/menu/home.jpeg",
+  "/projects": "/media/menu/projects.jpeg",
   "/profile": "/assets/images/Profile.webp",
-  "/journal": "/assets/images/hero.png",
-  "/contact": "/assets/images/hero.png",
+  "/journal": "/media/menu/journal.jpeg",
+  "/contact": "/media/menu/contact.jpeg",
 };
 
 const navLinks = ["Home", "Projects", "Profile", "Journal", "Contact"];
@@ -20,7 +20,13 @@ interface NavigationProps {
   isOpen: boolean;
   onClose: () => void;
 }
-
+interface SearchResultItem {
+  id: string | number;
+  title: string;
+  img: string;
+  slug: string;
+  type: string; // Added this property to support {result.type}
+}
 const Navigation = ({ isOpen, onClose }: NavigationProps) => {
   const container = useRef<HTMLDivElement>(null);
   const overlayRef = useRef<HTMLDivElement>(null);
@@ -33,37 +39,45 @@ const Navigation = ({ isOpen, onClose }: NavigationProps) => {
   const [searchQuery, setSearchQuery] = useState("");
   
   // States: Store dynamic database search results and loading states
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<SearchResultItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [activeImg, setActiveImg] = useState("/assets/images/hero.png");
 
-  // Debounced Database Fetcher: Protects the Neon database connection pool
-  useEffect(() => {
-    const query = searchQuery.trim();
-    if (!query) {
-      setSearchResults([]);
-      return;
+ useEffect(() => {
+    if (!searchQuery) { // Changed 'query' to 'searchQuery'
+      // Defer clearing search results to avoid synchronous cascading renders
+      const timer = setTimeout(() => {
+        setSearchResults([]);
+        setIsLoading(false);
+      }, 0);
+      return () => clearTimeout(timer);
     }
 
-    setIsLoading(true);
+    // Defer setting loading state
+    const loadTimer = setTimeout(() => {
+      setIsLoading(true);
+    }, 0);
 
     // Wait exactly 300ms of typing inactivity before making the API request
     const delayDebounceFn = setTimeout(async () => {
       try {
-        const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+        const response = await fetch(`/api/search?q=${encodeURIComponent(searchQuery)}`); // Changed 'query' to 'searchQuery'
         if (response.ok) {
           const data = await response.json();
           setSearchResults(data.results || []);
         }
-      } catch (error) {
-        console.error('SEARCH CLIENT ERROR:', error);
+      } catch (err) {
+        console.error(err);
       } finally {
         setIsLoading(false);
       }
-    }, 300); // 300ms delay
+    }, 300);
 
-    return () => clearTimeout(delayDebounceFn); // Clear previous timeout if user continues typing
-  }, [searchQuery]);
+    return () => {
+      clearTimeout(loadTimer);
+      clearTimeout(delayDebounceFn);
+    };
+  }, [searchQuery]); // Changed 'query' to 'searchQuery'
 
   const topResult = searchResults[0] || null;
 
@@ -101,14 +115,18 @@ const Navigation = ({ isOpen, onClose }: NavigationProps) => {
   }, [isOpen, onClose, router, topResult]);
 
   useEffect(() => {
-    if (topResult && topResult.img) {
-      setActiveImg(topResult.img);
-      return;
-    }
+    const timer = setTimeout(() => {
+      if (topResult) {
+        setActiveImg(topResult.img);
+        return;
+      }
 
-    if (!searchQuery.trim()) {
-      setActiveImg(previewByPath[pathname] || "/assets/images/hero.png");
-    }
+      if (!searchQuery.trim()) {
+        setActiveImg(previewByPath[pathname] || "/assets/images/hero.png");
+      }
+    }, 0);
+
+    return () => clearTimeout(timer);
   }, [topResult, searchQuery, pathname]);
 
   useGSAP(

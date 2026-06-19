@@ -27,7 +27,7 @@ const slides: BlogSlide[] = [
     subtitle: "ON THE LOCAL PROJECT",
     description:
       "Striking a balance between modesty and tenacity, the design uses a careful play of voids to draw natural light deep into a reassuringly calm sanctuary",
-    videoClip: "/assets/videos/local-project1.mp4",
+    videoClip:   "/media/localproject.mp4",
     bgColor: "bg-white",
     textColor: "text-black",
     layout: "featured",
@@ -40,8 +40,12 @@ export default function HorizontalBlog() {
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
   useEffect(() => {
+  const handle = requestAnimationFrame(() => {
     setIsReady(true);
-  }, []);
+  });
+
+  return () => cancelAnimationFrame(handle);
+}, []);
 
   useEffect(() => {
     const header = document.querySelector("header") as HTMLElement | null;
