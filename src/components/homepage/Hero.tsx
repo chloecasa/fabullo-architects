@@ -277,9 +277,9 @@ const Hero = () => {
             // 04. Tablet Land (1024x768)
             "lg:left-[15px] lg:top-[368px] lg:right-[15px] lg:w-auto lg:h-97 lg:bottom-auto",
             // 05. Desktop Base (1280x800)
-            "xl:left-[15px] xl:top-[394px] xl:right-[15px] xl:w-auto xl:h-97 xl:bottom-auto",
+            "xl:left-[15px] xl:top-[394px] xl:right-[15px] xl:w-auto xl:h-125 xl:bottom-auto",
             // 06. Original Widescreen (1440x794)
-            "min-[1440px]:left-[15px] min-[1440px]:top-[392px] min-[1440px]:right-[15px] min-[1440px]:w-auto min-[1440px]:h-97 min-[1440px]:bottom-auto"
+            "min-[1440px]:left-[15px] min-[1440px]:top-[392px] min-[1440px]:right-[15px] min-[1440px]:w-auto min-[1440px]:h-120 min-[1440px]:bottom-auto"
           ].join(" ")}
         >
           <div ref={imageRef} className="relative h-full w-full will-change-transform">
