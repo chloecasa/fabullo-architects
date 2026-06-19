@@ -242,7 +242,7 @@ const IntroSequence: React.FC = () => {
 
         {/* Component 4: Image Mask & Source */}
         <img
-          src="https://placehold.co/473x583"
+          src="  /media/Intro/Image.jpeg"
           alt="Architectural detail"
           className={[
             "intro-image object-cover will-change-[clip-path,transform] absolute rounded-none",

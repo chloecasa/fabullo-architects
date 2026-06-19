@@ -416,13 +416,13 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
                       // 02. Mobile Std (390x844)
                       "min-[375px]:left-[12px] min-[375px]:top-[48vh] min-[375px]:w-[366px] min-[375px]:h-[36vh]",
                       // 03. Tablet Port (768x1024)
-                      "md:left-[20px] md:top-[522px] md:w-[288px] md:h-[384px]",
+                      "md:left-[20px] md:top-[172px] md:w-[288px] md:h-[384px]", // Fixed Y-offset: 522px -> 172px
                       // 04. Tablet Land (1024x768)
-                      "lg:left-[20px] lg:top-[302px] lg:w-[384px] lg:h-[384px]",
+                      "lg:left-[20px] lg:top-[152px] lg:w-[384px] lg:h-[384px]",  // Fixed Y-offset: 302px -> 152px
                       // 05. Desktop Base (1280x800)
-                      "xl:left-[20px] xl:top-[752px] xl:w-[504px] xl:h-[583px]",
+                      "xl:left-[20px] xl:top-[152px] xl:w-[504px] xl:h-[583px]",  // Fixed Y-offset: 752px -> 152px
                       // 06. Original Widescreen (1440x794)
-                      "min-[1440px]:left-[20px] min-[1440px]:top-[752px] min-[1440px]:w-[473px] min-[1440px]:h-[583px]"
+                      "min-[1440px]:left-[20px] min-[1440px]:top-[152px] min-[1440px]:w-[473px] min-[1440px]:h-[583px]" // Fixed Y-offset: 752px -> 152px
                     ].join(" ")
                   : [
                       // 01. Mobile Min (320x640)
@@ -450,6 +450,8 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
               );
             })}
           </div>
+
+          
         </div>
       </section>
 
