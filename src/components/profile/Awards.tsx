@@ -1,4 +1,3 @@
-// src/components/profile/Awards.tsx
 "use client";
 
 import gsap from "gsap";
@@ -38,11 +37,69 @@ const YearRow = ({
     <div
       ref={rowRef}
       onClick={onClick}
-      className="group/row grid grid-cols-[1fr_2fr_1fr] items-center py-3 border-b border-black cursor-pointer transition-opacity duration-300 hover:opacity-100"
+      className={[
+        "group/row grid grid-cols-[1fr_2fr_1fr] items-center border-b border-black cursor-pointer transition-opacity duration-300 hover:opacity-100",
+        // 01. Mobile Min (320x640) - Compact vertical padding
+        "py-2",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:py-2",
+        // 03. Tablet Port (768x1024) - Spacious vertical padding
+        "md:py-3",
+        // 04. Tablet Land (1024x768)
+        "lg:py-3",
+        // 05. Desktop Base (1280x800)
+        "xl:py-4",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:py-4"
+      ].join(" ")}
     >
-      <span className="text-base font-semibold">{year}</span>
-      <span className="text-base font-semibold text-center">See</span>
-      <span className="text-base font-semibold text-right">More</span>
+      <span className={[
+        "font-semibold",
+        // 01. Mobile Min (320x640)
+        "text-xs",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:text-xs",
+        // 03. Tablet Port (768x1024)
+        "md:text-base",
+        // 04. Tablet Land (1024x768)
+        "lg:text-base",
+        // 05. Desktop Base (1280x800)
+        "xl:text-base",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:text-base"
+      ].join(" ")}>{year}</span>
+      
+      <span className={[
+        "font-semibold text-center uppercase tracking-wider",
+        // 01. Mobile Min (320x640)
+        "text-[10px]",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:text-[10px]",
+        // 03. Tablet Port (768x1024)
+        "md:text-sm",
+        // 04. Tablet Land (1024x768)
+        "lg:text-sm",
+        // 05. Desktop Base (1280x800)
+        "xl:text-base",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:text-base"
+      ].join(" ")}>See</span>
+      
+      <span className={[
+        "font-semibold text-right uppercase tracking-wider",
+        // 01. Mobile Min (320x640)
+        "text-[10px]",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:text-[10px]",
+        // 03. Tablet Port (768x1024)
+        "md:text-sm",
+        // 04. Tablet Land (1024x768)
+        "lg:text-sm",
+        // 05. Desktop Base (1280x800)
+        "xl:text-base",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:text-base"
+      ].join(" ")}>More</span>
     </div>
   );
 };
@@ -91,15 +148,73 @@ const DetailRow = ({
     <div 
       ref={scope}
       onClick={showYear && onClose ? onClose : undefined}
-      className="detail-row relative grid grid-cols-[1fr_2fr_1fr] items-center py-3 cursor-pointer transition-opacity duration-300"
+      className={[
+        "detail-row relative grid grid-cols-[1fr_2fr_1fr] items-center cursor-pointer transition-opacity duration-300",
+        // 01. Mobile Min (320x640)
+        "py-2",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:py-2",
+        // 03. Tablet Port (768x1024)
+        "md:py-3",
+        // 04. Tablet Land (1024x768)
+        "lg:py-3",
+        // 05. Desktop Base (1280x800)
+        "xl:py-4",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:py-4"
+      ].join(" ")}
     >
-      <span className="text-base font-semibold">
+      <span className={[
+        "font-semibold",
+        // 01. Mobile Min (320x640)
+        "text-xs",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:text-xs",
+        // 03. Tablet Port (768x1024)
+        "md:text-base",
+        // 04. Tablet Land (1024x768)
+        "lg:text-base",
+        // 05. Desktop Base (1280x800)
+        "xl:text-base",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:text-base"
+      ].join(" ")}>
         {showYear ? year : ""}
       </span>
-      <span className="text-base font-normal uppercase">
+      
+      <span className={[
+        "font-normal uppercase leading-[1.3] text-justify pr-2",
+        // 01. Mobile Min (320x640)
+        "text-[10px]",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:text-[10px]",
+        // 03. Tablet Port (768x1024)
+        "md:text-sm",
+        // 04. Tablet Land (1024x768)
+        "lg:text-sm",
+        // 05. Desktop Base (1280x800)
+        "xl:text-base",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:text-base"
+      ].join(" ")}>
         {recognition}
       </span>
-      <span className="text-base font-normal text-right">
+      
+      <span className={[
+        "font-normal text-right leading-[1.3] pl-2",
+        // 01. Mobile Min (320x640)
+        "text-[10px]",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:text-[10px]",
+        // 03. Tablet Port (768x1024)
+        "md:text-sm",
+        // 04. Tablet Land (1024x768)
+        "lg:text-sm",
+        // 05. Desktop Base (1280x800)
+        "xl:text-base",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:text-base"
+      ].join(" ")}>
         {project}
       </span>
       {/* Moving line that animates left to right on hover */}
@@ -132,13 +247,75 @@ const AwardSection = ({
   return (
     <div className="group/list">
       {/* Section Header */}
-      <div className="grid grid-cols-[1fr_2fr_1fr] items-end pb-2 border-b border-black">
-        <h2 className="text-4xl font-medium lowercase">{title}</h2>
-        <span className="text-base font-bold lowercase text-center">{columnHeaders.col2}</span>
-        <span className="text-base font-bold lowercase text-right">{columnHeaders.col3}</span>
+      <div className={[
+        "grid grid-cols-[1fr_2fr_1fr] items-end border-b border-black",
+        // 01. Mobile Min (320x640)
+        "pb-1",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:pb-1",
+        // 03. Tablet Port (768x1024)
+        "md:pb-2",
+        // 04. Tablet Land (1024x768)
+        "lg:pb-2",
+        // 05. Desktop Base (1280x800)
+        "xl:pb-3",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:pb-3"
+      ].join(" ")}>
+        
+        {/* Section title (e.g. /awards) */}
+        <h2 className={[
+          "font-medium lowercase rounded-none leading-none",
+          // 01. Mobile Min (320x640)
+          "text-xl",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:text-2xl",
+          // 03. Tablet Port (768x1024)
+          "md:text-4xl",
+          // 04. Tablet Land (1024x768)
+          "lg:text-4xl",
+          // 05. Desktop Base (1280x800)
+          "xl:text-4xl",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:text-4xl"
+        ].join(" ")}>{title}</h2>
+        
+        {/* Column label 1 (e.g. recognition) */}
+        <span className={[
+          "font-bold lowercase text-center leading-none tracking-wide",
+          // 01. Mobile Min (320x640)
+          "text-[10px]",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:text-[11px]",
+          // 03. Tablet Port (768x1024)
+          "md:text-base",
+          // 04. Tablet Land (1024x768)
+          "lg:text-base",
+          // 05. Desktop Base (1280x800)
+          "xl:text-base",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:text-base"
+        ].join(" ")}>{columnHeaders.col2}</span>
+        
+        {/* Column label 2 (e.g. project) */}
+        <span className={[
+          "font-bold lowercase text-right leading-none tracking-wide",
+          // 01. Mobile Min (320x640)
+          "text-[10px]",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:text-[11px]",
+          // 03. Tablet Port (768x1024)
+          "md:text-base",
+          // 04. Tablet Land (1024x768)
+          "lg:text-base",
+          // 05. Desktop Base (1280x800)
+          "xl:text-base",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:text-base"
+        ].join(" ")}>{columnHeaders.col3}</span>
       </div>
 
-      {/* Rows */}
+      {/* Rows wrapper */}
       <div className="flex flex-col group-hover/list:[&>.year-row:not(:hover)]:opacity-30">
         {data.map((group) => {
           const isOpen = openYears.includes(group.year);
@@ -146,14 +323,11 @@ const AwardSection = ({
           return (
             <React.Fragment key={group.year}>
               {!isOpen ? (
-                <div
+                <YearRow
+                  year={group.year}
+                  isOpen={isOpen}
                   onClick={() => toggleYear(group.year)}
-                  className="year-row grid grid-cols-[1fr_2fr_1fr] items-center py-3 border-b border-black cursor-pointer transition-opacity duration-300 hover:opacity-100"
-                >
-                  <span className="text-base font-semibold">{group.year}</span>
-                  <span className="text-base font-semibold text-center">See</span>
-                  <span className="text-base font-semibold text-right">More</span>
-                </div>
+                />
               ) : (
                 <div className="group/details [&:hover>.detail-row]:opacity-30 [&:hover>.detail-row:hover]:opacity-100">
                   {group.entries.map((entry, idx) => (
@@ -177,16 +351,16 @@ const AwardSection = ({
 };
 
 interface AwardsProps {
-  initialAwards: YearGroup[]; // Accept live database awards as a prop [2]
-  initialBooks: YearGroup[];  // Accept live database books as a prop [2]
+  initialAwards: YearGroup[]; // Accept live database awards as a prop
+  initialBooks: YearGroup[];  // Accept live database books as a prop
 }
 
 const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
-  // Initialize states using pre-grouped database entries [2]
+  // Initialize states using pre-grouped database entries
   const [awardsData, setAwardsData] = useState<YearGroup[]>(initialAwards || []);
   const [booksData, setBooksData] = useState<YearGroup[]>(initialBooks || []);
 
-  // Keep states in sync if database props update dynamically [2]
+  // Keep states in sync if database props update dynamically
   useEffect(() => {
     if (initialAwards) setAwardsData(initialAwards);
     if (initialBooks) setBooksData(initialBooks);
@@ -215,26 +389,108 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
   }, []);
 
   return (
-    <section className="bg-white w-full min-h-screen" data-header-theme="light">
+    <section className="bg-white w-full min-h-screen rounded-none" data-header-theme="light">
       
-      {/* Intro Header Section */}
-      <section className="awards-header-section px-5 pt-32 pb-16">
-        <div className="flex items-baseline gap-4 mb-2 overflow-hidden">
-          <h1 className="awards-intro-reveal text-[10vw] md:text-[130px] font-bold uppercase leading-[0.8] tracking-tighter">
+      {/* Component 1: Intro Header Section (Symmetrical margin / padding scale) */}
+      <section className={[
+        "awards-header-section rounded-none",
+        // 01. Mobile Min (320x640)
+        "px-[12px] pt-[73px] pb-6",
+        // 02. Mobile Std (390x844)
+        "min-[375px]:px-[12px] min-[375px]:pt-[80px] min-[375px]:pb-8",
+        // 03. Tablet Port (768x1024)
+        "md:px-[20px] md:pt-[110px] md:pb-12",
+        // 04. Tablet Land (1024x768)
+        "lg:px-[20px] lg:pt-[110px] lg:pb-12",
+        // 05. Desktop Base (1280x800)
+        "xl:px-[20px] xl:pt-[110px] xl:pb-16",
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:px-[20px] min-[1440px]:pt-[110px] min-[1440px]:pb-16"
+      ].join(" ")}>
+        
+        {/* Title & Tagline Flex Wrapper with compact gap */}
+        <div className="flex items-baseline gap-1.5 md:gap-2 xl:gap-3 mb-2 overflow-hidden">
+          
+          {/* Component 2: Main Sizing Title ("Recognitions") */}
+          <h1 className={[
+            "awards-intro-reveal font-bold uppercase leading-[0.8] tracking-tighter rounded-none",
+            // 01. Mobile Min (320x640)
+            "text-[40px]",
+            // 02. Mobile Std (390x844)
+            "min-[375px]:text-[52px]",
+            // 03. Tablet Port (768x1024)
+            "md:text-[96px]",
+            // 04. Tablet Land (1024x768)
+            "lg:text-[110px]",
+            // 05. Desktop Base (1280x800)
+            "xl:text-[120px]",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:text-[130px]"
+          ].join(" ")}>
             Recognitions
           </h1>
-          <span className="awards-intro-reveal text-lg md:text-2xl font-light lowercase whitespace-nowrap opacity-60">
+          
+          {/* Component 3: Tagline ("achievements & publications") */}
+          <span className={[
+            "awards-intro-reveal font-light lowercase whitespace-nowrap opacity-60",
+            // 01. Mobile Min (320x640)
+            "text-[10px]",
+            // 02. Mobile Std (390x844)
+            "min-[375px]:text-[11px]",
+            // 03. Tablet Port (768x1024)
+            "md:text-[16px]",
+            // 04. Tablet Land (1024x768)
+            "lg:text-[18px]",
+            // 05. Desktop Base (1280x800)
+            "xl:text-[20px]",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:text-[22px]"
+          ].join(" ")}>
             achievements & publications
           </span>
         </div>
-        <div className="max-w-xl overflow-hidden">
-          <p className="awards-intro-reveal text-base md:text-lg font-medium opacity-50">
+
+        {/* Component 4: Description Paragraph (Width, Margin-Top, and Text scale) */}
+        <div className="overflow-hidden rounded-none">
+          <p className={[
+            "awards-intro-reveal font-medium opacity-50 text-justify rounded-none leading-normal",
+            // 01. Mobile Min (320x640)
+            "text-xs mt-3 max-w-[280px]",
+            // 02. Mobile Std (390x844)
+            "min-[375px]:text-xs min-[375px]:mt-3 min-[375px]:max-w-[340px]",
+            // 03. Tablet Port (768x1024)
+            "md:text-sm md:mt-4 md:max-w-md",
+            // 04. Tablet Land (1024x768)
+            "lg:text-sm lg:mt-4 lg:max-w-md",
+            // 05. Desktop Base (1280x800)
+            "xl:text-base xl:mt-5 xl:max-w-xl",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:text-base min-[1440px]:mt-5 min-[1440px]:max-w-xl"
+          ].join(" ")}>
             A collection of honors, awards, and featured publications celebrating our commitment to architectural excellence.
           </p>
         </div>
       </section>
 
-      <div className="mx-auto px-5 pb-24" style={{ maxWidth: '1514px' }}>
+      {/* Component 5: Outer List Grid Container padding scale */}
+      <div 
+        className={[
+          "mx-auto rounded-none",
+          // 01. Mobile Min (320x640)
+          "px-[12px] pb-[40px]",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:px-[12px] min-[375px]:pb-[40px]",
+          // 03. Tablet Port (768x1024)
+          "md:px-[20px] md:pb-[60px]",
+          // 04. Tablet Land (1024x768)
+          "lg:px-[20px] lg:pb-[60px]",
+          // 05. Desktop Base (1280x800)
+          "xl:px-[20px] xl:pb-[80px]",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:px-[20px] min-[1440px]:pb-[80px]"
+        ].join(" ")} 
+        style={{ maxWidth: '1514px' }}
+      >
         
         {/* AWARDS SECTION */}
         <AwardSection 
@@ -243,8 +499,22 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
           columnHeaders={{ col2: "recognition", col3: "project" }}
         />
 
-        {/* BOOKS SECTION */}
-        <div className="mt-24">
+        {/* Component 6: Divider Gap (Spacing between Awards List and Books List) */}
+        <div className={[
+          "rounded-none",
+          // 01. Mobile Min (320x640)
+          "mt-12",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:mt-12",
+          // 03. Tablet Port (768x1024)
+          "md:mt-16",
+          // 04. Tablet Land (1024x768)
+          "lg:mt-16",
+          // 05. Desktop Base (1280x800)
+          "xl:mt-24",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:mt-24"
+        ].join(" ")}>
           <AwardSection 
             title="/books" 
             data={booksData}

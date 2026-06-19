@@ -53,6 +53,14 @@ export const Projects: CollectionConfig = {
       ],
     },
     {
+      name: 'year',
+      type: 'text',
+      required: true,
+      admin: {
+        description: 'Year of completion or phase indicator (e.g., 2025, Unbuilt).',
+      },
+    },
+    {
       name: 'heroImg',
       type: 'upload',
       relationTo: 'media', // Links directly to your Media upload collection

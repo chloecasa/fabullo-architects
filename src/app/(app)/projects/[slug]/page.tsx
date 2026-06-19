@@ -8,6 +8,7 @@ import ContactSection from "@/components/contact/ContactSection";
 
 export interface ProjectData {
   title: string;
+  year: string; // Added to interface [2.1]
   heroImg: string;
   credits: string;
   team: { label: string; val: string }[];
@@ -21,6 +22,7 @@ export interface ProjectData {
 const mapPayloadProjectDetail = (doc: any): ProjectData => {
   return {
     title: doc.title,
+    year: doc.year || '', // Map dynamic completion year from Neon DB [1]
     heroImg: doc.heroImg?.url || '', // Resolve Hero image URL from relation
     credits: doc.credits || '',
     team: doc.team || [],

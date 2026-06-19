@@ -183,34 +183,30 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         }
       });
 
-     // SECTION 3: HORIZONTAL GALLERY COMPILATION
       if (horizontalRef.current && horizontalTrackRef.current) {
         const track = horizontalTrackRef.current;
         const getScrollAmount = () => -(track.scrollWidth - window.innerWidth);
 
-        // 1. Audit & Fix: Recalculate track widths as images load to prevent jumps/offsets [3]
         const trackImages = track.querySelectorAll("img");
         trackImages.forEach((img) => {
           if (img.complete) {
-            ScrollTrigger.refresh(); // Image was already cached [3]
+            ScrollTrigger.refresh();
           } else {
             img.addEventListener("load", () => {
-              ScrollTrigger.refresh(); // Recalculate once image finishes downloading [3]
+              ScrollTrigger.refresh();
             });
           }
         });
 
-        // 2. Audit & Fix: Set standard Webpack scroll velocity matching the track size [3]
         gsap.to(track, {
           x: getScrollAmount,
           ease: "none",
           scrollTrigger: {
             trigger: horizontalRef.current,
             start: "top top",
-            // Corrected: End matches exact translation distance (removes slow scroll speed) [3]
             end: () => `+=${track.scrollWidth - window.innerWidth}`,
             pin: true,
-            scrub: 0.5, // Snappier response (reduced from 1 to 0.5) for immediate scroll-tracking
+            scrub: 0.5,
             invalidateOnRefresh: true,
           },
         });
@@ -236,36 +232,111 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
       />
 
       {/* SECTION 1: HERO */}
-      <section className="relative h-screen w-full bg-white overflow-hidden text-black">
+      <section className="relative h-screen w-full bg-white overflow-hidden text-black rounded-none">
+        
+        {/* Component 1: Hero Image Mask Container */}
         <div
           ref={heroImageMaskRef}
-          className="absolute left-5 top-5 right-5 h-[62.5vh] overflow-hidden bg-zinc-400"
+          className={[
+            "absolute overflow-hidden bg-zinc-400 rounded-none",
+            // 01. Mobile Min (320x640)
+            "left-[12px] top-[11px] right-[12px] h-[50vh]",
+            // 02. Mobile Std (390x844)
+            "min-[375px]:left-[12px] min-[375px]:top-[11px] min-[375px]:right-[12px] min-[375px]:h-[52vh]",
+            // 03. Tablet Port (768x1024)
+            "md:left-[20px] md:top-[20px] md:right-[20px] md:h-[60vh]",
+            // 04. Tablet Land (1024x768)
+            "lg:left-[20px] lg:top-[20px] lg:right-[20px] lg:h-[60vh]",
+            // 05. Desktop Base (1280x800)
+            "xl:left-[20px] xl:top-[20px] xl:right-[20px] xl:h-[62.5vh]",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:left-[20px] min-[1440px]:top-[20px] min-[1440px]:right-[20px] min-[1440px]:h-[62.5vh]"
+          ].join(" ")}
         >
           <img
             ref={heroImageRef}
             src={project.heroImg}
-            className="h-full w-full object-cover will-change-transform"
+            className="h-full w-full object-cover will-change-transform rounded-none"
             alt={project.title}
           />
         </div>
 
-        <div className="project-hero-copy absolute left-5 top-[67.5vh] w-72 text-justify text-sm font-medium uppercase leading-none text-zinc-950">
+        {/* Component 2: Lower Left Credits/Description */}
+        <div className={[
+          "project-hero-copy absolute text-justify font-medium uppercase leading-[1.2] text-zinc-950 rounded-none",
+          // 01. Mobile Min (320x640)
+          "left-[12px] top-[56vh] w-[296px] text-[11px]",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:left-[12px] min-[375px]:top-[58vh] min-[375px]:w-[366px]",
+          // 03. Tablet Port (768x1024)
+          "md:left-[20px] md:top-[65vh] md:w-64 md:text-xs",
+          // 04. Tablet Land (1024x768)
+          "lg:left-[20px] lg:top-[65vh] lg:w-64 lg:text-xs",
+          // 05. Desktop Base (1280x800)
+          "xl:left-[20px] xl:top-[67.5vh] xl:w-72 xl:text-sm",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:left-[20px] min-[1440px]:top-[67.5vh] min-[1440px]:w-72 min-[1440px]:text-sm"
+        ].join(" ")}>
           {project.credits}
         </div>
 
-        <div className="absolute left-5 bottom-8 flex items-end gap-1">
+        {/* Component 3: Project Title & Dynamic Year (Bottom Left) */}
+        <div className={[
+          "absolute flex items-end gap-1.5 rounded-none",
+          // 01. Mobile Min (320x640)
+          "left-[12px] bottom-[20px]",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:left-[12px] min-[375px]:bottom-[20px]",
+          // 03. Tablet Port (768x1024)
+          "md:left-[20px] md:bottom-8",
+          // 04. Tablet Land (1024x768)
+          "lg:left-[20px] lg:bottom-8",
+          // 05. Desktop Base (1280x800)
+          "xl:left-[20px] xl:bottom-8",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:left-[20px] min-[1440px]:bottom-8"
+        ].join(" ")}>
           <div className="overflow-hidden">
-            <h1 className="project-hero-title-line text-[clamp(3rem,4.1vw,64px)] font-bold uppercase leading-none tracking-[-0.03em]">
+            <h1 className={[
+              "project-hero-title-line font-bold uppercase leading-none tracking-[-0.03em] rounded-none",
+              // 01. Mobile Min (320x640)
+              "text-3xl",
+              // 02. Mobile Std (390x844)
+              "min-[375px]:text-4xl",
+              // 03. Tablet Port (768x1024)
+              "md:text-5xl",
+              // 04. Tablet Land (1024x768)
+              "lg:text-5xl",
+              // 05. Desktop Base (1280x800)
+              "xl:text-[clamp(3rem,4.1vw,64px)]",
+              // 06. Original Widescreen (1440x794)
+              "min-[1440px]:text-[64px]"
+            ].join(" ")}>
               {project.title}
             </h1>
           </div>
 
-          <span className="project-hero-copy pb-1 text-base font-normal leading-none">
-            2025
+          <span className="project-hero-copy pb-1 text-xs md:text-sm xl:text-base font-normal leading-none opacity-85">
+            {project.year}
           </span>
         </div>
 
-        <div className="project-hero-copy absolute left-[70.4vw] top-[67.5vh] w-[28vw] max-w-[430px] text-sm uppercase leading-5">
+        {/* Component 4: Consultants Column (Bottom Right Upper) */}
+        <div className={[
+          "project-hero-copy absolute uppercase leading-tight text-zinc-950 rounded-none",
+          // 01. Mobile Min (320x640)
+          "left-[12px] top-[74vh] w-[296px] text-[11px]",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:left-[12px] min-[375px]:top-[74vh] min-[375px]:w-[366px]",
+          // 03. Tablet Port (768x1024)
+          "md:left-auto md:right-[20px] md:top-[65vh] md:w-[28vw] md:max-w-[430px] md:text-xs md:leading-5",
+          // 04. Tablet Land (1024x768)
+          "lg:left-auto lg:right-[20px] lg:top-[65vh] lg:w-[28vw] lg:max-w-[430px] lg:text-xs lg:leading-5",
+          // 05. Desktop Base (1280x800)
+          "xl:left-auto xl:right-[20px] xl:top-[67.5vh] xl:w-[28vw] xl:max-w-[430px] xl:text-sm xl:leading-5",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:left-auto min-[1440px]:right-[20px] min-[1440px]:top-[67.5vh] min-[1440px]:w-[28vw] min-[1440px]:max-w-[430px] min-[1440px]:text-sm min-[1440px]:leading-5"
+        ].join(" ")}>
           {project.consultants.map((item) => (
             <div key={item.label}>
               <span className="font-semibold">{item.label}</span>
@@ -275,7 +346,22 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
           ))}
         </div>
 
-        <div className="project-hero-copy absolute left-[70.4vw] top-[83.7vh] w-[28vw] max-w-[430px] text-sm uppercase leading-5">
+        {/* Component 5: Team Column (Bottom Right Lower) */}
+        <div className={[
+          "project-hero-copy absolute uppercase leading-tight text-zinc-950 rounded-none",
+          // 01. Mobile Min (320x640)
+          "left-[12px] top-[86vh] w-[296px] text-[11px]",
+          // 02. Mobile Std (390x844)
+          "min-[375px]:left-[12px] min-[375px]:top-[86vh] min-[375px]:w-[366px]",
+          // 03. Tablet Port (768x1024)
+          "md:left-auto md:right-[20px] md:top-[80vh] md:w-[28vw] md:max-w-[430px] md:text-xs md:leading-5",
+          // 04. Tablet Land (1024x768)
+          "lg:left-auto lg:right-[20px] lg:top-[80vh] lg:w-[28vw] lg:max-w-[430px] lg:text-xs lg:leading-5",
+          // 05. Desktop Base (1280x800)
+          "xl:left-auto xl:right-[20px] xl:top-[83.7vh] xl:w-[28vw] xl:max-w-[430px] xl:text-sm xl:leading-5",
+          // 06. Original Widescreen (1440x794)
+          "min-[1440px]:left-auto min-[1440px]:right-[20px] min-[1440px]:top-[83.7vh] min-[1440px]:w-[28vw] min-[1440px]:max-w-[430px] min-[1440px]:text-sm min-[1440px]:leading-5"
+        ].join(" ")}>
           {project.team.map((item) => (
             <div key={item.label}>
               <span className="font-bold">{item.label}</span>
@@ -285,48 +371,96 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         </div>
       </section>
 
-      {/* SECTION 2 */}
+      {/* SECTION 2: VERTICAL IMAGE SEQUENCE */}
       <section
         ref={sequenceRef}
-        className="relative w-full h-screen bg-white overflow-hidden"
+        className="relative w-full h-screen bg-white overflow-hidden rounded-none"
       >
-        <div className="relative w-full h-full max-w-382 mx-auto">
-          <div className="absolute left-155.75 top-37.25 w-110 z-20 pointer-events-none">
+        <div className="relative w-full h-full max-w-382 mx-auto rounded-none">
+          
+          {/* Component 6: Paragraph slide-text container */}
+          <div className={[
+            "absolute z-20 pointer-events-none rounded-none",
+            // 01. Mobile Min (320x640)
+            "left-[12px] top-[26vh] w-[296px]",
+            // 02. Mobile Std (390x844)
+            "min-[375px]:left-[12px] min-[375px]:top-[28vh] min-[375px]:w-[366px]",
+            // 03. Tablet Port (768x1024)
+            "md:left-[449px] md:top-[187px] md:w-72",
+            // 04. Tablet Land (1024x768)
+            "lg:left-[622px] lg:top-[114px] lg:w-96",
+            // 05. Desktop Base (1280x800)
+            "xl:left-[776px] xl:top-[345px] xl:w-[484px]",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:left-[872px] min-[1440px]:top-[342px] min-[1440px]:w-[540px]"
+          ].join(" ")}>
             {project.slides.map((text, index) => (
               <p
                 key={index}
-                className="slide-text absolute w-full text-justify [text-justify:inter-word] hyphens-auto text-black text-2xl font-semibold leading-tight uppercase tracking-normal"
+                className="slide-text absolute w-full text-justify [text-justify:inter-word] hyphens-auto text-black text-xs md:text-sm lg:text-base xl:text-lg min-[1440px]:text-2xl font-semibold leading-tight uppercase tracking-normal rounded-none"
               >
                 {text}
               </p>
             ))}
           </div>
 
-          <div className="absolute inset-0 z-10 pointer-events-none">
-            {project.verticalImages.map((img, i) => (
-              <div
-                key={i}
-                className={`v-img-block absolute bg-zinc-400 overflow-hidden shadow-none ${
-                  i === 2
-                    ? "left-2.5 top-37.25 w-145.75 h-96"
-                    : "right-2.5 top-5 w-105 h-188.5"
-                }`}
-              >
-                <img src={img} className="w-full h-full object-cover" alt="work" />
-              </div>
-            ))}
+          {/* Component 7: Vertical Image Container Grid */}
+          <div className="absolute inset-0 z-10 pointer-events-none rounded-none">
+            {project.verticalImages.map((img, i) => {
+              // Custom responsive configurations for the alternating vertical images
+              const cardLayoutClasses = [
+                i === 2
+                  ? [
+                      // 01. Mobile Min (320x640)
+                      "left-[12px] top-[48vh] w-[296px] h-[34vh]",
+                      // 02. Mobile Std (390x844)
+                      "min-[375px]:left-[12px] min-[375px]:top-[48vh] min-[375px]:w-[366px] min-[375px]:h-[36vh]",
+                      // 03. Tablet Port (768x1024)
+                      "md:left-[20px] md:top-[522px] md:w-[288px] md:h-[384px]",
+                      // 04. Tablet Land (1024x768)
+                      "lg:left-[20px] lg:top-[302px] lg:w-[384px] lg:h-[384px]",
+                      // 05. Desktop Base (1280x800)
+                      "xl:left-[20px] xl:top-[752px] xl:w-[504px] xl:h-[583px]",
+                      // 06. Original Widescreen (1440x794)
+                      "min-[1440px]:left-[20px] min-[1440px]:top-[752px] min-[1440px]:w-[473px] min-[1440px]:h-[583px]"
+                    ].join(" ")
+                  : [
+                      // 01. Mobile Min (320x640)
+                      "left-[12px] top-[10vh] w-[296px] h-[14vh]",
+                      // 02. Mobile Std (390x844)
+                      "min-[375px]:left-[12px] min-[375px]:top-[10vh] min-[375px]:w-[366px] min-[375px]:h-[15vh]",
+                      // 03. Tablet Port (768x1024)
+                      "md:right-[20px] md:top-[187px] md:w-[288px] md:h-[288px]",
+                      // 04. Tablet Land (1024x768)
+                      "lg:right-[20px] lg:top-[114px] lg:w-[384px] lg:h-[384px]",
+                      // 05. Desktop Base (1280x800)
+                      "xl:right-[20px] xl:top-[208px] xl:w-[484px] xl:h-[484px]",
+                      // 06. Original Widescreen (1440x794)
+                      "min-[1440px]:right-[20px] min-[1440px]:top-[208px] min-[1440px]:w-[473px] min-[1440px]:h-[583px]"
+                    ].join(" ")
+              ].join(" ");
+
+              return (
+                <div
+                  key={i}
+                  className={`v-img-block absolute bg-zinc-400 overflow-hidden shadow-none rounded-none ${cardLayoutClasses}`}
+                >
+                  <img src={img} className="w-full h-full object-cover rounded-none" alt="Architectural sequence" />
+                </div>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* SECTION 3 */}
+      {/* SECTION 3: HORIZONTAL GALLERY */}
       <section
         ref={horizontalRef}
-        className="relative h-screen w-full flex items-end bg-white overflow-hidden no-scrollbar pb-10 md:pb-16"
+        className="relative h-screen w-full flex items-end bg-white overflow-hidden no-scrollbar pb-10 md:pb-16 rounded-none"
       >
         <div
           ref={horizontalTrackRef}
-          className="flex flex-nowrap items-end px-[10vw] gap-2 md:gap-2"
+          className="flex flex-nowrap items-end px-[10vw] gap-2 md:gap-4 rounded-none"
         >
           {project.horizontalGallery.map((img, i) => {
             const heights = [
@@ -341,14 +475,14 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
               <div
                 key={i}
                 onClick={() => setSelectedImg(img)}
-                className={`shrink-0 w-auto cursor-pointer group ${
+                className={`shrink-0 w-auto cursor-pointer group rounded-none ${
                   heights[i % heights.length]
                 }`}
               >
                 <img
                   src={img}
-                  alt="gallery"
-                  className="h-full w-auto object-contain grayscale hover:grayscale-0 transition-all duration-1000 ease-out"
+                  alt="gallery perspective"
+                  className="h-full w-auto object-contain grayscale hover:grayscale-0 transition-all duration-1000 ease-out rounded-none"
                 />
               </div>
             );

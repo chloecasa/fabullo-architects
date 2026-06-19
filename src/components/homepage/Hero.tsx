@@ -14,8 +14,10 @@ if (typeof window !== "undefined") {
 
 const heroImages = [
   "/assets/images/Homepage/Hero.png",
-  "/assets/images/Homepage/Hero.png",
-  "/assets/images/Homepage/Hero.png",
+  "/media/Hero/Image2.jpeg",
+    "/media/Hero/Image3.jpeg",
+    "/media/Hero/Image4.jpeg",
+    "/media/Hero/Image5.jpeg",
 ];
 
 const Hero = () => {
@@ -195,7 +197,7 @@ const Hero = () => {
           
           {/* Component 3: Copy Paragraph 1 */}
           <p className={[
-            "hero-copy text-justify font-medium leading-[1.25] rounded-none",
+            "hero-copy text-justify font-bold leading-[1.25] rounded-none",
             // 01. Mobile Min (320x640)
             "text-[10px] w-35",
             // 02. Mobile Std (390x844)
@@ -215,7 +217,7 @@ const Hero = () => {
           
           {/* Component 3: Copy Paragraph 2 */}
           <p className={[
-            "hero-copy text-justify font-medium leading-[1.25] rounded-none",
+            "hero-copy text-justify font-bold leading-[1.25] rounded-none",
             // 01. Mobile Min (320x640)
             "text-[10px] w-28",
             // 02. Mobile Std (390x844)
@@ -253,7 +255,7 @@ const Hero = () => {
         >
           <div className="relative h-full w-full transition-opacity duration-300 group-hover:opacity-40">
             <span className="absolute right-10.5 top-10 z-10 text-base font-bold uppercase leading-none">
-              Let's talk
+              Lets talk
             </span>
 
             <span className="absolute right-0 top-0 block h-8 w-32 bg-black" />
