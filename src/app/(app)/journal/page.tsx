@@ -7,7 +7,7 @@ import { Metadata } from 'next';
 import { Suspense } from 'react'; 
 
 export const metadata: Metadata = {
-  title: "Journal | MGK Architects",
+  title: "Journal | FABULLO Architects",
   description: "An exploration of context-driven design and refined structural forms within the modern landscape.",
 };
 
@@ -32,6 +32,7 @@ interface JournalEntry {
 }
 
 // Data Mapper: Automatically transforms static database groups into the dynamic React arrays [1.4.2]
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapPayloadJournalEntries = (docs: any[]): JournalEntry[] => {
   if (!docs || !Array.isArray(docs)) return [];
 

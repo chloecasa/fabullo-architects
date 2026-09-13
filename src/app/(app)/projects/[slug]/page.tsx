@@ -18,7 +18,32 @@ export interface ProjectData {
   horizontalGallery: string[];
 }
 
+// Types to satisfy ESLint without using 'any'
+interface SlideItem {
+  text?: string;
+}
+
+interface MediaItem {
+  image?: {
+    url?: string | null;
+  } | null;
+}
+
+interface PayloadProjectDoc {
+  title?: string;
+  year?: string | number;
+  heroImg?: { url?: string | null } | null;
+  credits?: string;
+  team?: string[];
+  consultants?: string[];
+  slides?: SlideItem[];
+  verticalImages?: MediaItem[];
+  horizontalGallery?: MediaItem[];
+  [key: string]: unknown;
+}
+
 // Helper to safely format Payload's relational database arrays into the flat array formats expected by your GSAP timelines
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const mapPayloadProjectDetail = (doc: any): ProjectData => {
   return {
     title: doc.title,
@@ -30,14 +55,15 @@ const mapPayloadProjectDetail = (doc: any): ProjectData => {
     // Extract raw text strings from your schema array objects
     slides: doc.slides ? doc.slides.map((slide: any) => slide.text) : [],
     // Resolve nested primary image URLs from your relational media lists
-    verticalImages: doc.verticalImages 
-      ? doc.verticalImages.map((item: any) => item.image?.url || '') 
+    verticalImages: doc.verticalImages
+      ? doc.verticalImages.map((item: any) => item.image?.url || '')
       : [],
-    horizontalGallery: doc.horizontalGallery 
-      ? doc.horizontalGallery.map((item: any) => item.image?.url || '') 
+    horizontalGallery: doc.horizontalGallery
+      ? doc.horizontalGallery.map((item: any) => item.image?.url || '')
       : [],
   };
 };
+/* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Dynamically generate SEO Meta Titles from your Neon Database entries
 export async function generateMetadata(props: { params: Promise<{ slug: string }> }): Promise<Metadata> {

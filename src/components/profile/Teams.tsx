@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useRef, useEffect, useState } from 'react';
+import React, { useRef, useEffect } from 'react';
 import Image from 'next/image';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
@@ -31,14 +31,8 @@ const Teams = ({ initialMembers }: TeamsProps) => {
   const nameRefs = useRef<(HTMLParagraphElement | null)[]>([]);
   const descRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  // Initialize and sync your states with the live database entries
-  const [members, setMembers] = useState<TeamMember[]>(initialMembers || []);
-
-  useEffect(() => {
-    if (initialMembers) {
-      setMembers(initialMembers);
-    }
-  }, [initialMembers]);
+  // Derive members directly from props (no useState or useEffect needed)
+  const members = initialMembers || [];
 
   // Scroll to selected team member dynamically
   const scrollToMember = (index: number) => {
@@ -60,7 +54,7 @@ const Teams = ({ initialMembers }: TeamsProps) => {
   useEffect(() => {
     if (members.length === 0) return; // Prevent timeline calculations on empty state
 
-    let ctx = gsap.context(() => {
+   const ctx = gsap.context(() => {
       
       // REPEATABLE INTRO ANIMATION
       gsap.set(".team-intro-reveal", { y: "115%" });

@@ -8,7 +8,7 @@ import ContactSection from '@/components/contact/ContactSection';
 import { Metadata } from 'next';
 
 export const metadata: Metadata = {
-  title: "Profile | MGK Architects",
+  title: "Profile | FABULLO Architects",
   description: "Meet the team and explore the vision behind MGK Architects.",
 };
 
@@ -30,6 +30,7 @@ interface YearGroup {
 }
 
 // Database-to-Frontend Team Profile Mapper
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapPayloadTeam = (docs: any[]): TeamMember[] => {
   if (!docs || !Array.isArray(docs)) return [];
 
@@ -42,6 +43,7 @@ const mapPayloadTeam = (docs: any[]): TeamMember[] => {
 };
 
 // High-Performance Grouping Reducer (Converts flat database rows into nested year arrays) [2]
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const groupByYear = (docs: any[]): YearGroup[] => {
   if (!docs || !Array.isArray(docs)) return [];
 

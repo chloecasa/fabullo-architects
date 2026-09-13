@@ -91,7 +91,7 @@ const Header = () => {
           transition: "opacity 350ms ease, transform 350ms ease",
         }}
       >
-        MGK
+        FABULLO
       </Link>
 
       <nav

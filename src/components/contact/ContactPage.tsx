@@ -70,7 +70,7 @@ const ContactPage = () => {
       const formFields = gsap.utils.toArray<HTMLElement>(".contact-form-field");
 
       const tl = gsap.timeline();
-      let mm = gsap.matchMedia();
+    const mm = gsap.matchMedia();
 
       tl.set(titleRef.current, {
         clipPath: "inset(100% 0% 0% 0%)",
@@ -284,7 +284,7 @@ const ContactPage = () => {
                 your message is delivered
               </span>
               <p className="text-sm text-zinc-700 leading-relaxed max-w-sm mt-4 rounded-none">
-                We have received your message, {formData.firstName}. Our studio team will review your inquiry regarding "{formData.subject}" and get back to you shortly.
+                We have received your message, {formData.firstName}. Our studio team will review your inquiry regarding {formData.subject} and get back to you shortly.
               </p>
             </div>
           ) : (

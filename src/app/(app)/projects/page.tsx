@@ -5,7 +5,7 @@ import Projects from "@/components/projects/Projects";
 import ContactSection from "@/components/contact/ContactSection";
 
 export const metadata = {
-  title: "Projects | MGK Architects",
+  title: "Projects | FABULLO Architects",
   description: "A portfolio of refined, context-driven architectural works.",
 };
 

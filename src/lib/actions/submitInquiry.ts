@@ -149,8 +149,8 @@ export async function submitInquiry(data: InquiryInput) {
 
     return { success: true, leadId: newLead.id };
 
-  } catch (error: any) {
-    console.error('SERVER ACTION ERROR: submitInquiry failed ->', error);
-    return { success: false, error: 'An unexpected transmission error occurred. Please try again.' };
-  }
+  } catch (error: unknown) {
+  console.error('SERVER ACTION ERROR: submitInquiry failed ->', error);
+  return { success: false, error: 'An unexpected transmission error occurred. Please try again.' };
+}
 }

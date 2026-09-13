@@ -12,16 +12,8 @@ if (typeof window !== "undefined") {
 
 const Profile = () => {
   const [activeSection, setActiveSection] = useState<string | null>(null);
-
-  const lastPosRef = useRef<{
-    top: string;
-    title: string;
-    content: React.ReactNode;
-  }>({
-    top: "0%",
-    title: "",
-    content: "",
-  });
+  // Keeps track of the last selected section so content doesn't vanish while sliding out
+  const [lastActiveId, setLastActiveId] = useState<string>("who");
 
   const containerRef = useRef<HTMLDivElement>(null);
   const imageSectionRef = useRef<HTMLDivElement>(null);
@@ -85,15 +77,13 @@ const Profile = () => {
     },
   ];
 
-  const currentData = sections.find((s) => s.id === activeSection);
+  const displayedData = sections.find((s) => s.id === (activeSection || lastActiveId)) || sections[0];
+  const isEthos = displayedData.id === "ethos";
 
-  if (currentData) {
-    lastPosRef.current = {
-      top: currentData.top,
-      title: currentData.title,
-      content: currentData.content,
-    };
-  }
+  const handleOpenSection = (id: string) => {
+    setActiveSection(id);
+    setLastActiveId(id);
+  };
 
   useEffect(() => {
     if (activeSection) {
@@ -109,13 +99,10 @@ const Profile = () => {
     }
   }, [activeSection]);
 
-  const isEthos = activeSection === "ethos" || lastPosRef.current.title === "ethos";
-
   return (
     <main ref={containerRef} className="w-full bg-white rounded-none">
       <RevealWrapper>
-        
-        {/* Component 1: Intro Header Section padding & height scale */}
+        {/* Component 1: Intro Header Section */}
         <section className={[
           "w-full bg-white relative overflow-hidden flex items-end rounded-none",
           // 01. Mobile Min (320x640)
@@ -132,43 +119,17 @@ const Profile = () => {
           "min-[1440px]:h-[280px] min-[1440px]:px-[20px] min-[1440px]:pb-[32px]"
         ].join(" ")}>
           
-          {/* Title & Tagline Flex Wrapper with compact tagline gaps */}
           <div className="flex items-baseline gap-1.5 md:gap-2 xl:gap-3 rounded-none">
-            
-            {/* Component 2: Main Branding Title ("Profile") */}
             <h1 className={[
               "font-bold uppercase leading-[0.75] tracking-tighter text-black rounded-none",
-              // 01. Mobile Min (320x640)
-              "text-[44px]",
-              // 02. Mobile Std (390x844)
-              "min-[375px]:text-[56px]",
-              // 03. Tablet Port (768x1024)
-              "md:text-[110px]",
-              // 04. Tablet Land (1024x768)
-              "lg:text-[130px]",
-              // 05. Desktop Base (1280x800)
-              "xl:text-[180px]",
-              // 06. Original Widescreen (1440x794)
-              "min-[1440px]:text-[200px]"
+              "text-[44px] min-[375px]:text-[56px] md:text-[110px] lg:text-[130px] xl:text-[180px] min-[1440px]:text-[200px]"
             ].join(" ")}>
               Profile
             </h1>
             
-            {/* Component 3: Subtitle Tagline ("know who we are") */}
             <span className={[
               "font-normal lowercase text-black opacity-80 rounded-none",
-              // 01. Mobile Min (320x640)
-              "text-[10px]",
-              // 02. Mobile Std (390x844)
-              "min-[375px]:text-[11px]",
-              // 03. Tablet Port (768x1024)
-              "md:text-[16px]",
-              // 04. Tablet Land (1024x768)
-              "lg:text-[18px]",
-              // 05. Desktop Base (1280x800)
-              "xl:text-[22px]",
-              // 06. Original Widescreen (1440x794)
-              "min-[1440px]:text-[24px]"
+              "text-[10px] min-[375px]:text-[11px] md:text-[16px] lg:text-[18px] xl:text-[22px] min-[1440px]:text-[24px]"
             ].join(" ")}>
               know who we are
             </span>
@@ -181,18 +142,7 @@ const Profile = () => {
         ref={imageSectionRef}
         className={[
           "relative w-full bg-zinc-400 overflow-hidden rounded-none",
-          // 01. Mobile Min (320x640)
-          "h-[340px]",
-          // 02. Mobile Std (390x844)
-          "min-[375px]:h-[420px]",
-          // 03. Tablet Port (768x1024)
-          "md:h-[580px]",
-          // 04. Tablet Land (1024x768)
-          "lg:h-[580px]",
-          // 05. Desktop Base (1280x800)
-          "xl:h-[750px]",
-          // 06. Original Widescreen (1440x794)
-          "min-[1440px]:h-[800px]"
+          "h-[340px] min-[375px]:h-[420px] md:h-[580px] lg:h-[580px] xl:h-[750px] min-[1440px]:h-[800px]"
         ].join(" ")}
       >
         <Image
@@ -211,39 +161,16 @@ const Profile = () => {
           {sections.map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveSection(item.id)}
+              onClick={() => handleOpenSection(item.id)}
               style={{ top: item.btnY }}
               className={[
                 "absolute -translate-y-1/2 group flex items-baseline gap-3 text-white border-none bg-transparent p-0 m-0 cursor-pointer hover:-translate-x-2.5 transition-transform duration-500 rounded-none",
-                // 01. Mobile Min (320x640)
-                "right-[12px]",
-                // 02. Mobile Std (390x844)
-                "min-[375px]:right-[12px]",
-                // 03. Tablet Port (768x1024)
-                "md:right-[20px]",
-                // 04. Tablet Land (1024x768)
-                "lg:right-[20px]",
-                // 05. Desktop Base (1280x800)
-                "xl:right-[20px]",
-                // 06. Original Widescreen (1440x794)
-                "min-[1440px]:right-[20px]"
+                "right-[12px] min-[375px]:right-[12px] md:right-[20px] lg:right-[20px] xl:right-[20px] min-[1440px]:right-[20px]"
               ].join(" ")}
             >
-              {/* Category button title */}
               <h2 className={[
                 "font-semibold uppercase tracking-tight rounded-none",
-                // 01. Mobile Min (320x640)
-                "text-sm",
-                // 02. Mobile Std (390x844)
-                "min-[375px]:text-base",
-                // 03. Tablet Port (768x1024)
-                "md:text-lg",
-                // 04. Tablet Land (1024x768)
-                "lg:text-xl",
-                // 05. Desktop Base (1280x800)
-                "xl:text-2xl",
-                // 06. Original Widescreen (1440x794)
-                "min-[1440px]:text-2xl"
+                "text-sm min-[375px]:text-base md:text-lg lg:text-xl xl:text-2xl min-[1440px]:text-2xl"
               ].join(" ")}>{item.title}</h2>
               
               <span className="text-[10px] font-normal uppercase opacity-40 group-hover:opacity-100 tracking-widest transition-opacity rounded-none">
@@ -257,7 +184,7 @@ const Profile = () => {
         <div
           ref={panelRef}
           style={{
-            top: isEthos ? "33.33%" : lastPosRef.current.top,
+            top: isEthos ? "33.33%" : displayedData.top,
             height: isEthos ? "66.67%" : "18rem",
             transform: "translateX(100%)",
           }}
@@ -265,45 +192,29 @@ const Profile = () => {
         >
           <div ref={contentRef} className="opacity-0 relative w-full h-full rounded-none">
             {isEthos ? (
-              
-              /* Component 5: Ethos Columns Wrapper (Stacks vertically on mobile, splits horizontally on tablet/desktop) */
               <div className={[
                 "absolute left-[20px] top-[20px] right-[20px] flex rounded-none",
-                // 01. Mobile Min (320x640) - Stacks & allows vertical scrolling
                 "flex-col gap-[12px] h-[calc(100%-40px)] overflow-y-auto",
-                // 02. Mobile Std (390x844) - Stacks & allows vertical scrolling
                 "min-[375px]:flex-col min-[375px]:gap-[12px] min-[375px]:h-[calc(100%-40px)] min-[375px]:overflow-y-auto",
-                // 03. Tablet Port (768x1024) - Displays side-by-side
                 "md:flex-row md:gap-[20px] md:h-auto md:overflow-visible",
-                // 04. Tablet Land (1024x768)
                 "lg:flex-row lg:gap-[20px] lg:h-auto lg:overflow-visible",
-                // 05. Desktop Base (1280x800)
                 "xl:flex-row xl:gap-[20px] xl:h-auto xl:overflow-visible",
-                // 06. Original Widescreen (1440x794)
                 "min-[1440px]:flex-row min-[1440px]:gap-[20px] min-[1440px]:h-auto min-[1440px]:overflow-visible"
               ].join(" ")}>
-                {lastPosRef.current.content}
+                {displayedData.content}
               </div>
             ) : (
-              
-              /* Component 6: Standard Column (Who we are / Our story) text box */
               <div className={[
                 "absolute left-[20px] top-[20px] text-justify justify-start text-black font-semibold font-['LT_Superior'] rounded-none h-[calc(100%-40px)] overflow-y-auto md:overflow-visible",
-                lastOriginalWidthClass(lastPosRef.current.title),
-                // 01. Mobile Min (320x640)
+                lastOriginalWidthClass(displayedData.title),
                 "text-xs max-w-[calc(100%-40px)] leading-normal pr-4 md:pr-0",
-                // 02. Mobile Std (390x844)
                 "min-[375px]:text-xs min-[375px]:max-w-[calc(100%-40px)] min-[375px]:leading-normal min-[375px]:pr-4 min-[375px]:md:pr-0",
-                // 03. Tablet Port (768x1024)
                 "md:text-sm md:leading-[1.4] md:max-w-none",
-                // 04. Tablet Land (1024x768)
                 "lg:text-sm lg:leading-[1.4]",
-                // 05. Desktop Base (1280x800)
                 "xl:text-xl xl:leading-tight",
-                // 06. Original Widescreen (1440x794)
                 "min-[1440px]:text-xl min-[1440px]:leading-tight"
               ].join(" ")}>
-                {lastPosRef.current.content}
+                {displayedData.content}
               </div>
             )}
 
@@ -314,7 +225,7 @@ const Profile = () => {
               className="absolute right-[20px] bottom-[20px] flex items-baseline gap-1 justify-start border-none bg-transparent cursor-pointer p-0 m-0 transition-opacity hover:opacity-40 rounded-none"
             >
               <span className="text-black text-xl font-semibold font-['LT_Superior'] uppercase rounded-none">
-                {lastPosRef.current.title}
+                {displayedData.title}
               </span>
               <span className="text-black text-xs font-normal font-['LT_Superior'] uppercase rounded-none">
                 close

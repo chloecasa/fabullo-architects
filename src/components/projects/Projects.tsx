@@ -23,6 +23,7 @@ interface ProjectItem {
 }
 
 // Helper function to map raw Payload CMS database data into the exact format your UI expects
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapPayloadProjects = (payloadDocs: any[]): ProjectItem[] => {
   if (!payloadDocs || !Array.isArray(payloadDocs)) return [];
   
@@ -164,21 +165,15 @@ const BlindCard = ({ project }: { project: ProjectItem }) => {
 };
 
 interface ProjectsProps {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   initialProjects: any[]; // Accept live database data as a prop from page.tsx
 }
 
 export default function Projects({ initialProjects }: ProjectsProps) {
   const [activeCategory, setActiveCategory] = useState<Category>('RESIDENTIAL');
   
-  // Initialize state with mapped database projects instead of mock data
-  const [projects, setProjects] = useState<ProjectItem[]>(() => 
-    mapPayloadProjects(initialProjects)
-  );
-
-  // Sync state if initialProjects changes dynamically
-  useEffect(() => {
-    setProjects(mapPayloadProjects(initialProjects));
-  }, [initialProjects]);
+// ✅ REPLACEMENT:
+const projects = useMemo(() => mapPayloadProjects(initialProjects), [initialProjects]);
 
   useEffect(() => {
     const timer = setTimeout(() => {

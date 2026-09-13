@@ -171,16 +171,11 @@ const Footer = () => {
         <div className="absolute bottom-12 left-5 flex items-end whitespace-nowrap font-bold uppercase leading-[0.72] tracking-[-0.06em]">
           <span
             ref={mgkRef}
-            className="inline-block origin-bottom-left text-[clamp(10rem,31vw,420px)]"
+            className="inline-block origin-bottom-left text-[clamp(8rem,26vw,376px)]"
           >
-            MGK
+            FABULLO
           </span>
-          <span
-            ref={architectsRef}
-            className="mb-5 inline-block origin-bottom-right text-[clamp(3rem,6.5vw,86px)]"
-          >
-            architects
-          </span>
+    
         </div>
       </div>
 
@@ -189,7 +184,7 @@ const Footer = () => {
         className="absolute bottom-0 left-0 h-12 w-full overflow-hidden border-t border-white/70 bg-black font-['LT_Superior'] text-[10px] font-normal uppercase text-white"
       >
         <div className="absolute left-[21px] top-[20px] normal-case">
-          © MGK ARCHITECTS / 2025
+          © FABULLO ARCHITECTS / 2025
         </div>
 
         <Link

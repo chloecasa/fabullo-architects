@@ -27,7 +27,7 @@ const slides: BlogSlide[] = [
     subtitle: "ON THE LOCAL PROJECT",
     description:
       "Striking a balance between modesty and tenacity, the design uses a careful play of voids to draw natural light deep into a reassuringly calm sanctuary",
-    videoClip:   "/media/localproject.mp4",
+    videoClip:   "/media/fabullovid.mp4",
     bgColor: "bg-white",
     textColor: "text-black",
     layout: "featured",
