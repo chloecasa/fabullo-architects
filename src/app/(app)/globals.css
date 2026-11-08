@@ -39,10 +39,8 @@
 }
 
 /* 3. Prevent Horizontal shifting */
-html, body {
-  overflow-x: hidden !important;
-  width: 100%;
-  position: relative;
+body {
+  overflow-x: clip;
 }
 
 /* 4. Tailwind v4 Custom Theme Configurations */
@@ -59,11 +57,7 @@ html, body {
   --color-border-active: #000000;
   --color-scrollbar-thumb: #d6d3d1;
 
-  /* Mapping our Font Families (LT Superior is primary, fallbacks added) */
-  --font-sans: var(--font-lt-superior), sans-serif;
-  --font-serif: var(--font-cinzel), serif;
-  --font-code: var(--font-code), monospace;
-  --font-hoves: var(--font-hoves), sans-serif;
+
 
   /* Mapping our exact weights */
   --font-weight-normal: 400;
@@ -72,6 +66,12 @@ html, body {
   --font-weight-bold: 700;
 }
 
+@theme inline {
+  --font-sans: var(--font-lt-superior), sans-serif;
+  --font-serif: var(--font-cinzel), serif;
+  --font-code: var(--font-code-src), monospace;
+  --font-hoves: var(--font-hoves-src), sans-serif;
+}
 /* 5. Document Base Elements */
 body {
   font-family: var(--font-sans);
@@ -131,10 +131,7 @@ html, body {
 }
 
 /* Force the body to never scroll sideways */
-body {
-  overflow-x: hidden;
-  width: 100%;
-}
+
 body.video-open header {
   display: none !important;
 }

@@ -19,20 +19,24 @@ const cinzel = localFont({
   variable: "--font-cinzel",
 });
 
+
+
 const codeFont = localFont({
   src: [
     { path: "./fonts/CODE Light.otf", weight: "300", style: "normal" },
     { path: "./fonts/CODE Bold.otf", weight: "700", style: "normal" },
   ],
-  variable: "--font-code",
+  variable: "--font-code-src",
+  display: "swap",
 });
 
 const ttHoves = localFont({
-  src: [
+ src: [
     { path: "./fonts/TT Hoves Pro Trial Regular.ttf", weight: "400", style: "normal" },
     { path: "./fonts/TT Hoves Pro Trial Bold.ttf", weight: "700", style: "normal" },
   ],
-  variable: "--font-hoves",
+  variable: "--font-hoves-src",
+  display: "swap",
 });
 
 import MenuProvider from "@/components/context/MenuProvider";
@@ -46,18 +50,18 @@ import CookieBanner from "@/components/ui/CookieBanner";
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
-      lang="en"
-      className={`overflow-x-hidden ${ltSuperior.variable} ${cinzel.variable} ${codeFont.variable} ${ttHoves.variable}`}
-      suppressHydrationWarning
-    >
-      <body className="overflow-x-hidden bg-[var(--bg-base)] text-[var(--text-primary)] antialiased rounded-none">
+  lang="en"
+  className={`${ltSuperior.variable} ${cinzel.variable} ${codeFont.variable} ${ttHoves.variable}`}
+  suppressHydrationWarning
+>
+  <body className="bg-bg-base text-text-primary antialiased">
         <GsapInitializer />
 
         <MenuProvider>
           <Header />
 
           <SmoothScroll>
-            <main className="relative z-20 min-h-screen w-full bg-white shadow-none">
+            <main className="relative z-20 min-h-svh w-full bg-white">
               {children}
             </main>
 

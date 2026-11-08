@@ -14,7 +14,7 @@ if (typeof window !== "undefined") {
 type Category = 'RESIDENTIAL' | 'COMMERCIAL' | 'UNBUILT';
 
 interface ProjectItem {
-  id: string; 
+  id: string;
   title: string;
   subText: string;
   img: string;
@@ -26,7 +26,7 @@ interface ProjectItem {
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mapPayloadProjects = (payloadDocs: any[]): ProjectItem[] => {
   if (!payloadDocs || !Array.isArray(payloadDocs)) return [];
-  
+
   return payloadDocs.map((doc) => {
     // Determine user-friendly category string
     let subLabel = 'Residential';
@@ -51,59 +51,73 @@ const BlindCard = ({ project }: { project: ProjectItem }) => {
 
   useGSAP(() => {
     if (!cardRef.current) return;
-    
-    const titles = cardRef.current.querySelectorAll(".card-title, .card-subtext");
-    const blindStrips = cardRef.current.querySelectorAll(".blind-strip");
-    
-    const split = new SplitText(titles, { type: "words" });
-    
-    gsap.set(split.words, { yPercent: 105 });
 
-    const tl = gsap.timeline({ paused: true });
-    
-    tl.to(blindStrips, { 
-        scaleY: 1, 
-        duration: 0.5, 
-        ease: "power2.inOut", 
-        stagger: 0.04 
-    }, 0);
+    // Hover animation only runs on devices with a real mouse.
+    // On touch screens the text stays visible at all times (no hover to reveal it).
+    const mm = gsap.matchMedia();
 
-    tl.to(split.words, { 
-        yPercent: 0, 
-        duration: 0.5, 
-        ease: "power3.out", 
-        stagger: 0.02 
-    }, 0.2); 
+    mm.add("(hover: hover) and (pointer: fine)", () => {
+      if (!cardRef.current) return;
 
-    const enter = () => tl.play();
-    const leave = () => tl.reverse();
+      const titles = cardRef.current.querySelectorAll(".card-title, .card-subtext");
+      const blindStrips = cardRef.current.querySelectorAll(".blind-strip");
 
-    cardRef.current.addEventListener("mouseenter", enter);
-    cardRef.current.addEventListener("mouseleave", leave);
+      const split = new SplitText(titles, { type: "words" });
 
-    return () => {
-      cardRef.current?.removeEventListener("mouseenter", enter);
-      cardRef.current?.removeEventListener("mouseleave", leave);
-      split.revert();
-    };
+      gsap.set(split.words, { yPercent: 105 });
+
+      const tl = gsap.timeline({ paused: true });
+
+      tl.to(blindStrips, {
+        scaleY: 1,
+        duration: 0.5,
+        ease: "power2.inOut",
+        stagger: 0.04
+      }, 0);
+
+      tl.to(split.words, {
+        yPercent: 0,
+        duration: 0.5,
+        ease: "power3.out",
+        stagger: 0.02
+      }, 0.2);
+
+      const enter = () => tl.play();
+      const leave = () => tl.reverse();
+
+      const el = cardRef.current;
+      el.addEventListener("mouseenter", enter);
+      el.addEventListener("mouseleave", leave);
+
+      return () => {
+        el.removeEventListener("mouseenter", enter);
+        el.removeEventListener("mouseleave", leave);
+        split.revert();
+      };
+    });
+
+    return () => mm.revert();
   }, { scope: cardRef });
 
   return (
     <Link href={`/projects/${project.slug}`} className="block group no-underline">
       <div ref={cardRef} className="relative w-full aspect-16/10 overflow-hidden bg-zinc-400 rounded-none">
-        <img 
-            src={project.img} 
-            alt={project.title} 
-            className="absolute inset-0 w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 rounded-none" 
+        <img
+            src={project.img}
+            alt={project.title}
+            className="absolute inset-0 w-full h-full object-cover [@media(hover:hover)_and_(pointer:fine)]:grayscale group-hover:grayscale-0 transition-all duration-700 rounded-none"
         />
-        
-        {/* Blinds Overlay */}
+
+        {/* Bottom gradient: keeps the text readable on touch screens, where it is always visible */}
+        <div className="absolute inset-0 bg-linear-to-t from-black/60 via-black/0 to-black/0 pointer-events-none z-1" />
+
+        {/* Blinds Overlay (hover devices only; hidden on touch via the scaled-down default) */}
         <div className="absolute inset-0 flex flex-col pointer-events-none z-5">
           {strips.map((_, i) => (
             <div key={i} className="blind-strip flex-1 w-full scale-y-0 origin-top bg-black/20" />
           ))}
         </div>
-        
+
         {/* Text Content */}
         <div className={[
           "absolute z-10 flex flex-col pointer-events-none",
@@ -141,19 +155,19 @@ const BlindCard = ({ project }: { project: ProjectItem }) => {
           </div>
           <div className="overflow-hidden">
             <p className={[
-              "card-subtext text-white/70 font-mono uppercase tracking-[0.2em]",
+              "card-subtext text-white/80 font-mono uppercase tracking-[0.2em]",
               // 01. Mobile Min (320x640)
-              "text-[8px]",
+              "text-[12px]",
               // 02. Mobile Std (390x844)
-              "min-[375px]:text-[8px]",
+              "min-[375px]:text-[12px]",
               // 03. Tablet Port (768x1024)
-              "md:text-[9px]",
+              "md:text-[12px]",
               // 04. Tablet Land (1024x768)
-              "lg:text-[9px]",
+              "lg:text-[13px]",
               // 05. Desktop Base (1280x800)
-              "xl:text-[10px]",
+              "xl:text-[13px]",
               // 06. Original Widescreen (1440x794)
-              "min-[1440px]:text-[10px]"
+              "min-[1440px]:text-[14px]"
             ].join(" ")}>
               {project.subText}
             </p>
@@ -171,9 +185,8 @@ interface ProjectsProps {
 
 export default function Projects({ initialProjects }: ProjectsProps) {
   const [activeCategory, setActiveCategory] = useState<Category>('RESIDENTIAL');
-  
-// ✅ REPLACEMENT:
-const projects = useMemo(() => mapPayloadProjects(initialProjects), [initialProjects]);
+
+  const projects = useMemo(() => mapPayloadProjects(initialProjects), [initialProjects]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -190,7 +203,7 @@ const projects = useMemo(() => mapPayloadProjects(initialProjects), [initialProj
 
   return (
     <main className="bg-[#ffffff] min-h-screen text-black rounded-none">
-      
+
       {/* Component 1: Header Section Container (Slightly adjusted padding to match standard top lines) */}
       <div className={[
         "pb-10 rounded-none",
@@ -207,10 +220,10 @@ const projects = useMemo(() => mapPayloadProjects(initialProjects), [initialProj
         // 06. Original Widescreen (1440x794)
         "min-[1440px]:px-[20px] min-[1440px]:pt-[110px]"
       ].join(" ")}>
-        
-       {/* Title & Tagline Flex Wrapper */}
-        <div className="flex items-baseline gap-1.5 md:gap-2 xl:gap-3 mb-4">
-          
+
+       {/* Title & Tagline Flex Wrapper (wraps on very narrow screens so nothing is cut off) */}
+        <div className="flex flex-wrap items-baseline gap-x-1.5 gap-y-1 md:gap-2 xl:gap-3 mb-4">
+
           {/* Component 2: Main Branding Title ("projects") */}
           <h1 className={[
             "font-bold uppercase leading-[0.8] tracking-tighter rounded-none",
@@ -229,14 +242,14 @@ const projects = useMemo(() => mapPayloadProjects(initialProjects), [initialProj
           ].join(" ")}>
             projects
           </h1>
-          
+
           {/* Component 3: Subtitle Tagline ("know our works") */}
           <span className={[
             "font-light lowercase whitespace-nowrap opacity-80",
             // 01. Mobile Min (320x640)
-            "text-[10px]",
+            "text-[14px]",
             // 02. Mobile Std (390x844)
-            "min-[375px]:text-[11px]",
+            "min-[375px]:text-[14px]",
             // 03. Tablet Port (768x1024)
             "md:text-[16px]",
             // 04. Tablet Land (1024x768)
@@ -252,7 +265,7 @@ const projects = useMemo(() => mapPayloadProjects(initialProjects), [initialProj
 
         {/* Component 4: Navigation / Filter Buttons Container */}
         <div className={[
-          "flex",
+          "flex flex-wrap",
           // 01. Mobile Min (320x640)
           "gap-4 mt-4",
           // 02. Mobile Std (390x844)
@@ -270,13 +283,14 @@ const projects = useMemo(() => mapPayloadProjects(initialProjects), [initialProj
             <button
               key={cat}
               onClick={() => setActiveCategory(cat)}
+              aria-pressed={activeCategory === cat}
               className={[
                 "font-medium tracking-tight transition-all duration-300 relative group border-none bg-transparent p-0 m-0 cursor-pointer text-black",
-                activeCategory === cat ? 'opacity-100' : 'opacity-40 hover:opacity-100',
+                activeCategory === cat ? 'opacity-100' : 'opacity-40 [@media(hover:hover)]:hover:opacity-100',
                 // 01. Mobile Min (320x640)
-                "text-[11px]",
+                "text-[14px]",
                 // 02. Mobile Std (390x844)
-                "min-[375px]:text-[12px]",
+                "min-[375px]:text-[14px]",
                 // 03. Tablet Port (768x1024)
                 "md:text-[16px]",
                 // 04. Tablet Land (1024x768)

@@ -44,25 +44,62 @@ interface PayloadProjectDoc {
 
 // Helper to safely format Payload's relational database arrays into the flat array formats expected by your GSAP timelines
 /* eslint-disable @typescript-eslint/no-explicit-any */
+// ---------- TEMPORARY PLACEHOLDERS (remove once Payload has content) ----------
+const PLACEHOLDER_HERO = "https://placehold.co/1600x1000/9ca3af/ffffff?text=Hero+Image";
+
+const PLACEHOLDER_SLIDES = [
+  "Placeholder paragraph one. The studio approaches each site with a careful reading of light, material, and the surrounding street, shaping the building to sit quietly within its context.",
+  "Placeholder paragraph two. Structure and circulation are developed together, so that every threshold, stair, and window frames a deliberate view of the city beyond.",
+  "Placeholder paragraph three. Materials are chosen for their honesty and how they age over time, with raw concrete, timber, and stone used in calm, measured proportions.",
+  "Placeholder paragraph four. The final scheme balances public and private space, allowing the building to host daily life while holding a clear and lasting architectural identity.",
+];
+
+const PLACEHOLDER_VERTICAL = [1, 2, 3, 4].map(
+  (n) => `https://placehold.co/1200x1500/a1a1aa/ffffff?text=Vertical+${n}`
+);
+
+const PLACEHOLDER_GALLERY = [1, 2, 3, 4, 5].map(
+  (n) => `https://placehold.co/1600x1100/d4d4d8/3f3f46?text=Gallery+${n}`
+);
+// ------------------------------------------------------------------------------
+
+/* eslint-disable @typescript-eslint/no-explicit-any */
 const mapPayloadProjectDetail = (doc: any): ProjectData => {
+  const slides = doc.slides?.length
+    ? doc.slides.map((slide: any) => slide.text)
+    : PLACEHOLDER_SLIDES;
+
+  const verticalImages = doc.verticalImages?.length
+    ? doc.verticalImages.map((item: any) => item.image?.url || "")
+    : PLACEHOLDER_VERTICAL;
+
+  const horizontalGallery = doc.horizontalGallery?.length
+    ? doc.horizontalGallery.map((item: any) => item.image?.url || "")
+    : PLACEHOLDER_GALLERY;
+
   return {
-    title: doc.title,
-    year: doc.year || '', // Map dynamic completion year from Neon DB [1]
-    heroImg: doc.heroImg?.url || '', // Resolve Hero image URL from relation
-    credits: doc.credits || '',
-    team: doc.team || [],
-    consultants: doc.consultants || [],
-    // Extract raw text strings from your schema array objects
-    slides: doc.slides ? doc.slides.map((slide: any) => slide.text) : [],
-    // Resolve nested primary image URLs from your relational media lists
-    verticalImages: doc.verticalImages
-      ? doc.verticalImages.map((item: any) => item.image?.url || '')
-      : [],
-    horizontalGallery: doc.horizontalGallery
-      ? doc.horizontalGallery.map((item: any) => item.image?.url || '')
-      : [],
+    title: doc.title || "Placeholder Project",
+    year: doc.year || "2026",
+    heroImg: doc.heroImg?.url || PLACEHOLDER_HERO,
+    credits: doc.credits || "Placeholder credits: photography, drawings, and site notes for testing the layout.",
+    team: doc.team?.length
+      ? doc.team
+      : [
+          { label: "Lead Architect", val: "Placeholder Name" },
+          { label: "Designer", val: "Placeholder Name" },
+        ],
+    consultants: doc.consultants?.length
+      ? doc.consultants
+      : [
+          { label: "Structural", val: "Placeholder Firm" },
+          { label: "MEP", val: "Placeholder Firm" },
+        ],
+    slides,
+    verticalImages,
+    horizontalGallery,
   };
 };
+/* eslint-enable @typescript-eslint/no-explicit-any */
 /* eslint-enable @typescript-eslint/no-explicit-any */
 
 // Dynamically generate SEO Meta Titles from your Neon Database entries

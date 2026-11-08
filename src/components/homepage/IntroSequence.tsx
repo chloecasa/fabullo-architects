@@ -3,7 +3,7 @@
 import React, { useRef } from "react";
 import Link from "next/link";
 import gsap from "gsap";
-import { ScrollTrigger } from "gsap/dist/ScrollTrigger";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 
 if (typeof window !== "undefined") {
@@ -161,38 +161,33 @@ const IntroSequence: React.FC = () => {
       ref={sectionRef}
       className="relative z-20 w-full overflow-hidden bg-white text-black rounded-none"
     >
-      {/* Main Relative Container Grid Canvas */}
+      {/* Phones: flow layout, height from content. Tablet and up: fixed heights (unchanged) */}
       <div className={[
-        "relative mx-auto w-full max-w-[1440px] px-0 py-0",
-        // 01. Mobile Min (320x640) - Figma exact height
-        "h-[640px]",
-        // 02. Mobile Std (390x844) - Figma exact height
-        "min-[375px]:h-[844px]",
-        // 03. Tablet Port (768x1024) - Figma exact height
+        "relative mx-auto w-full max-w-[1440px] flex flex-col",
+        "px-[12px] pt-[80px] pb-[56px]",
+        "md:block md:p-0",
+        // 03. Tablet Port (768x1024)
         "md:h-[1024px]",
-        // 04. Tablet Land (1024x768) - Figma exact height
+        // 04. Tablet Land (1024x768)
         "lg:h-[768px]",
-        // 05. Desktop Base (1280x800) - Figma exact height
+        // 05. Desktop Base (1280x800)
         "xl:h-[1523px]",
-        // 06. Original Widescreen (1440x794) - Figma exact height
-        "min-[1440px]:h-[1523px]"
+        // 06. Original Widescreen (1440x794)
+        "min-[1440px]:h-[1523px]",
       ].join(" ")}>
 
         {/* Component 1: Title ("WHAT WE DO") */}
         <div className={[
-          "intro-title will-change-transform absolute justify-start text-black font-bold font-['LT_Superior']",
-          // 01. Mobile Min (320x640)
-          "left-[10px] top-[33px] text-sm",
-          // 02. Mobile Std (390x844)
-          "min-[375px]:left-[10px] min-[375px]:top-[80px] min-[375px]:text-sm",
+          "intro-title will-change-transform justify-start text-black font-bold font-['LT_Superior'] text-xl mb-6",
+          "md:absolute md:mb-0 md:text-3xl",
           // 03. Tablet Port (768x1024)
-          "md:left-[20px] md:top-[187px] md:text-3xl",
+          "md:left-[20px] md:top-[187px]",
           // 04. Tablet Land (1024x768)
-          "lg:left-[20px] lg:top-[114px] lg:text-3xl",
+          "lg:left-[20px] lg:top-[114px]",
           // 05. Desktop Base (1280x800)
           "xl:left-[20px] xl:top-[208px] xl:text-4xl",
           // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[20px] min-[1440px]:top-[208px] min-[1440px]:text-[74px]"
+          "min-[1440px]:left-[20px] min-[1440px]:top-[208px] min-[1440px]:text-[74px]",
         ].join(" ")}>
           <Link
             href="/profile"
@@ -204,11 +199,8 @@ const IntroSequence: React.FC = () => {
 
         {/* Component 2: Copy Paragraph 1 */}
         <div className={[
-          "intro-text-one text-justify font-['LT_Superior'] font-bold leading-tight text-black will-change-transform absolute justify-start",
-          // 01. Mobile Min (320x640)
-          "left-[133px] top-[33px] w-[176px] text-xs",
-          // 02. Mobile Std (390x844)
-          "min-[375px]:left-[152px] min-[375px]:top-[80px] min-[375px]:w-[224px] min-[375px]:text-xs",
+          "intro-text-one text-left md:text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
+          "md:absolute",
           // 03. Tablet Port (768x1024)
           "md:left-[455px] md:top-[187px] md:w-[288px] md:text-xl",
           // 04. Tablet Land (1024x768)
@@ -216,7 +208,7 @@ const IntroSequence: React.FC = () => {
           // 05. Desktop Base (1280x800)
           "xl:left-[776px] xl:top-[208px] xl:w-[484px] xl:text-3xl",
           // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[710px] min-[1440px]:top-[208px] min-[1440px]:w-[713px] min-[1440px]:text-4xl"
+          "min-[1440px]:left-[710px] min-[1440px]:top-[208px] min-[1440px]:w-[713px] min-[1440px]:text-4xl",
         ].join(" ")}>
           We design refined, context‑driven homes and commercial spaces shaped
           by clarity, craftsmanship, and purpose. We focus on what you need, how
@@ -225,11 +217,8 @@ const IntroSequence: React.FC = () => {
 
         {/* Component 3: Divider Line 1 */}
         <div className={[
-          "intro-line-one h-px origin-left bg-black absolute",
-          // 01. Mobile Min (320x640)
-          "left-[132px] top-[163px] w-[180px]",
-          // 02. Mobile Std (390x844)
-          "min-[375px]:left-[152px] min-[375px]:top-[180px] min-[375px]:w-[224px]",
+          "intro-line-one h-px w-full my-8 md:my-0 origin-left bg-black",
+          "md:absolute",
           // 03. Tablet Port (768x1024)
           "md:left-[455px] md:top-[401px] md:w-[288px]",
           // 04. Tablet Land (1024x768)
@@ -237,19 +226,16 @@ const IntroSequence: React.FC = () => {
           // 05. Desktop Base (1280x800)
           "xl:left-[776px] xl:top-[482px] xl:w-[484px]",
           // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[707px] min-[1440px]:top-[456px] min-[1440px]:w-[713px]"
+          "min-[1440px]:left-[707px] min-[1440px]:top-[456px] min-[1440px]:w-[713px]",
         ].join(" ")} />
 
         {/* Component 4: Image Mask & Source */}
         <img
-          src="  /media/Intro/Image.jpeg"
+          src="/media/Intro/Image.jpeg"
           alt="Architectural detail"
           className={[
-            "intro-image object-cover will-change-[clip-path,transform] absolute rounded-none",
-            // 01. Mobile Min (320x640)
-            "left-[10px] top-[350px] w-[176px] h-[240px]",
-            // 02. Mobile Std (390x844)
-            "min-[375px]:left-[10px] min-[375px]:top-[427px] min-[375px]:w-[224px] min-[375px]:h-[320px]",
+            "intro-image object-cover will-change-[clip-path,transform] block w-full aspect-[3/4] mb-8 md:mb-0 rounded-none",
+            "md:absolute md:aspect-auto",
             // 03. Tablet Port (768x1024)
             "md:left-[20px] md:top-[506px] md:w-[288px] md:h-[384px]",
             // 04. Tablet Land (1024x768)
@@ -257,17 +243,14 @@ const IntroSequence: React.FC = () => {
             // 05. Desktop Base (1280x800)
             "xl:left-[20px] xl:top-[775px] xl:w-[504px] xl:h-[583px]",
             // 06. Original Widescreen (1440x794)
-            "min-[1440px]:left-[20px] min-[1440px]:top-[752px] min-[1440px]:w-[473px] min-[1440px]:h-[583px]"
+            "min-[1440px]:left-[20px] min-[1440px]:top-[752px] min-[1440px]:w-[473px] min-[1440px]:h-[583px]",
           ].join(" ")}
         />
 
         {/* Component 5: Copy Paragraph 2 */}
         <div className={[
-          "intro-text-two text-justify font-['LT_Superior'] font-bold leading-tight text-black will-change-transform absolute justify-start",
-          // 01. Mobile Min (320x640)
-          "left-[133px] top-[189px] w-[176px] text-xs",
-          // 02. Mobile Std (390x844)
-          "min-[375px]:left-[152px] min-[375px]:top-[219px] min-[375px]:w-[224px] min-[375px]:text-xs",
+          "intro-text-two text-left md:text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
+          "md:absolute",
           // 03. Tablet Port (768x1024)
           "md:left-[455px] md:top-[502px] md:w-[288px] md:text-xl",
           // 04. Tablet Land (1024x768)
@@ -275,7 +258,7 @@ const IntroSequence: React.FC = () => {
           // 05. Desktop Base (1280x800)
           "xl:left-[776px] xl:top-[772px] xl:w-[484px] xl:text-3xl",
           // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[710px] min-[1440px]:top-[752px] min-[1440px]:w-[710px] min-[1440px]:text-4xl"
+          "min-[1440px]:left-[710px] min-[1440px]:top-[752px] min-[1440px]:w-[710px] min-[1440px]:text-4xl",
         ].join(" ")}>
           Every project is guided by context, material clarity, and functional
           precision. From first sketch to final detail, we deliver architecture
@@ -284,11 +267,8 @@ const IntroSequence: React.FC = () => {
 
         {/* Component 6: Divider Line 2 */}
         <div className={[
-          "intro-line-two h-px origin-left bg-black absolute",
-          // 01. Mobile Min (320x640)
-          "left-[132px] top-[319px] w-[180px]",
-          // 02. Mobile Std (390x844)
-          "min-[375px]:left-[152px] min-[375px]:top-[315]px] min-[375px]:w-[224px]",
+          "intro-line-two h-px w-full my-8 md:my-0 origin-left bg-black",
+          "md:absolute",
           // 03. Tablet Port (768x1024)
           "md:left-[455px] md:top-[715px] md:w-[288px]",
           // 04. Tablet Land (1024x768)
@@ -296,7 +276,7 @@ const IntroSequence: React.FC = () => {
           // 05. Desktop Base (1280x800)
           "xl:left-[776px] xl:top-[1046px] xl:w-[484px]",
           // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[707px] min-[1440px]:top-[1040px] min-[1440px]:w-[713px]"
+          "min-[1440px]:left-[707px] min-[1440px]:top-[1040px] min-[1440px]:w-[713px]",
         ].join(" ")} />
       </div>
     </section>

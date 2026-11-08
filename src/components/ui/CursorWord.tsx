@@ -4,18 +4,23 @@ import { useEffect, useState } from "react";
 
 const CursorWord = () => {
   const [position, setPosition] = useState({ x: 0, y: 0 });
-const [label, setLabel] = useState("");
-const [cursorColor, setCursorColor] = useState(""); // Stores 'black' or 'white'
+  const [label, setLabel] = useState("");
+  const [cursorColor, setCursorColor] = useState(""); // Stores 'black' or 'white'
 
   useEffect(() => {
+    // Touch screens fire mousemove on tap, which would leave the label stuck.
+    // Only run on devices with a real mouse or trackpad.
+    const mq = window.matchMedia("(hover: hover) and (pointer: fine)");
+    if (!mq.matches) return;
+
     const handleMouseMove = (event: MouseEvent) => {
       setPosition({ x: event.clientX, y: event.clientY });
 
-     const target = event.target as HTMLElement;
-    const cursorTarget = target.closest("[data-cursor]") as HTMLElement | null;
+      const target = event.target as HTMLElement;
+      const cursorTarget = target.closest("[data-cursor]") as HTMLElement | null;
 
-    setLabel(cursorTarget?.dataset.cursor ?? "");
-    setCursorColor(cursorTarget?.getAttribute("data-cursor-color") ?? "");
+      setLabel(cursorTarget?.dataset.cursor ?? "");
+      setCursorColor(cursorTarget?.getAttribute("data-cursor-color") ?? "");
     };
 
     window.addEventListener("mousemove", handleMouseMove);

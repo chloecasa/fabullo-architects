@@ -2,17 +2,20 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useMenu } from "@/components/context/MenuProvider";
 
 const Header = () => {
   const { isOpen, setIsOpen } = useMenu();
+  const pathname = usePathname();
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
   const [isPastHero, setIsPastHero] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
-
-  // States to track hover on elements with inline style opacity
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [isMenuHovered, setIsMenuHovered] = useState(false);
+  const [isJournalPreviewOpen, setIsJournalPreviewOpen] = useState(false);
+
+  const isContactPage = pathname === "/contact" || pathname === "/contact/";
 
   useEffect(() => {
     const updateHeader = () => {
@@ -25,7 +28,6 @@ const Header = () => {
     };
 
     updateHeader();
-
     window.addEventListener("resize", updateHeader);
     window.addEventListener("scroll", updateHeader, { passive: true });
 
@@ -35,56 +37,57 @@ const Header = () => {
     };
   }, []);
 
-  if (isOpen) return null;
+  // The journal preview panel dispatches "journalPreview" (true on open, false on close)
+  useEffect(() => {
+    const onJournalPreview = (e: Event) => {
+      setIsJournalPreviewOpen(Boolean((e as CustomEvent<boolean>).detail));
+    };
 
-  const showMGK = isPastHero && !isFooterVisible;
+    window.addEventListener("journalPreview", onJournalPreview);
+    return () => window.removeEventListener("journalPreview", onJournalPreview);
+  }, []);
+
+  // Hide the header while the menu or the journal preview is open
+  if (isOpen || isJournalPreviewOpen) return null;
+
+  // Contact page: no logo, no nav row. Only the MENU button, top right.
+  if (isContactPage) {
+    return (
+      <div
+        role="banner"
+        className="pointer-events-none fixed inset-x-[12px] top-[11px] z-[2147483647] flex items-center justify-end md:inset-x-[20px] md:top-[18px] lg:top-[20px]"
+      >
+        <button
+          type="button"
+          aria-label="Open menu"
+          onClick={() => setIsOpen(true)}
+          className="pointer-events-auto -m-4 cursor-pointer border-0 bg-transparent p-4 font-bold uppercase leading-none tracking-wider text-black text-[clamp(1rem,0.9rem+0.5vw,1.25rem)] transition-opacity duration-300 hover:opacity-50"
+        >
+          MENU
+        </button>
+      </div>
+    );
+  }
+
+  // Phones and tablets: logo always visible. Desktop: logo appears after scrolling past the hero.
+  const showMGK = !isFooterVisible && (isMobileOrTablet || isPastHero);
   const showMenu = (isMobileOrTablet || isPastHero) && !isFooterVisible;
   const showDesktopNav = !isMobileOrTablet && !isPastHero && !isFooterVisible;
 
-  const readableText: React.CSSProperties = {
-    color: "black",
-  };
+  const linkClass =
+    "text-black no-underline transition-opacity duration-300 hover:opacity-50";
 
   return (
     <div
       role="banner"
-      className={[
-        "fixed flex items-center justify-between pointer-events-none z-[2147483647]",
-        // 01. Mobile Min (320x640) - Pulled up with exact margins
-        "top-[11px] left-[12px] right-[12px]",
-        // 02. Mobile Std (390x844) - Pulled up with exact margins
-        "min-[375px]:top-[11px] min-[375px]:left-[12px] min-[375px]:right-[12px]",
-        // 03. Tablet Port (768x1024) - Pulled up to match top design line
-        "md:top-[18px] md:left-[20px] md:right-[20px]",
-        // 04. Tablet Land (1024x768) - Pulled up to match top design line
-        "lg:top-[20px] lg:left-[20px] lg:right-[20px]",
-        // 05. Desktop Base (1280x800) - Pulled up to match top design line
-        "xl:top-[18px] xl:left-[20px] xl:right-[20px]",
-        // 06. Original Widescreen (1440x794) - Pulled up to match top design line
-        "min-[1440px]:top-[18px] min-[1440px]:left-[20px] min-[1440px]:right-[20px]"
-      ].join(" ")}
+      className="pointer-events-none fixed inset-x-[12px] top-[11px] z-[2147483647] flex items-center justify-between md:inset-x-[20px] md:top-[18px] lg:top-[20px]"
     >
       <Link
         href="/"
         onMouseEnter={() => setIsLogoHovered(true)}
         onMouseLeave={() => setIsLogoHovered(false)}
-        className={[
-         "font-bold uppercase leading-none no-underline tracking-wide",
-          // 01. Mobile Min (320x640) - Scaled up
-          "text-[18px]",
-          // 02. Mobile Std (390x844) - Scaled up
-          "min-[375px]:text-[20px]",
-          // 03. Tablet Port (768x1024) - Scaled up
-          "md:text-[24px]",
-          // 04. Tablet Land (1024x768) - Scaled up
-          "lg:text-[26px]",
-          // 05. Desktop Base (1280x800) - Your decided size
-          "xl:text-[32px]",
-          // 06. Original Widescreen (1440x794) - Your decided size
-          "min-[1440px]:text-[32px]"
-        ].join(" ")}
+        className="font-bold uppercase leading-none tracking-wide text-black no-underline text-[clamp(1.125rem,0.9rem+1vw,2rem)]"
         style={{
-          ...readableText,
           pointerEvents: showMGK ? "auto" : "none",
           opacity: showMGK ? (isLogoHovered ? 0.5 : 1) : 0,
           transform: showMGK ? "translateY(0)" : "translateY(-8px)",
@@ -94,66 +97,33 @@ const Header = () => {
         FABULLO
       </Link>
 
+      {/* Centred desktop nav. Do NOT add -translate-x-1/2 here: the inline transform already centres it. */}
       <nav
-        className={[
-          "absolute left-1/2 flex items-center justify-center font-bold uppercase tracking-wider",
-          // 01. Mobile Min (320x640) - Hidden
-          // 02. Mobile Std (390x844) - Hidden
-          // 03. Tablet Port (768x1024) - Hidden
-          // 04. Tablet Land (1024x768) - Scaled down
-          "lg:text-[10px] lg:gap-5 lg:h-10",
-          // 05. Desktop Base (1280x800) - Scaled down
-          "xl:text-[11px] xl:gap-6 xl:h-11",
-          // 06. Original Widescreen (1440x794) - Standard size
-          "min-[1440px]:text-xs min-[1440px]:gap-[24px] min-[1440px]:h-11"
-        ].join(" ")}
+        className="absolute left-1/2 hidden items-center justify-center gap-[clamp(1.25rem,1rem+0.8vw,1.5rem)] font-bold uppercase tracking-wider text-[clamp(0.625rem,0.5rem+0.3vw,0.75rem)] lg:flex lg:h-10 xl:h-11"
         style={{
           transform: showDesktopNav
             ? "translateX(-50%) translateY(0)"
             : "translateX(-50%) translateY(-8px)",
-          display: isMobileOrTablet ? "none" : "flex",
           opacity: showDesktopNav ? 1 : 0,
           pointerEvents: showDesktopNav ? "auto" : "none",
           transition: "opacity 350ms ease, transform 350ms ease",
         }}
       >
-       <Link href="/projects" className="transition-opacity duration-300 hover:opacity-50" style={{ color: "black", textDecoration: "none" }}>
-          Projects
-        </Link>
-        <Link href="/journal" className="transition-opacity duration-300 hover:opacity-50" style={{ color: "black", textDecoration: "none" }}>
-          Journal
-        </Link>
-        <Link href="/profile" className="transition-opacity duration-300 hover:opacity-50" style={{ color: "black", textDecoration: "none" }}>
-          Profile
-        </Link>
-        <Link href="/contact" className="transition-opacity duration-300 hover:opacity-50" style={{ color: "black", textDecoration: "none" }}>
-          Contact
-        </Link>
+        <Link href="/projects" className={linkClass}>Projects</Link>
+        <Link href="/journal" className={linkClass}>Journal</Link>
+        <Link href="/profile" className={linkClass}>Profile</Link>
+        <Link href="/contact" className={linkClass}>Contact</Link>
       </nav>
 
+      {/* MENU: larger text and a ~48px tap area on phones. -m-4 p-4 keeps its position unchanged. */}
       <button
         type="button"
         aria-label="Open menu"
         onClick={() => setIsOpen(true)}
         onMouseEnter={() => setIsMenuHovered(true)}
         onMouseLeave={() => setIsMenuHovered(false)}
-        className={[
-          "border-0 p-0 m-0 bg-transparent cursor-pointer font-bold uppercase leading-none tracking-wider",
-          // 01. Mobile Min (320x640) - Scaled up (was text-[10px])
-          "text-[12px]",
-          // 02. Mobile Std (390x844) - Scaled up (was text-[10px])
-          "min-[375px]:text-[12px]",
-          // 03. Tablet Port (768x1024) - Scaled up (was md:text-[11px])
-          "md:text-[16px]",
-          // 04. Tablet Land (1024x768) - Scaled up (was lg:text-[11px])
-          "lg:text-[16px]",
-          // 05. Desktop Base (1280x800) - Scaled up (was invalid xl:text-m)
-          "xl:text-[18px]",
-          // 06. Original Widescreen (1440x794) - Scaled up (was invalid min-[1440px]:text-m)
-          "min-[1440px]:text-[18px]"
-        ].join(" ")}
+        className="pointer-events-auto -m-4 cursor-pointer border-0 bg-transparent p-4 font-bold uppercase leading-none tracking-wider text-black text-[clamp(1rem,0.9rem+0.5vw,1.25rem)]"
         style={{
-          ...readableText,
           pointerEvents: showMenu ? "auto" : "none",
           opacity: showMenu ? (isMenuHovered ? 0.5 : 1) : 0,
           transform: showMenu ? "translateY(0)" : "translateY(-8px)",

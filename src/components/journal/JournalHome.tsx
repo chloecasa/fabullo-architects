@@ -98,9 +98,9 @@ useEffect(() => {
   }, [entries]); // Keep your original dependency list
 
   const handleItemClick = (
-    entry: JournalEntry,
-    e: React.MouseEvent<HTMLElement>
-  ) => {
+  entry: JournalEntry,
+  e: React.MouseEvent<HTMLElement> | React.KeyboardEvent<HTMLElement>
+) => {
     if (isAnimating) return;
 
     setIsAnimating(true);
@@ -205,27 +205,36 @@ useEffect(() => {
     );
   };
 
-  return (
+    return (
     <>
-      <section className="bg-white text-[#151515] min-h-screen px-5 pt-8 pb-64 relative overflow-x-hidden">
-        <div className="journal-header flex items-baseline gap-4 mt-44 mb-8">
-          <h2 className="font-sans text-[clamp(4rem,13vw,200px)] font-bold uppercase leading-[0.8] tracking-tighter">
+      <section className="bg-white text-[#151515] min-h-svh px-5 pt-8 pb-24 md:pb-64 relative overflow-x-hidden">
+        <div className="journal-header flex flex-wrap items-baseline gap-x-4 gap-y-2 mt-28 md:mt-44 mb-8">
+          <h2 className="font-sans text-[clamp(3rem,13vw,200px)] font-bold uppercase leading-[0.8] tracking-tighter break-words">
             JOURNAL
           </h2>
-          <span className="text-3xl font-normal lowercase">
+          <span className="text-base md:text-3xl font-normal lowercase">
             keep updates on us
           </span>
         </div>
 
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-6.25">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
           {entries.slice(0, 12).map((entry) => (
             <figure
               key={entry.id}
-              className="grid-item m-0 cursor-pointer transition-transform hover:scale-[1.02]"
+              role="button"
+              tabIndex={0}
+              aria-label={entry.title}
+              className="grid-item m-0 cursor-pointer transition-transform hover:scale-[1.02] active:scale-[0.98] focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#151515]"
               onClick={(e) => handleItemClick(entry, e)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleItemClick(entry, e);
+                }
+              }}
             >
               <div
-                className="grid-image w-56 h-72 bg-cover bg-center bg-zinc-400 transition-opacity duration-300 hover:opacity-80 grayscale"
+                className="grid-image w-full aspect-[4/5] bg-cover bg-center bg-zinc-400 grayscale transition-opacity duration-300 hover:opacity-80 active:opacity-80"
                 style={{ backgroundImage: `url(${entry.img})` }}
               />
             </figure>

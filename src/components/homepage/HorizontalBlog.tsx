@@ -27,7 +27,7 @@ const slides: BlogSlide[] = [
     subtitle: "ON THE LOCAL PROJECT",
     description:
       "Striking a balance between modesty and tenacity, the design uses a careful play of voids to draw natural light deep into a reassuringly calm sanctuary",
-    videoClip:   "/media/fabullovid.mp4",
+    videoClip: "/media/fabullovid.mp4",
     bgColor: "bg-white",
     textColor: "text-black",
     layout: "featured",
@@ -36,16 +36,83 @@ const slides: BlogSlide[] = [
 
 export default function HorizontalBlog() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const videoButtonRef = useRef<HTMLButtonElement>(null);
+  const pointerRef = useRef<{ x: number; y: number } | null>(null);
+  const insideVideoRef = useRef(false);
+
   const [isReady, setIsReady] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
 
   useEffect(() => {
-  const handle = requestAnimationFrame(() => {
-    setIsReady(true);
-  });
+    const handle = requestAnimationFrame(() => {
+      setIsReady(true);
+    });
 
-  return () => cancelAnimationFrame(handle);
-}, []);
+    return () => cancelAnimationFrame(handle);
+  }, []);
+
+  // Keeps the custom cursor label in sync with the video frame while scrolling.
+  // Browsers don't fire mouseleave when the page scrolls under a still pointer,
+  // so we check the pointer position ourselves.
+  useEffect(() => {
+    const isFine = window.matchMedia("(hover: hover) and (pointer: fine)").matches;
+    if (!isFine) return;
+
+    let frame = 0;
+
+    const check = () => {
+      frame = 0;
+      const button = videoButtonRef.current;
+      if (!button) return;
+
+      const p = pointerRef.current;
+      let inside = false;
+
+      if (p) {
+        const r = button.getBoundingClientRect();
+        inside = p.x >= r.left && p.x <= r.right && p.y >= r.top && p.y <= r.bottom;
+      }
+
+      if (inside === insideVideoRef.current) return;
+      insideVideoRef.current = inside;
+
+      button.dispatchEvent(
+        new MouseEvent(inside ? "mouseenter" : "mouseleave", {
+          clientX: p?.x ?? 0,
+          clientY: p?.y ?? 0,
+        })
+      );
+    };
+
+    const schedule = () => {
+      if (!frame) frame = requestAnimationFrame(check);
+    };
+
+    const onPointerMove = (e: PointerEvent) => {
+      pointerRef.current = { x: e.clientX, y: e.clientY };
+      schedule();
+    };
+
+    const onPointerOutWindow = (e: PointerEvent) => {
+      if (!e.relatedTarget) {
+        pointerRef.current = null;
+        schedule();
+      }
+    };
+
+    window.addEventListener("pointermove", onPointerMove, { passive: true });
+    window.addEventListener("pointerout", onPointerOutWindow);
+    window.addEventListener("scroll", schedule, { passive: true });
+    window.addEventListener("resize", schedule);
+
+    return () => {
+      if (frame) cancelAnimationFrame(frame);
+      window.removeEventListener("pointermove", onPointerMove);
+      window.removeEventListener("pointerout", onPointerOutWindow);
+      window.removeEventListener("scroll", schedule);
+      window.removeEventListener("resize", schedule);
+    };
+  }, []);
 
   useEffect(() => {
     const header = document.querySelector("header") as HTMLElement | null;
@@ -63,26 +130,29 @@ export default function HorizontalBlog() {
     () => {
       if (!isReady) return;
 
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const sections = gsap.utils.toArray<HTMLElement>(".blog-section");
 
       sections.forEach((section, index) => {
         const innerContainer = section.querySelector(".section-container");
 
-        gsap.fromTo(
-          innerContainer,
-          { yPercent: 100 },
-          {
-            yPercent: 0,
-            ease: "none",
-            scrollTrigger: {
-              trigger: section,
-              start: "top bottom",
-              end: "top 20%",
-              scrub: true,
-              invalidateOnRefresh: true,
-            },
-          }
-        );
+        if (!reduceMotion) {
+          gsap.fromTo(
+            innerContainer,
+            { yPercent: 100 },
+            {
+              yPercent: 0,
+              ease: "none",
+              scrollTrigger: {
+                trigger: section,
+                start: "top bottom",
+                end: "top 20%",
+                scrub: true,
+                invalidateOnRefresh: true,
+              },
+            }
+          );
+        }
 
         if (index === sections.length - 1) return;
 
@@ -112,37 +182,38 @@ export default function HorizontalBlog() {
             key={slide.id}
             className={[
               "blog-section relative w-full overflow-hidden bg-white rounded-none",
-              // 01. Mobile Min (320x640)
-              "min-h-[640px] h-[640px]",
-              // 02. Mobile Std (390x844)
-              "min-[375px]:min-h-[844px] min-[375px]:h-[844px]",
+              // Phones: height comes from content. Tablet and up: fixed heights (unchanged)
               // 03. Tablet Port (768x1024)
-              "md:min-h-[1024px] md:h-[1024px]",
+              "md:h-[1024px]",
               // 04. Tablet Land (1024x768)
-              "lg:min-h-[768px] lg:h-[768px]",
+              "lg:h-[768px]",
               // 05. Desktop Base (1280x1523)
-              "xl:min-h-[1523px] xl:h-[1523px]",
+              "xl:h-[1523px]",
               // 06. Original Widescreen (1440x1441)
-              "min-[1440px]:min-h-[1441px] min-[1440px]:h-[1441px]"
+              "min-[1440px]:h-[1441px]",
             ].join(" ")}
           >
+            {/* Phones: relative (takes up space). Tablet and up: absolute fill (unchanged) */}
             <div
               className={`
-                section-container absolute inset-0 will-change-transform rounded-none
+                section-container relative md:absolute md:inset-0 will-change-transform rounded-none
                 ${slide.bgColor} ${slide.textColor}
               `}
             >
-              <div className="relative h-full w-full">
-                
+              {/* Phones: flow layout. Tablet and up: absolute layout */}
+              <div className={[
+                "relative w-full flex flex-col",
+                "px-[12px] pt-[100px] pb-14",
+                "md:block md:h-full md:p-0",
+              ].join(" ")}>
+
                 {/* Component 1: Title ("FEATURED") */}
-                <h1 
+                <h1
                   suppressHydrationWarning
                   className={[
-                    "absolute font-['LT_Superior'] font-medium uppercase leading-none text-black rounded-none italic",
-                    // 01. Mobile Min (320x640)
-                    "left-[10px] top-[98px] text-4xl",
-                    // 02. Mobile Std (390x844)
-                    "min-[375px]:left-[10px] min-[375px]:top-[112px] min-[375px]:text-4xl",
+                    "font-['LT_Superior'] font-medium uppercase leading-none text-black rounded-none italic",
+                    "text-[clamp(2.75rem,15vw,4.5rem)] mb-6 break-words",
+                    "md:absolute md:mb-0",
                     // 03. Tablet Port (768x1024)
                     "md:left-[20px] md:top-[178px] md:text-8xl",
                     // 04. Tablet Land (1024x768)
@@ -150,30 +221,25 @@ export default function HorizontalBlog() {
                     // 05. Desktop Base (1280x1523)
                     "xl:left-[12px] xl:top-[176px] xl:text-[164px]",
                     // 06. Original Widescreen (1440x1441)
-                    "min-[1440px]:left-[12px] min-[1440px]:top-[221px] min-[1440px]:text-[192px]"
+                    "min-[1440px]:left-[12px] min-[1440px]:top-[221px] min-[1440px]:text-[192px]",
                   ].join(" ")}
                 >
                   {slide.title}
                 </h1>
 
-                
-
                 {/* Component 2: Subtitle ("ON THE LOCAL PROJECT") */}
                 {slide.subtitle && (
                   <p className={[
-                    "absolute text-justify font-['LT_Superior'] font-bold text-black/70",
-                    // 01. Mobile Min (320x640)
-                    "left-[191px] top-[118px] text-[10px] w-auto",
-                    // 02. Mobile Std (390x844)
-                    "min-[375px]:left-[261px] min-[375px]:top-[131px] min-[375px]:text-[10px]",
+                    "self-end text-right font-['LT_Superior'] font-bold text-black/70 text-sm mb-6",
+                    "md:self-auto md:text-justify md:absolute md:mb-0 md:text-base md:w-auto",
                     // 03. Tablet Port (768x1024)
-                    "md:left-auto md:right-[20px] md:top-[238px] md:text-base md:w-auto",
+                    "md:left-auto md:right-[20px] md:top-[238px]",
                     // 04. Tablet Land (1024x768)
-                    "lg:left-auto lg:right-[20px] lg:top-[112px] lg:text-base lg:w-auto",
+                    "lg:left-auto lg:right-[20px] lg:top-[112px] lg:text-base",
                     // 05. Desktop Base (1280x1523)
                     "xl:left-auto xl:right-[20px] xl:top-[282px] xl:text-2xl",
                     // 06. Original Widescreen (1440x1441)
-                    "min-[1440px]:left-auto min-[1440px]:right-[20px] min-[1440px]:top-[323px] min-[1440px]:text-3xl"
+                    "min-[1440px]:left-auto min-[1440px]:right-[20px] min-[1440px]:top-[323px] min-[1440px]:text-3xl",
                   ].join(" ")}>
                     {slide.subtitle}
                   </p>
@@ -181,24 +247,23 @@ export default function HorizontalBlog() {
 
                 {/* Component 3: Video Cover Trigger Button */}
                 <button
+                  ref={videoButtonRef}
                   type="button"
                   data-cursor="[VIEW LOCAL PROJECT]"
                   data-cursor-color="white"
                   onClick={() => setIsVideoOpen(true)}
                   className={[
-                    "absolute cursor-none overflow-hidden bg-zinc-300 rounded-none",
-                    // 01. Mobile Min (320x640) - Centered with dynamic 10px margins
-                    "left-[10px] right-[10px] top-[134px] h-80 w-auto",
-                    // 02. Mobile Std (390x844) - Centered with dynamic 10px margins
-                    "min-[375px]:left-[10px] min-[375px]:right-[10px] min-[375px]:top-[149px] min-[375px]:h-[407px] min-[375px]:w-auto",
+                    "relative block w-full aspect-[4/3] mb-6 overflow-hidden bg-zinc-300 rounded-none",
+                    "[@media(pointer:fine)]:cursor-none",
+                    "md:absolute md:mb-0 md:aspect-auto md:w-auto",
                     // 03. Tablet Port (768x1024)
-                    "md:left-[20px] md:top-[271px] md:right-[20px] md:w-auto md:h-[482px]",
+                    "md:left-[20px] md:top-[271px] md:right-[20px] md:h-[482px]",
                     // 04. Tablet Land (1024x768)
-                    "lg:left-[20px] lg:top-[145px] lg:right-[20px] lg:w-auto lg:h-[478px]",
+                    "lg:top-[145px] lg:left-[20px] lg:right-[20px] lg:h-[478px]",
                     // 05. Desktop Base (1280x1523)
-                    "xl:left-[20px] xl:top-[321px] xl:right-[20px] xl:w-auto xl:h-[881px]",
+                    "xl:top-[321px] xl:left-[20px] xl:right-[20px] xl:h-[881px]",
                     // 06. Original Widescreen (1440x1441)
-                    "min-[1440px]:left-[20px] min-[1440px]:top-[375px] min-[1440px]:right-[20px] min-[1440px]:w-auto min-[1440px]:h-[868px]"
+                    "min-[1440px]:top-[375px] min-[1440px]:left-[20px] min-[1440px]:right-[20px] min-[1440px]:h-[868px]",
                   ].join(" ")}
                   aria-label="View Local Project video"
                 >
@@ -214,19 +279,17 @@ export default function HorizontalBlog() {
 
                 {/* Component 4: Description Paragraph */}
                 <p className={[
-                  "absolute text-justify font-['LT_Superior'] font-bold text-black rounded-none",
-                  // 01. Mobile Min (320x640)
-                  "left-[10px] top-[465px] w-44 text-[10px]",
-                  // 02. Mobile Std (390x844)
-                  "min-[375px]:left-[10px] min-[375px]:top-[566px] min-[375px]:w-44 min-[375px]:text-[10px]",
+                  "font-['LT_Superior'] font-bold text-black rounded-none",
+                  "w-full text-base leading-snug text-left",
+                  "md:absolute md:text-justify md:text-base",
                   // 03. Tablet Port (768x1024)
-                  "md:left-[20px] md:top-[773px] md:w-72 md:text-base",
+                  "md:left-[20px] md:top-[773px] md:w-72",
                   // 04. Tablet Land (1024x768)
-                  "lg:left-[20px] lg:top-[643px] lg:w-96 lg:text-base",
+                  "lg:top-[643px] lg:w-96 lg:text-base",
                   // 05. Desktop Base (1280x1523)
-                  "xl:left-[20px] xl:top-[1222px] xl:w-[453px] xl:text-2xl",
+                  "xl:top-[1222px] xl:w-[453px] xl:text-2xl",
                   // 06. Original Widescreen (1440x1441)
-                  "min-[1440px]:left-[20px] min-[1440px]:top-[1263px] min-[1440px]:w-[453px] min-[1440px]:text-2xl"
+                  "min-[1440px]:top-[1263px] min-[1440px]:w-[453px] min-[1440px]:text-2xl",
                 ].join(" ")}>
                   {slide.description}
                 </p>
@@ -236,7 +299,7 @@ export default function HorizontalBlog() {
         ))}
       </main>
 
-      {/* Kept exactly as is to preserve dynamic video player modal */}
+      {/* Video modal */}
       {isVideoOpen && (
         <div className="fixed inset-0 z-[5000] bg-black">
           <iframe
@@ -249,7 +312,6 @@ export default function HorizontalBlog() {
             onClick={(e: React.MouseEvent) => e.stopPropagation()}
           />
 
-
           <button
             type="button"
             data-cursor="[ CLOSE ]"
@@ -257,6 +319,15 @@ export default function HorizontalBlog() {
             className="absolute left-0 top-0 z-10 h-[calc(100%-96px)] w-full cursor-none"
             aria-label="Close video"
           />
+
+          <button
+            type="button"
+            onClick={() => setIsVideoOpen(false)}
+            className="absolute right-4 top-4 z-20 min-h-11 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full font-mono text-xs uppercase tracking-wider text-white"
+            aria-label="Close video"
+          >
+            Close
+          </button>
         </div>
       )}
     </>

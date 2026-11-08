@@ -5,40 +5,48 @@ export default function CookieBanner() {
   const [isVisible, setIsVisible] = useState(false);
 
   useEffect(() => {
-    // Check if the user has already accepted or declined cookies
-    const consent = localStorage.getItem("cookie-consent");
-    if (!consent) {
-      // Small delay on load for animation smoothness
+    try {
+      const consent = localStorage.getItem("cookie-consent");
+      if (!consent) {
+        const timer = setTimeout(() => setIsVisible(true), 1500);
+        return () => clearTimeout(timer);
+      }
+    } catch {
+      // Storage blocked (e.g. some private modes): show the banner anyway
       const timer = setTimeout(() => setIsVisible(true), 1500);
       return () => clearTimeout(timer);
     }
   }, []);
 
-  const handleAccept = () => {
-    localStorage.setItem("cookie-consent", "accepted");
+  const saveConsent = (value: "accepted" | "declined") => {
+    try {
+      localStorage.setItem("cookie-consent", value);
+    } catch {
+      // Ignore: the banner will just reappear on next visit
+    }
     setIsVisible(false);
-    // Initialize your Vercel Web Analytics or Google Analytics scripts here [26]
-    window.dispatchEvent(new Event("cookie-consent-updated"));
-  };
-
-  const handleDecline = () => {
-    localStorage.setItem("cookie-consent", "declined");
-    setIsVisible(false);
+    if (value === "accepted") {
+      window.dispatchEvent(new Event("cookie-consent-updated"));
+    }
   };
 
   if (!isVisible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 w-full bg-[var(--bg-base)] border-t border-[var(--text-primary)] z-50 px-[20px] py-[25px] md:px-[40px] md:py-[20px] flex flex-col md:flex-row md:items-center md:justify-between gap-4 transition-transform duration-500 ease-out select-none">
+    <div
+      role="dialog"
+      aria-label="Cookie consent"
+      className="fixed bottom-0 left-0 w-full z-50 bg-black text-white border-t border-white px-5 pt-6 pb-[max(1.5rem,env(safe-area-inset-bottom))] md:px-10 md:py-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 select-none"
+    >
       {/* Description */}
       <div className="max-w-3xl">
-        <p className="text-xs md:text-sm font-medium leading-tight">
+        <p className="text-sm font-medium leading-snug">
           We use minimalist performance cookies to analyze project traffic and optimize your portfolio experience. By accepting, you consent to our use of these analytics. Read our{" "}
-          <a href="/privacy" className="underline hover:opacity-50 transition-opacity duration-300">
+          <a href="/privacy" className="underline hover:opacity-70 active:opacity-70">
             Privacy Policy
           </a>{" "}
           and{" "}
-          <a href="/terms" className="underline hover:opacity-50 transition-opacity duration-300">
+          <a href="/terms" className="underline hover:opacity-70 active:opacity-70">
             Terms & Conditions
           </a>{" "}
           for more information.
@@ -48,14 +56,14 @@ export default function CookieBanner() {
       {/* Action Buttons */}
       <div className="flex items-center gap-3 w-full md:w-auto shrink-0 justify-end">
         <button
-          onClick={handleDecline}
-          className="rounded-none border border-[var(--text-primary)] px-5 py-2 text-xs font-bold uppercase transition-opacity duration-300 hover:opacity-50 cursor-pointer"
+          onClick={() => saveConsent("declined")}
+          className="min-h-11 border border-white bg-transparent text-white px-5 py-2 text-xs font-bold uppercase hover:opacity-70 active:opacity-70 cursor-pointer"
         >
           Decline
         </button>
         <button
-          onClick={handleAccept}
-          className="rounded-none bg-[var(--text-primary)] text-[var(--bg-base)] border border-[var(--text-primary)] px-6 py-2 text-xs font-bold uppercase transition-opacity duration-300 hover:opacity-50 cursor-pointer"
+          onClick={() => saveConsent("accepted")}
+          className="min-h-11 bg-white text-black border border-white px-6 py-2 text-xs font-bold uppercase hover:opacity-70 active:opacity-70 cursor-pointer"
         >
           Accept
         </button>
