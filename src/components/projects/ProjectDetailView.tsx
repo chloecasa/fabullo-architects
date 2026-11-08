@@ -5,37 +5,19 @@ import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import SplitType from "split-type";
 import { ProjectData } from "@/app/(app)/projects/[slug]/page";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// Splits a paragraph into wrapped lines so each line can rise on its own
-function splitIntoLines(el: HTMLElement) {
-  const split = new SplitType(el, { types: "lines", lineClass: "line-child" });
-
-  split.lines?.forEach((line, i, arr) => {
-    line.style.display = "block";
-    line.style.width = "100%";
-    line.style.textAlign = "justify";
-    line.style.textAlignLast = i < arr.length - 1 ? "justify" : "left";
-
-    const wrapper = document.createElement("div");
-    wrapper.className = "overflow-hidden py-1 mb-[-4px]";
-    line.parentNode?.insertBefore(wrapper, line);
-    wrapper.appendChild(line);
-  });
-
-  return split;
-}
+// One shared reveal, used by the sequence AND the gallery so they feel like one page
+const REVEAL = { y: 40, duration: 1.1, ease: "power3.out" };
 
 export default function ProjectDetailView({ project }: { project: ProjectData }) {
   const containerRef = useRef<HTMLElement>(null);
   const sequenceRef = useRef<HTMLElement>(null);
-  const horizontalRef = useRef<HTMLElement>(null);
-  const horizontalTrackRef = useRef<HTMLDivElement>(null);
+  const galleryRef = useRef<HTMLDivElement>(null);
 
   const blindTop = useRef<HTMLDivElement>(null);
   const heroImageMaskRef = useRef<HTMLDivElement>(null);
@@ -43,9 +25,14 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
 
   const [selectedImg, setSelectedImg] = useState<string | null>(null);
 
+  // Slides that have an image, so captions and images always line up
+  const sequence = project.slides
+    .map((text, i) => ({ text, img: project.verticalImages[i] }))
+    .filter((item): item is { text: string; img: string } => Boolean(item.img));
+
   useGSAP(
     () => {
-      // ---------- HERO ARRIVAL (unchanged) ----------
+      // ---------- HERO ARRIVAL ----------
       const arrivalTl = gsap.timeline();
 
       gsap.set(".project-hero-title-line", { yPercent: 110 });
@@ -114,7 +101,7 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         },
       });
 
-      // ---------- SECTION 2: IMAGE SEQUENCE (split by device) ----------
+      // ---------- SECTION 2: IMAGE SEQUENCE (no pinning, just flowing scroll) ----------
       const mm = gsap.matchMedia();
 
       mm.add(
@@ -128,147 +115,122 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
           const sequence = sequenceRef.current;
           if (!sequence) return;
 
-          // DESKTOP: caption stays pinned, images scroll past it
+          // DESKTOP: caption stays put (sticky) and swaps softly as each image passes
           if (ctx.conditions?.isDesktop) {
-            const textEls = gsap.utils.toArray<HTMLElement>(".slide-text", sequence);
-            const imgBlocks = gsap.utils.toArray<HTMLElement>(".v-img-block", sequence);
-            const splits = textEls.map(splitIntoLines);
+            const captions = gsap.utils.toArray<HTMLElement>(".v-caption", sequence);
+            const frames = gsap.utils.toArray<HTMLElement>(".v-img-frame", sequence);
 
-            const tl = gsap.timeline({
-              scrollTrigger: {
-                trigger: sequence,
-                start: "top top",
-                end: "+=700%",
-                pin: true,
-                scrub: 1.5,
-                anticipatePin: 1,
-              },
-            });
+            const showCaption = (active: number) => {
+              captions.forEach((el, idx) => {
+                gsap.to(el, {
+                  opacity: idx === active ? 1 : 0,
+                  y: idx === active ? 0 : idx < active ? -REVEAL.y / 2 : REVEAL.y / 2,
+                  duration: 0.9,
+                  ease: "power2.out",
+                  overwrite: "auto",
+                });
+              });
+            };
 
-            textEls.forEach((el, i) => {
-              const lines = el.querySelectorAll(".line-child");
-              const img = imgBlocks[i];
+            gsap.set(captions, { opacity: (i) => (i === 0 ? 1 : 0), y: 0 });
+
+            frames.forEach((frame, i) => {
+              const img = frame.querySelector("img");
               if (!img) return;
 
-              gsap.set(lines, { yPercent: 115 });
-              // The first image starts in place; the rest wait below the frame
-              if (i > 0) gsap.set(img, { yPercent: 100 });
-
-              tl.to(lines, {
-                yPercent: 0,
-                stagger: 0.08,
-                duration: 2,
-                ease: "power3.out",
+              // Image fades up as it arrives
+              gsap.set(frame, { opacity: 0, y: REVEAL.y });
+              gsap.to(frame, {
+                opacity: 1,
+                y: 0,
+                duration: REVEAL.duration,
+                ease: REVEAL.ease,
+                scrollTrigger: { trigger: frame, start: "top 88%", once: true },
               });
 
-              if (i > 0) {
-                tl.to(
-                  img,
-                  { yPercent: 0, duration: 2.5, ease: "power3.out" },
-                  "<"
-                );
-              }
+              // Very slight drift inside the frame while it scrolls
+              gsap.set(img, { scale: 1.12 });
+              gsap.fromTo(
+                img,
+                { yPercent: -4 },
+                {
+                  yPercent: 4,
+                  ease: "none",
+                  scrollTrigger: {
+                    trigger: frame,
+                    start: "top bottom",
+                    end: "bottom top",
+                    scrub: 1,
+                  },
+                }
+              );
 
-              tl.to({}, { duration: 3 });
-
-              if (i < textEls.length - 1) {
-                tl.to(lines, {
-                  yPercent: -115,
-                  stagger: 0.05,
-                  duration: 1.4,
-                  ease: "power3.inOut",
-                }).to(
-                  img,
-                  { yPercent: -100, duration: 2.5, ease: "power2.inOut" },
-                  "<"
-                );
-              }
+              // Caption for this image takes over when it reaches mid screen
+              ScrollTrigger.create({
+                trigger: frame,
+                start: "top 55%",
+                end: "bottom 55%",
+                onEnter: () => showCaption(i),
+                onEnterBack: () => showCaption(i),
+              });
             });
-
-            return () => splits.forEach((s) => s.revert());
           }
 
-          // MOBILE: each slide reveals as it reaches the screen
+          // MOBILE: each slide fades up as it reaches the screen
           if (ctx.conditions?.isMobile) {
             const slides = gsap.utils.toArray<HTMLElement>(".m-slide", sequence);
-            const splits: ReturnType<typeof splitIntoLines>[] = [];
 
             slides.forEach((slide) => {
               const text = slide.querySelector<HTMLElement>(".m-slide-text");
               const block = slide.querySelector<HTMLElement>(".m-img-block");
-              const img = slide.querySelector<HTMLElement>(".m-img");
-              if (!text || !block || !img) return;
+              if (!text || !block) return;
 
-              const split = splitIntoLines(text);
-              splits.push(split);
-              const lines = split.lines ?? [];
-
-              gsap.set(lines, { yPercent: 115 });
-              gsap.set(block, { clipPath: "inset(100% 0% 0% 0%)" });
-              gsap.set(img, { scale: 1.08 });
+              gsap.set([text, block], { opacity: 0, y: REVEAL.y });
 
               gsap
                 .timeline({
-                  scrollTrigger: {
-                    trigger: slide,
-                    start: "top 80%",
-                    once: true,
-                  },
+                  scrollTrigger: { trigger: slide, start: "top 88%", once: true },
                 })
-                .to(lines, {
-                  yPercent: 0,
-                  stagger: 0.06,
-                  duration: 0.9,
-                  ease: "power3.out",
+                .to(text, {
+                  opacity: 1,
+                  y: 0,
+                  duration: REVEAL.duration,
+                  ease: REVEAL.ease,
                 })
                 .to(
                   block,
                   {
-                    clipPath: "inset(0% 0% 0% 0%)",
-                    duration: 1.2,
-                    ease: "power4.out",
+                    opacity: 1,
+                    y: 0,
+                    duration: REVEAL.duration,
+                    ease: REVEAL.ease,
                   },
-                  "-=0.5"
-                )
-                .to(
-                  img,
-                  { scale: 1, duration: 1.4, ease: "power4.out" },
-                  "<"
+                  "-=0.8"
                 );
             });
-
-            return () => splits.forEach((s) => s.revert());
           }
         }
       );
 
-      // ---------- SECTION 3: HORIZONTAL GALLERY (unchanged) ----------
-      if (horizontalRef.current && horizontalTrackRef.current) {
-        const track = horizontalTrackRef.current;
-        const getScrollAmount = () => -(track.scrollWidth - window.innerWidth);
+      // ---------- SECTION 3: GALLERY GRID (same reveal as the sequence) ----------
+      const items = gsap.utils.toArray<HTMLElement>(".g-item");
+      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-        const trackImages = track.querySelectorAll("img");
-        trackImages.forEach((img) => {
-          if (img.complete) {
-            ScrollTrigger.refresh();
-          } else {
-            img.addEventListener("load", () => {
-              ScrollTrigger.refresh();
-            });
-          }
-        });
+      if (items.length > 0 && !reduceMotion) {
+        gsap.set(items, { opacity: 0, y: REVEAL.y });
 
-        gsap.to(track, {
-          x: getScrollAmount,
-          ease: "none",
-          scrollTrigger: {
-            trigger: horizontalRef.current,
-            start: "top top",
-            end: () => `+=${track.scrollWidth - window.innerWidth}`,
-            pin: true,
-            scrub: 0.5,
-            invalidateOnRefresh: true,
-          },
+        ScrollTrigger.batch(items, {
+          start: "top 88%",
+          once: true,
+          onEnter: (batch) =>
+            gsap.to(batch, {
+              opacity: 1,
+              y: 0,
+              duration: REVEAL.duration,
+              ease: REVEAL.ease,
+              stagger: 0.1,
+              overwrite: true,
+            }),
         });
       }
 
@@ -277,36 +239,51 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
     { scope: containerRef }
   );
 
+  // Gallery images change the page height as they load, so refresh the scroll
+  // positions once when the last one is in.
+  useEffect(() => {
+    const imgs = Array.from(galleryRef.current?.querySelectorAll("img") ?? []);
+    let pending = imgs.filter((img) => !img.complete).length;
+    if (pending === 0) return;
+
+    const done = () => {
+      pending -= 1;
+      if (pending === 0) ScrollTrigger.refresh();
+    };
+
+    imgs.forEach((img) => {
+      if (img.complete) return;
+      img.addEventListener("load", done, { once: true });
+      img.addEventListener("error", done, { once: true });
+    });
+
+    return () => {
+      imgs.forEach((img) => {
+        img.removeEventListener("load", done);
+        img.removeEventListener("error", done);
+      });
+    };
+  }, [project.horizontalGallery]);
+
   return (
     <main
       ref={containerRef}
-      className="bg-white min-h-screen w-full overflow-x-hidden selection:bg-white selection:text-white no-scrollbar [&_.pin-spacer]:!bg-white"
+      className="bg-white min-h-screen w-full overflow-x-clip selection:bg-white selection:text-white no-scrollbar [&_.pin-spacer]:!bg-white"
     >
       <div
         ref={blindTop}
         className="fixed top-0 left-0 w-full h-full bg-white/10 backdrop-blur-xl z-10000 pointer-events-none border-b border-white/10"
       />
 
-      {/* SECTION 1: HERO (unchanged) */}
-      <section className="relative h-screen w-full bg-white overflow-hidden text-black rounded-none">
-        {/* Component 1: Hero Image Mask Container */}
+      {/* SECTION 1: HERO.
+          Everything is in normal flow (no vh-based absolute positions), so the
+          credits, consultants, team and title can never overlap each other or the
+          image. The section grows if the text is long. */}
+      <section className="relative flex min-h-svh w-full flex-col overflow-hidden bg-white px-3 pb-5 pt-[11px] text-black rounded-none md:px-5 md:pb-8 md:pt-5">
+        {/* Hero image */}
         <div
           ref={heroImageMaskRef}
-          className={[
-            "absolute overflow-hidden bg-zinc-400 rounded-none",
-            // 01. Mobile Min (320x640)
-            "left-[12px] top-[11px] right-[12px] h-[50vh]",
-            // 02. Mobile Std (390x844)
-            "min-[375px]:left-[12px] min-[375px]:top-[11px] min-[375px]:right-[12px] min-[375px]:h-[52vh]",
-            // 03. Tablet Port (768x1024)
-            "md:left-[20px] md:top-[20px] md:right-[20px] md:h-[60vh]",
-            // 04. Tablet Land (1024x768)
-            "lg:left-[20px] lg:top-[20px] lg:right-[20px] lg:h-[60vh]",
-            // 05. Desktop Base (1280x800)
-            "xl:left-[20px] xl:top-[20px] xl:right-[20px] xl:h-[62.5vh]",
-            // 06. Original Widescreen (1440x794)
-            "min-[1440px]:left-[20px] min-[1440px]:top-[20px] min-[1440px]:right-[20px] min-[1440px]:h-[62.5vh]",
-          ].join(" ")}
+          className="relative h-[46svh] w-full shrink-0 overflow-hidden bg-zinc-400 rounded-none md:h-[58svh] xl:h-[60svh]"
         >
           <img
             ref={heroImageRef}
@@ -316,243 +293,132 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
           />
         </div>
 
-        {/* Component 2: Lower Left Credits/Description */}
-        <div
-          className={[
-            "project-hero-copy absolute text-justify font-medium uppercase leading-[1.2] text-zinc-950 rounded-none",
-            // 01. Mobile Min (320x640)
-            "left-[12px] top-[56vh] w-[296px] text-[11px]",
-            // 02. Mobile Std (390x844)
-            "min-[375px]:left-[12px] min-[375px]:top-[58vh] min-[375px]:w-[366px]",
-            // 03. Tablet Port (768x1024)
-            "md:left-[20px] md:top-[65vh] md:w-64 md:text-xs",
-            // 04. Tablet Land (1024x768)
-            "lg:left-[20px] lg:top-[65vh] lg:w-64 lg:text-xs",
-            // 05. Desktop Base (1280x800)
-            "xl:left-[20px] xl:top-[67.5vh] xl:w-72 xl:text-sm",
-            // 06. Original Widescreen (1440x794)
-            "min-[1440px]:left-[20px] min-[1440px]:top-[67.5vh] min-[1440px]:w-72 min-[1440px]:text-sm",
-          ].join(" ")}
-        >
-          {project.credits}
-        </div>
-
-        {/* Component 3: Project Title & Dynamic Year (Bottom Left) */}
-        <div
-          className={[
-            "absolute flex items-end gap-1.5 rounded-none",
-            // 01. Mobile Min (320x640)
-            "left-[12px] bottom-[20px]",
-            // 02. Mobile Std (390x844)
-            "min-[375px]:left-[12px] min-[375px]:bottom-[20px]",
-            // 03. Tablet Port (768x1024)
-            "md:left-[20px] md:bottom-8",
-            // 04. Tablet Land (1024x768)
-            "lg:left-[20px] lg:bottom-8",
-            // 05. Desktop Base (1280x800)
-            "xl:left-[20px] xl:bottom-8",
-            // 06. Original Widescreen (1440x794)
-            "min-[1440px]:left-[20px] min-[1440px]:bottom-8",
-          ].join(" ")}
-        >
-          <div className="overflow-hidden">
-            <h1
-              className={[
-                "project-hero-title-line font-bold uppercase leading-none tracking-[-0.03em] rounded-none",
-                // 01. Mobile Min (320x640)
-                "text-3xl",
-                // 02. Mobile Std (390x844)
-                "min-[375px]:text-4xl",
-                // 03. Tablet Port (768x1024)
-                "md:text-5xl",
-                // 04. Tablet Land (1024x768)
-                "lg:text-5xl",
-                // 05. Desktop Base (1280x800)
-                "xl:text-[clamp(3rem,4.1vw,64px)]",
-                // 06. Original Widescreen (1440x794)
-                "min-[1440px]:text-[64px]",
-              ].join(" ")}
-            >
-              {project.title}
-            </h1>
+        {/* Text area under the image.
+            Phones: credits, consultants + team, then title, stacked.
+            md and up: credits top left, title bottom left, consultants + team on the right. */}
+        <div className="mt-5 flex flex-1 flex-col gap-6 md:mt-6 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,28vw)] md:grid-rows-[auto_1fr] md:gap-x-10 md:gap-y-8">
+          {/* Credits */}
+          <div className="project-hero-copy min-w-0 text-justify text-[11px] font-medium uppercase leading-[1.2] text-zinc-950 rounded-none md:col-start-1 md:row-start-1 md:max-w-xs md:text-xs xl:max-w-sm xl:text-sm">
+            {project.credits}
           </div>
 
-          <span className="project-hero-copy pb-1 text-xs md:text-sm xl:text-base font-normal leading-none opacity-85">
-            {project.year}
-          </span>
-        </div>
-
-        {/* Component 4: Consultants Column (Bottom Right Upper) */}
-        <div
-          className={[
-            "project-hero-copy absolute uppercase leading-tight text-zinc-950 rounded-none",
-            // 01. Mobile Min (320x640)
-            "left-[12px] top-[74vh] w-[296px] text-[11px]",
-            // 02. Mobile Std (390x844)
-            "min-[375px]:left-[12px] min-[375px]:top-[74vh] min-[375px]:w-[366px]",
-            // 03. Tablet Port (768x1024)
-            "md:left-auto md:right-[20px] md:top-[65vh] md:w-[28vw] md:max-w-[430px] md:text-xs md:leading-5",
-            // 04. Tablet Land (1024x768)
-            "lg:left-auto lg:right-[20px] lg:top-[65vh] lg:w-[28vw] lg:max-w-[430px] lg:text-xs lg:leading-5",
-            // 05. Desktop Base (1280x800)
-            "xl:left-auto xl:right-[20px] xl:top-[67.5vh] xl:w-[28vw] xl:max-w-[430px] xl:text-sm xl:leading-5",
-            // 06. Original Widescreen (1440x794)
-            "min-[1440px]:left-auto min-[1440px]:right-[20px] min-[1440px]:top-[67.5vh] min-[1440px]:w-[28vw] min-[1440px]:max-w-[430px] min-[1440px]:text-sm min-[1440px]:leading-5",
-          ].join(" ")}
-        >
-          {project.consultants.map((item) => (
-            <div key={item.label}>
-              <span className="font-semibold">{item.label}</span>
-              <span className="font-normal"> - </span>
-              <span className="font-bold">{item.val}</span>
+          {/* Consultants + team */}
+          <div className="flex min-w-0 flex-col gap-4 text-[11px] uppercase leading-tight text-zinc-950 rounded-none md:col-start-2 md:row-span-2 md:row-start-1 md:max-w-[430px] md:justify-self-end md:text-xs md:leading-5 xl:text-sm">
+            <div className="project-hero-copy">
+              {project.consultants.map((item) => (
+                <div key={item.label}>
+                  <span className="font-semibold">{item.label}</span>
+                  <span className="font-normal"> - </span>
+                  <span className="font-bold">{item.val}</span>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
 
-        {/* Component 5: Team Column (Bottom Right Lower) */}
-        <div
-          className={[
-            "project-hero-copy absolute uppercase leading-tight text-zinc-950 rounded-none",
-            // 01. Mobile Min (320x640)
-            "left-[12px] top-[86vh] w-[296px] text-[11px]",
-            // 02. Mobile Std (390x844)
-            "min-[375px]:left-[12px] min-[375px]:top-[86vh] min-[375px]:w-[366px]",
-            // 03. Tablet Port (768x1024)
-            "md:left-auto md:right-[20px] md:top-[80vh] md:w-[28vw] md:max-w-[430px] md:text-xs md:leading-5",
-            // 04. Tablet Land (1024x768)
-            "lg:left-auto lg:right-[20px] lg:top-[80vh] lg:w-[28vw] lg:max-w-[430px] lg:text-xs lg:leading-5",
-            // 05. Desktop Base (1280x800)
-            "xl:left-auto xl:right-[20px] xl:top-[83.7vh] xl:w-[28vw] xl:max-w-[430px] xl:text-sm xl:leading-5",
-            // 06. Original Widescreen (1440x794)
-            "min-[1440px]:left-auto min-[1440px]:right-[20px] min-[1440px]:top-[83.7vh] min-[1440px]:w-[28vw] min-[1440px]:max-w-[430px] min-[1440px]:text-sm min-[1440px]:leading-5",
-          ].join(" ")}
-        >
-          {project.team.map((item) => (
-            <div key={item.label}>
-              <span className="font-bold">{item.label}</span>
-              <span className="font-semibold"> - {item.val}</span>
+            <div className="project-hero-copy">
+              {project.team.map((item) => (
+                <div key={item.label}>
+                  <span className="font-bold">{item.label}</span>
+                  <span className="font-semibold"> - {item.val}</span>
+                </div>
+              ))}
             </div>
-          ))}
+          </div>
+
+          {/* Title + year */}
+          <div className="mt-auto flex min-w-0 items-end gap-1.5 rounded-none md:col-start-1 md:row-start-2 md:mt-0 md:self-end">
+            <div className="min-w-0 overflow-hidden">
+              <h1 className="project-hero-title-line break-words text-3xl font-bold uppercase leading-none tracking-[-0.03em] rounded-none min-[375px]:text-4xl md:text-5xl xl:text-[clamp(3rem,4.1vw,64px)] min-[1440px]:text-[64px]">
+                {project.title}
+              </h1>
+            </div>
+
+            <span className="project-hero-copy shrink-0 pb-1 text-xs font-normal leading-none opacity-85 md:text-sm xl:text-base">
+              {project.year}
+            </span>
+          </div>
         </div>
       </section>
 
-      {/* SECTION 2: IMAGE SEQUENCE */}
-      <section
-        ref={sequenceRef}
-        className="relative w-full h-auto md:h-svh bg-white overflow-hidden rounded-none"
-      >
-        <div className="relative w-full md:h-full max-w-382 mx-auto rounded-none">
-          {/* MOBILE: normal flow, each paragraph sits above its image */}
-          <div className="md:hidden flex flex-col gap-12 px-3 pt-12 pb-16">
-            {project.slides.map((text, i) => {
-              const img = project.verticalImages[i];
-              if (!img) return null;
-
-              return (
-                <div key={i} className="m-slide">
-                  <p className="m-slide-text text-justify hyphens-auto text-black text-base font-semibold leading-snug uppercase rounded-none">
-                    {text}
-                  </p>
-                  <div className="m-img-block mt-6 w-full aspect-[4/5] bg-zinc-400 overflow-hidden rounded-none">
-                    <img
-                      src={img}
-                      className="m-img w-full h-full object-cover rounded-none"
-                      alt="Architectural sequence"
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-
-          {/* DESKTOP: caption pinned, images scroll past it */}
-          <div
-            className={[
-              "hidden md:block absolute z-20 pointer-events-none rounded-none",
-              "md:left-[449px] md:top-[187px] md:w-72",
-              "lg:left-[622px] lg:top-[114px] lg:w-96",
-              "xl:left-[776px] xl:top-[345px] xl:w-[484px]",
-              "min-[1440px]:left-[872px] min-[1440px]:top-[342px] min-[1440px]:w-[540px]",
-            ].join(" ")}
-          >
-            {project.slides.map((text, index) => (
-              <p
-                key={index}
-                className="slide-text absolute w-full text-justify [text-justify:inter-word] hyphens-auto text-black text-xs md:text-sm lg:text-base xl:text-lg min-[1440px]:text-2xl font-semibold leading-tight uppercase tracking-normal rounded-none"
-              >
+      {/* SECTION 2: IMAGE SEQUENCE.
+          No pinning, so it scrolls like normal. On desktop the caption stays in place
+          on the left while the images scroll past on the right. */}
+      <section ref={sequenceRef} className="relative w-full bg-white rounded-none">
+        {/* MOBILE (and reduced motion): each paragraph sits above its image */}
+        <div className="flex flex-col gap-12 px-3 pt-12 md:hidden motion-reduce:md:flex">
+          {sequence.map(({ text, img }, i) => (
+            <div key={i} className="m-slide">
+              <p className="m-slide-text text-justify hyphens-auto text-black text-base font-semibold leading-snug uppercase rounded-none">
                 {text}
               </p>
-            ))}
-          </div>
-
-          <div className="hidden md:block absolute inset-0 z-10 pointer-events-none rounded-none">
-            {project.verticalImages.map((img, i) => {
-              const layout =
-                i === 2
-                  ? [
-                      "md:left-[20px] md:top-[172px] md:w-[288px] md:h-[384px]",
-                      "lg:left-[20px] lg:top-[152px] lg:w-[384px] lg:h-[384px]",
-                      "xl:left-[20px] xl:top-[152px] xl:w-[504px] xl:h-[583px]",
-                      "min-[1440px]:left-[20px] min-[1440px]:top-[152px] min-[1440px]:w-[473px] min-[1440px]:h-[583px]",
-                    ].join(" ")
-                  : [
-                      "md:right-[20px] md:top-[187px] md:w-[288px] md:h-[288px]",
-                      "lg:right-[20px] lg:top-[114px] lg:w-[384px] lg:h-[384px]",
-                      "xl:right-[20px] xl:top-[208px] xl:w-[484px] xl:h-[484px]",
-                      "min-[1440px]:right-[20px] min-[1440px]:top-[208px] min-[1440px]:w-[473px] min-[1440px]:h-[583px]",
-                    ].join(" ");
-
-              return (
-                <div
-                  key={i}
-                  className={`v-img-block absolute bg-zinc-400 overflow-hidden rounded-none ${layout}`}
-                >
-                  <img
-                    src={img}
-                    className="w-full h-full object-cover rounded-none"
-                    alt="Architectural sequence"
-                  />
-                </div>
-              );
-            })}
-          </div>
+              <div className="m-img-block mt-6 w-full aspect-[4/5] bg-zinc-400 overflow-hidden rounded-none">
+                <img
+                  src={img}
+                  className="m-img w-full h-full object-cover rounded-none"
+                  alt="Architectural sequence"
+                />
+              </div>
+            </div>
+          ))}
         </div>
-      </section>
 
-      {/* SECTION 3: HORIZONTAL GALLERY (unchanged) */}
-      <section
-        ref={horizontalRef}
-        className="relative h-screen w-full flex items-end bg-white overflow-hidden no-scrollbar pb-10 md:pb-16 rounded-none"
-      >
-        <div
-          ref={horizontalTrackRef}
-          className="flex flex-nowrap items-end px-[10vw] gap-2 md:gap-4 rounded-none"
-        >
-          {project.horizontalGallery.map((img, i) => {
-            const heights = [
-              "h-[45vh]",
-              "h-[65vh]",
-              "h-[45vh]",
-              "h-[45vh]",
-              "h-[65vh]",
-            ];
+        {/* DESKTOP: sticky caption column + scrolling image column */}
+        <div className="mx-auto hidden w-full max-w-382 px-5 md:grid md:grid-cols-[minmax(0,5fr)_minmax(0,6fr)] md:gap-10 lg:gap-16 motion-reduce:md:hidden">
+          {/* Captions share one grid cell, so only one is ever visible and none overlap */}
+          <div className="sticky top-0 flex h-svh items-center self-start">
+            <div className="grid w-full max-w-[34rem]">
+              {sequence.map(({ text }, i) => (
+                <p
+                  key={i}
+                  style={{ opacity: i === 0 ? 1 : 0 }}
+                  className="v-caption col-start-1 row-start-1 text-justify [text-justify:inter-word] hyphens-auto text-[clamp(0.85rem,min(1.5vw,2.6svh),1.5rem)] font-semibold uppercase leading-tight text-black rounded-none"
+                >
+                  {text}
+                </p>
+              ))}
+            </div>
+          </div>
 
-            return (
+          <div className="flex flex-col gap-[18svh] pt-[14svh]">
+            {sequence.map(({ img }, i) => (
               <div
                 key={i}
-                onClick={() => setSelectedImg(img)}
-                className={`shrink-0 w-auto cursor-pointer group rounded-none ${
-                  heights[i % heights.length]
-                }`}
+                className="v-img-frame relative h-[76svh] max-h-[760px] w-full overflow-hidden bg-zinc-400 rounded-none"
               >
                 <img
                   src={img}
-                  alt="gallery perspective"
-                  className="h-full w-auto object-contain grayscale hover:grayscale-0 transition-all duration-1000 ease-out rounded-none"
+                  className="h-full w-full object-cover rounded-none"
+                  alt="Architectural sequence"
                 />
               </div>
-            );
-          })}
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* SECTION 3: GALLERY GRID.
+          Same fade-up as the sequence, and the gap above it matches the gap
+          between sequence images (3rem on phones, 18svh on desktop). */}
+      <section className="w-full bg-white px-3 pb-16 pt-12 rounded-none md:px-5 md:pb-24 md:pt-[18svh]">
+        <div
+          ref={galleryRef}
+          className="columns-2 gap-2 md:columns-3 md:gap-4 xl:columns-4"
+        >
+          {project.horizontalGallery.map((img, i) => (
+            <button
+              key={i}
+              type="button"
+              onClick={() => setSelectedImg(img)}
+              aria-label={`Open gallery image ${i + 1}`}
+              className="g-item group mb-2 block w-full cursor-pointer break-inside-avoid overflow-hidden border-0 bg-transparent p-0 md:mb-4 rounded-none"
+            >
+              <img
+                src={img}
+                alt="gallery perspective"
+                decoding="async"
+                className="block h-auto w-full grayscale transition-all duration-700 ease-out hover:grayscale-0 rounded-none"
+              />
+            </button>
+          ))}
         </div>
       </section>
 
