@@ -2,20 +2,17 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
 import { useMenu } from "@/components/context/MenuProvider";
 
 const Header = () => {
   const { isOpen, setIsOpen } = useMenu();
-  const pathname = usePathname();
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
   const [isPastHero, setIsPastHero] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [isMenuHovered, setIsMenuHovered] = useState(false);
   const [isJournalPreviewOpen, setIsJournalPreviewOpen] = useState(false);
-
-  const isContactPage = pathname === "/contact" || pathname === "/contact/";
+  const [isOverHiddenSection, setIsOverHiddenSection] = useState(false);
 
   useEffect(() => {
     const updateHeader = () => {
@@ -25,6 +22,17 @@ const Header = () => {
       setIsMobileOrTablet(window.innerWidth < 1024);
       setIsPastHero(window.scrollY > window.innerHeight * 0.9);
       setIsFooterVisible(footerTop < window.innerHeight * 0.85);
+
+      // Any section marked data-hide-header (e.g. the contact maps) hides the header
+      // while it is under the header area at the top of the screen
+      const headerZone = 90;
+      const overHidden = Array.from(
+        document.querySelectorAll("[data-hide-header]")
+      ).some((el) => {
+        const rect = el.getBoundingClientRect();
+        return rect.top < headerZone && rect.bottom > 0;
+      });
+      setIsOverHiddenSection(overHidden);
     };
 
     updateHeader();
@@ -50,29 +58,11 @@ const Header = () => {
   // Hide the header while the menu or the journal preview is open
   if (isOpen || isJournalPreviewOpen) return null;
 
-  // Contact page: no logo, no nav row. Only the MENU button, top right.
-  if (isContactPage) {
-    return (
-      <div
-        role="banner"
-        className="pointer-events-none fixed inset-x-[12px] top-[11px] z-[2147483647] flex items-center justify-end md:inset-x-[20px] md:top-[18px] lg:top-[20px]"
-      >
-        <button
-          type="button"
-          aria-label="Open menu"
-          onClick={() => setIsOpen(true)}
-          className="pointer-events-auto -m-4 cursor-pointer border-0 bg-transparent p-4 font-bold uppercase leading-none tracking-wider text-black text-[clamp(1rem,0.9rem+0.5vw,1.25rem)] transition-opacity duration-300 hover:opacity-50"
-        >
-          MENU
-        </button>
-      </div>
-    );
-  }
-
   // Phones and tablets: logo always visible. Desktop: logo appears after scrolling past the hero.
-  const showMGK = !isFooterVisible && (isMobileOrTablet || isPastHero);
-  const showMenu = (isMobileOrTablet || isPastHero) && !isFooterVisible;
-  const showDesktopNav = !isMobileOrTablet && !isPastHero && !isFooterVisible;
+  const hideHeader = isFooterVisible || isOverHiddenSection;
+  const showMGK = !hideHeader && (isMobileOrTablet || isPastHero);
+  const showMenu = (isMobileOrTablet || isPastHero) && !hideHeader;
+  const showDesktopNav = !isMobileOrTablet && !isPastHero && !hideHeader;
 
   const linkClass =
     "text-black no-underline transition-opacity duration-300 hover:opacity-50";
@@ -110,7 +100,6 @@ const Header = () => {
         }}
       >
         <Link href="/projects" className={linkClass}>Projects</Link>
-        <Link href="/journal" className={linkClass}>Journal</Link>
         <Link href="/profile" className={linkClass}>Profile</Link>
         <Link href="/contact" className={linkClass}>Contact</Link>
       </nav>

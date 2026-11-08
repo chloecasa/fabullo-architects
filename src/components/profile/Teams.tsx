@@ -226,7 +226,7 @@ const Teams = ({ initialMembers }: TeamsProps) => {
             {/* IMAGE FRAME: shows one portrait at a time */}
             <div
               className={[
-                "relative shrink-0 aspect-[3/4] overflow-hidden bg-zinc-100 rounded-none",
+                "relative shrink-0 aspect-[3/4] overflow-hidden bg-transparent rounded-none",
                 "mx-auto w-[min(62vw,260px)]",
                 "md:mx-0 md:w-80",
                 "max-md:landscape:w-[min(45vw,calc((100svh-40px)*0.75))]",

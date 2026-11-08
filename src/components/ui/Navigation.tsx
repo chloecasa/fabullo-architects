@@ -10,11 +10,10 @@ const previewByPath: Record<string, string> = {
   "/": "/media/menu/home.jpeg",
   "/projects": "/media/menu/projects.jpeg",
   "/profile": "/assets/images/Profile.webp",
-  "/journal": "/media/menu/journal.jpeg",
   "/contact": "/media/menu/contact.jpeg",
 };
 
-const navLinks = ["Home", "Projects", "Profile", "Journal", "Contact"];
+const navLinks = ["Home", "Projects", "Profile", "Contact"];
 
 interface NavigationProps {
   isOpen: boolean;
@@ -251,7 +250,7 @@ const Navigation = ({ isOpen, onClose }: NavigationProps) => {
               <div className="w-full max-w-[520px] rounded-none">
                 <input
                   type="text"
-                  placeholder="Search project or journal"
+                  placeholder="Search projects"
                   className="w-full rounded-none border-b border-white/30 bg-transparent py-2 font-['LT_Superior'] text-base font-medium uppercase tracking-[2px] text-white outline-none transition-colors placeholder:text-white/40 focus:border-white md:py-2.5 md:text-sm"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}

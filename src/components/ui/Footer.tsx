@@ -126,9 +126,6 @@ const Footer = () => {
             <Link href="/profile" className="py-2.5 transition-opacity hover:opacity-50 md:py-0">
               Profile
             </Link>
-            <Link href="/journal" className="py-2.5 transition-opacity hover:opacity-50 md:py-0">
-              Journal
-            </Link>
             <Link href="/contact" className="py-2.5 transition-opacity hover:opacity-50 md:py-0">
               Contact
             </Link>
