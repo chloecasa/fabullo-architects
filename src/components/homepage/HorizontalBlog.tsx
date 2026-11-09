@@ -5,6 +5,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import { setupScrollWipe } from "@/components/ui/useScrollWipe";
+import { refreshSoon } from "@/components/ui/useScrollWipe";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -138,6 +139,8 @@ export default function HorizontalBlog() {
       if (!section || !panel) return;
 
       setupScrollWipe(section, panel);
+            // Measure once the page, images and video have settled
+      const stopRefresh = refreshSoon();
 
       if (reduce) return;
 
@@ -168,8 +171,9 @@ export default function HorizontalBlog() {
       window.addEventListener("load", refresh);
       document.fonts?.ready.then(refresh);
 
-      return () => {
+           return () => {
         window.removeEventListener("load", refresh);
+        stopRefresh();
       };
     },
     { scope: containerRef }
@@ -271,13 +275,14 @@ export default function HorizontalBlog() {
                   ].join(" ")}
                   aria-label="View Local Project video"
                 >
-                  <video
+                                   <video
                     ref={videoRef}
                     src={slide.videoClip}
                     autoPlay
                     muted
                     loop
                     playsInline
+                    onLoadedMetadata={() => ScrollTrigger.refresh()}
                     className="h-full w-full object-cover rounded-none will-change-transform"
                   />
 

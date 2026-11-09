@@ -32,40 +32,79 @@ const IntroSequence: React.FC = () => {
 
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
-      // Measure the page once it has settled, so the trigger points are correct
+      // Measure the page once it has settled (images and fonts loaded), so the
+      // first scroll through this section uses the correct positions
       const stopRefresh = refreshSoon();
 
       if (!reduce) {
-        // One timeline for the whole block. Each piece is placed on it in order,
-        // so the scroll only scrubs one value instead of six.
-        const tl = gsap.timeline({
-          defaults: { ease: "power3.out" },
-          scrollTrigger: {
-            trigger: section,
-            start: "top 88%",
-            end: "top 35%",
-            // Light smoothing: follows the scroll without adding a slow trailing feel
-            scrub: 0.5,
-            invalidateOnRefresh: true,
-          },
-        });
+        // Each element has its own trigger, as before. The scrub is light (0.5),
+        // so the animation follows the scroll without a slow trailing feel.
+        const scrub = { scrub: 0.5, invalidateOnRefresh: true };
 
-        tl.fromTo(title, { opacity: 0, y: 32 }, { opacity: 1, y: 0 }, 0)
-          .fromTo(firstText, { opacity: 0, y: 32 }, { opacity: 1, y: 0 }, 0.12)
-          .fromTo(firstLine, { scaleX: 0 }, { scaleX: 1, transformOrigin: "left center" }, 0.2)
-          // The image uses transform only (a clip-path repaints every frame, which is what made it jumpy)
-          .fromTo(
-            image,
-            { opacity: 0, y: 40, scale: 1.04 },
-            { opacity: 1, y: 0, scale: 1 },
-            0.3
-          )
-          .fromTo(secondText, { opacity: 0, y: 32 }, { opacity: 1, y: 0 }, 0.5)
-          .fromTo(secondLine, { scaleX: 0 }, { scaleX: 1, transformOrigin: "left center" }, 0.6);
-      } else {
-        gsap.set([title, firstText, firstLine, image, secondText, secondLine], {
-          clearProps: "all",
-        });
+        gsap.fromTo(
+          title,
+          { opacity: 0, y: 32 },
+          {
+            opacity: 1,
+            y: 0,
+            ease: "none",
+            scrollTrigger: { trigger: title, start: "top 90%", end: "top 70%", ...scrub },
+          }
+        );
+
+        gsap.fromTo(
+          firstText,
+          { opacity: 0, y: 32 },
+          {
+            opacity: 1,
+            y: 0,
+            ease: "none",
+            scrollTrigger: { trigger: firstText, start: "top 90%", end: "top 65%", ...scrub },
+          }
+        );
+
+        gsap.fromTo(
+          firstLine,
+          { scaleX: 0, transformOrigin: "left center" },
+          {
+            scaleX: 1,
+            ease: "none",
+            scrollTrigger: { trigger: firstLine, start: "top 92%", end: "top 72%", ...scrub },
+          }
+        );
+
+        gsap.fromTo(
+          image,
+          { opacity: 0, clipPath: "inset(100% 0% 0% 0%)", scale: 1.04 },
+          {
+            opacity: 1,
+            clipPath: "inset(0% 0% 0% 0%)",
+            scale: 1,
+            ease: "none",
+            scrollTrigger: { trigger: image, start: "top 92%", end: "top 62%", ...scrub },
+          }
+        );
+
+        gsap.fromTo(
+          secondText,
+          { opacity: 0, y: 32 },
+          {
+            opacity: 1,
+            y: 0,
+            ease: "none",
+            scrollTrigger: { trigger: secondText, start: "top 90%", end: "top 65%", ...scrub },
+          }
+        );
+
+        gsap.fromTo(
+          secondLine,
+          { scaleX: 0, transformOrigin: "left center" },
+          {
+            scaleX: 1,
+            ease: "none",
+            scrollTrigger: { trigger: secondLine, start: "top 92%", end: "top 72%", ...scrub },
+          }
+        );
       }
 
       // Header colour: switch while this section is on screen
@@ -179,8 +218,10 @@ const IntroSequence: React.FC = () => {
         <img
           src="/assets/images/intro.jpg"
           alt="Architectural detail"
+          loading="eager"
+          decoding="async"
           className={[
-            "intro-image object-cover will-change-transform block w-full aspect-[3/4] mb-8 md:mb-0 rounded-none",
+            "intro-image object-cover will-change-[clip-path,transform] block w-full aspect-[3/4] mb-8 md:mb-0 rounded-none",
             "md:absolute md:aspect-auto",
             // 03. Tablet Port (768x1024)
             "md:left-[20px] md:top-[506px] md:w-[288px] md:h-[384px]",

@@ -96,9 +96,11 @@ const ContactSection = () => {
             "min-[1440px]:w-[1320px] min-[1440px]:h-[496px] min-[1440px]:top-[20px]",
           ].join(" ")}
         >
-          <img
+                    <img
             src="/assets/images/contactsec.jpg"
             alt="Architectural perspective"
+            loading="eager"
+            decoding="async"
             className="h-full w-full object-cover"
           />
 
