@@ -375,9 +375,9 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
               {beatsByImage[i].length > 0 && (
                 <div className="mb-6 flex flex-col gap-4">
                   {beatsByImage[i].map((bi) => (
-                    <p
+                                        <p
                       key={bi}
-                      className="m-text text-left text-[11px] font-normal leading-tight text-zinc-950 rounded-none"
+                      className="m-text text-left text-[15px] font-normal leading-relaxed text-zinc-950 rounded-none min-[375px]:text-base"
                     >
                       {beats[bi].text}
                     </p>
