@@ -114,16 +114,21 @@ export default function HorizontalBlog() {
     };
   }, []);
 
+  // Hide the site header completely while the video plays.
+  // The style is removed when the video closes, so the header returns.
   useEffect(() => {
-    const header = document.querySelector("header") as HTMLElement | null;
+    if (!isVideoOpen) return;
 
-    if (header) {
-      header.style.display = isVideoOpen ? "none" : "";
-    }
+    const style = document.createElement("style");
+    style.id = "video-header-hide";
+    style.textContent = `
+      [role="banner"] {
+        display: none !important;
+      }
+    `;
+    document.head.appendChild(style);
 
-    return () => {
-      if (header) header.style.display = "";
-    };
+    return () => style.remove();
   }, [isVideoOpen]);
 
   useGSAP(
@@ -201,12 +206,13 @@ export default function HorizontalBlog() {
               `}
             >
               {/* Phones: flow layout. Tablet and up: absolute layout */}
-              <div className={[
-                "relative w-full flex flex-col",
-                "px-[12px] pt-[100px] pb-14",
-                "md:block md:h-full md:p-0",
-              ].join(" ")}>
-
+              <div
+                className={[
+                  "relative w-full flex flex-col",
+                  "px-[12px] pt-[100px] pb-14",
+                  "md:block md:h-full md:p-0",
+                ].join(" ")}
+              >
                 {/* Component 1: Title ("FEATURED") */}
                 <h1
                   suppressHydrationWarning
@@ -229,18 +235,20 @@ export default function HorizontalBlog() {
 
                 {/* Component 2: Subtitle ("ON THE LOCAL PROJECT") */}
                 {slide.subtitle && (
-                  <p className={[
-                    "self-end text-right font-['LT_Superior'] font-bold text-black/70 text-sm mb-6",
-                    "md:self-auto md:text-justify md:absolute md:mb-0 md:text-base md:w-auto",
-                    // 03. Tablet Port (768x1024)
-                    "md:left-auto md:right-[20px] md:top-[238px]",
-                    // 04. Tablet Land (1024x768)
-                    "lg:left-auto lg:right-[20px] lg:top-[112px] lg:text-base",
-                    // 05. Desktop Base (1280x1523)
-                    "xl:left-auto xl:right-[20px] xl:top-[282px] xl:text-2xl",
-                    // 06. Original Widescreen (1440x1441)
-                    "min-[1440px]:left-auto min-[1440px]:right-[20px] min-[1440px]:top-[323px] min-[1440px]:text-3xl",
-                  ].join(" ")}>
+                  <p
+                    className={[
+                      "self-end text-right font-['LT_Superior'] font-bold text-black/70 text-sm mb-6",
+                      "md:self-auto md:text-justify md:absolute md:mb-0 md:text-base md:w-auto",
+                      // 03. Tablet Port (768x1024)
+                      "md:left-auto md:right-[20px] md:top-[238px]",
+                      // 04. Tablet Land (1024x768)
+                      "lg:left-auto lg:right-[20px] lg:top-[112px] lg:text-base",
+                      // 05. Desktop Base (1280x1523)
+                      "xl:left-auto xl:right-[20px] xl:top-[282px] xl:text-2xl",
+                      // 06. Original Widescreen (1440x1441)
+                      "min-[1440px]:left-auto min-[1440px]:right-[20px] min-[1440px]:top-[323px] min-[1440px]:text-3xl",
+                    ].join(" ")}
+                  >
                     {slide.subtitle}
                   </p>
                 )}
@@ -249,8 +257,7 @@ export default function HorizontalBlog() {
                 <button
                   ref={videoButtonRef}
                   type="button"
-                  data-cursor="[VIEW LOCAL PROJECT]"
-                  data-cursor-color="white"
+                  data-cursor="view"
                   onClick={() => setIsVideoOpen(true)}
                   className={[
                     "relative block w-full aspect-[4/3] mb-6 overflow-hidden bg-zinc-300 rounded-none",
@@ -278,19 +285,21 @@ export default function HorizontalBlog() {
                 </button>
 
                 {/* Component 4: Description Paragraph */}
-                <p className={[
-                  "font-['LT_Superior'] font-bold text-black rounded-none",
-                  "w-full text-base leading-snug text-left",
-                  "md:absolute md:text-justify md:text-base",
-                  // 03. Tablet Port (768x1024)
-                  "md:left-[20px] md:top-[773px] md:w-72",
-                  // 04. Tablet Land (1024x768)
-                  "lg:top-[643px] lg:w-96 lg:text-base",
-                  // 05. Desktop Base (1280x1523)
-                  "xl:top-[1222px] xl:w-[453px] xl:text-2xl",
-                  // 06. Original Widescreen (1440x1441)
-                  "min-[1440px]:top-[1263px] min-[1440px]:w-[453px] min-[1440px]:text-2xl",
-                ].join(" ")}>
+                <p
+                  className={[
+                    "font-['LT_Superior'] font-bold text-black rounded-none",
+                    "w-full text-base leading-snug text-left",
+                    "md:absolute md:text-justify md:text-base",
+                    // 03. Tablet Port (768x1024)
+                    "md:left-[20px] md:top-[773px] md:w-72",
+                    // 04. Tablet Land (1024x768)
+                    "lg:top-[643px] lg:w-96 lg:text-base",
+                    // 05. Desktop Base (1280x1523)
+                    "xl:top-[1222px] xl:w-[453px] xl:text-2xl",
+                    // 06. Original Widescreen (1440x1441)
+                    "min-[1440px]:top-[1263px] min-[1440px]:w-[453px] min-[1440px]:text-2xl",
+                  ].join(" ")}
+                >
                   {slide.description}
                 </p>
               </div>
@@ -302,28 +311,30 @@ export default function HorizontalBlog() {
       {/* Video modal */}
       {isVideoOpen && (
         <div className="fixed inset-0 z-[5000] bg-black">
+          {/* Non-interactive, so the cursor ring works over the video */}
           <iframe
-            data-cursor="[ CLOSE ]"
-            src="https://www.youtube.com/embed/shT8Ccb1YHI?autoplay=1&mute=1&playsinline=1&rel=0"
+            src="https://www.youtube.com/embed/shT8Ccb1YHI?autoplay=1&mute=1&playsinline=1&rel=0&controls=0"
             title="Local Project Video"
-            className="h-full w-full"
+            className="pointer-events-none h-full w-full"
             allow="autoplay; encrypted-media; picture-in-picture"
             allowFullScreen
-            onClick={(e: React.MouseEvent) => e.stopPropagation()}
           />
 
+          {/* Full-screen close target: any click closes the video */}
           <button
             type="button"
-            data-cursor="[ CLOSE ]"
+            data-cursor="close"
             onClick={() => setIsVideoOpen(false)}
-            className="absolute left-0 top-0 z-10 h-[calc(100%-96px)] w-full cursor-none"
+            className="absolute inset-0 z-10 cursor-none bg-transparent"
             aria-label="Close video"
           />
 
+          {/* Visible close button */}
           <button
             type="button"
+            data-cursor="close"
             onClick={() => setIsVideoOpen(false)}
-            className="absolute right-4 top-4 z-20 min-h-11 px-4 py-3 bg-white/10 backdrop-blur-md border border-white/20 rounded-full font-mono text-xs uppercase tracking-wider text-white"
+            className="absolute bottom-6 right-6 z-20 min-h-11 cursor-none rounded-full border border-white/20 bg-white/10 px-4 py-3 font-mono text-xs uppercase tracking-wider text-white backdrop-blur-md"
             aria-label="Close video"
           >
             Close

@@ -179,22 +179,23 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
   const awardsData = initialAwards || [];
   const booksData = initialBooks || [];
 
-  useGSAP(
+   useGSAP(
     () => {
-      gsap.set(".awards-intro-reveal", { y: "115%" });
-
-      gsap.to(".awards-intro-reveal", {
-        y: "0%",
-        duration: 1.2,
-        stagger: 0.1,
-        ease: "power3.out",
-        scrollTrigger: {
-          trigger: ".awards-header-section",
-          start: "top 90%",
-          end: "bottom 10%",
-          toggleActions: "restart reverse restart reverse",
-        },
-      });
+      gsap.fromTo(
+        ".awards-intro-reveal",
+        { y: "115%" },
+        {
+          y: "0%",
+          duration: 1.2,
+          stagger: 0.1,
+          ease: "power3.out",
+          scrollTrigger: {
+            trigger: ".awards-header-section",
+            start: "top 90%",
+            once: true,
+          },
+        }
+      );
     },
     { scope: containerRef }
   );

@@ -72,7 +72,7 @@ const ContactSection = () => {
           ].join(" ")}
         >
           <img
-            src="/assets/images/Contact/Contact.png"
+            src="/assets/images/contactsec.jpg"
             alt="Architectural perspective"
             className="h-full w-full object-cover"
           />

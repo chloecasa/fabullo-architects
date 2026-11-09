@@ -1,0 +1,50 @@
+import localFont from "next/font/local";
+import "./globals.css";
+
+const ltSuperior = localFont({
+  src: [
+    { path: "./fonts/LTSuperior-Light.ttf", weight: "300", style: "light" },
+    { path: "./fonts/LTSuperior-Regular.ttf", weight: "400", style: "regular" },
+    { path: "./fonts/LTSuperior-Medium.ttf", weight: "500", style: "medium" },
+    { path: "./fonts/LTSuperior-Bold.ttf", weight: "700", style: "bold" },
+  ],
+  variable: "--font-lt-superior",
+});
+
+const cinzel = localFont({
+  src: [
+    { path: "./fonts/Cinzel-Regular.otf", weight: "400", style: "normal" },
+    { path: "./fonts/Cinzel-Bold.otf", weight: "700", style: "normal" },
+  ],
+  variable: "--font-cinzel",
+});
+
+const codeFont = localFont({
+  src: [
+    { path: "./fonts/CODE Light.otf", weight: "300", style: "normal" },
+    { path: "./fonts/CODE Bold.otf", weight: "700", style: "normal" },
+  ],
+  variable: "--font-code-src",
+  display: "swap",
+});
+
+const ttHoves = localFont({
+  src: [
+    { path: "./fonts/TT Hoves Pro Trial Regular.ttf", weight: "400", style: "normal" },
+    { path: "./fonts/TT Hoves Pro Trial Bold.ttf", weight: "700", style: "normal" },
+  ],
+  variable: "--font-hoves-src",
+  display: "swap",
+});
+
+export default function RootLayout({ children }: { children: React.ReactNode }) {
+  return (
+    <html
+      lang="en"
+      className={`${ltSuperior.variable} ${cinzel.variable} ${codeFont.variable} ${ttHoves.variable}`}
+      suppressHydrationWarning
+    >
+      <body className="bg-bg-base text-text-primary antialiased">{children}</body>
+    </html>
+  );
+}

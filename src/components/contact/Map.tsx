@@ -12,16 +12,16 @@ const locations = [
   {
     name: "Surry Hills",
     address: "1/91 campbell street surry hills nsw 2010",
-    phone: "+61 2 9211 4146",
-    email: "architects@mckarchitects.com",
+    phone: "+61 2 9211 1111",
+    email: "hello@fabullo.com",
     mapSrc:
       "https://www.google.com/maps?q=1/91%20Campbell%20Street%20Surry%20Hills%20NSW%202010&output=embed",
   },
   {
     name: "Avalon Beach",
     address: "7/55 avalon parade AVALON BEACH NSW 2107",
-    phone: "+61 2 9211 4262",
-    email: "",
+    phone: "+61 2 9211 1111",
+    email: "hello@fabullo.com",
     mapSrc:
       "https://www.google.com/maps?q=7/55%20Avalon%20Parade%20Avalon%20Beach%20NSW%202107&output=embed",
   },
@@ -125,7 +125,7 @@ const Map = () => {
   }, []);
 
   return (
-      <section
+         <section
       ref={wrapperRef}
       data-map-section
       className="flex w-full flex-col gap-12 bg-white py-12 rounded-none md:block md:gap-0 md:py-0"

@@ -6,6 +6,7 @@ import gsap from "gsap";
 const LABELS: { selector: string; label: string }[] = [
   { selector: "[data-cursor='view']", label: "VIEW" },
   { selector: "[data-cursor='open']", label: "OPEN" },
+    { selector: "[data-cursor='close']", label: "CLOSE" },
 ];
 
 const INTERACTIVE = "a, button, [role='button'], input, textarea, select, label";

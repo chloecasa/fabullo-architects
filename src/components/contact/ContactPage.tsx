@@ -226,7 +226,7 @@ const ContactPage = () => {
           className="absolute left-0 top-0 h-full w-[45.7vw] overflow-hidden bg-zinc-400 hidden lg:block rounded-none"
         >
           <img
-            src="/assets/images/Contact/ContactPage.png"
+            src="/assets/images/contact.jpg"
             alt="Architectural space perspective"
             className="h-full w-full object-cover rounded-none"
           />

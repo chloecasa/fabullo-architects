@@ -231,7 +231,7 @@ const IntroSequence: React.FC = () => {
 
         {/* Component 4: Image Mask & Source */}
         <img
-          src="/media/Intro/Image.jpeg"
+          src="/assets/images/intro.jpg"
           alt="Architectural detail"
           className={[
             "intro-image object-cover will-change-[clip-path,transform] block w-full aspect-[3/4] mb-8 md:mb-0 rounded-none",

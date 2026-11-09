@@ -15,6 +15,7 @@ const Header = () => {
   const [isFooterVisible, setIsFooterVisible] = useState(false);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [isMenuHovered, setIsMenuHovered] = useState(false);
+    const [isOverMap, setIsOverMap] = useState(false);
 
   useEffect(() => {
     const updateHeader = () => {
@@ -24,6 +25,15 @@ const Header = () => {
       setIsMobileOrTablet(window.innerWidth < 1024);
       setIsPastHero(window.scrollY > window.innerHeight * 0.9);
       setIsFooterVisible(footerTop < window.innerHeight * 0.85);
+            // Is a map section currently under the header area at the top of the screen?
+      const headerZone = 90;
+      const overMap = Array.from(
+        document.querySelectorAll("[data-map-section]")
+      ).some((el) => {
+        const rect = el.getBoundingClientRect();
+        return rect.top < headerZone && rect.bottom > 0;
+      });
+      setIsOverMap(overMap);
     };
 
     updateHeader();
@@ -39,8 +49,8 @@ const Header = () => {
   // Hide the header while the menu is open
   if (isOpen) return null;
 
-  // On /contact the header is shown only on phones and tablets. The footer still hides it.
-  const hideHeader = isFooterVisible || (isContact && !isMobileOrTablet);
+
+  const hideHeader = isFooterVisible || (isContact && !isMobileOrTablet && !isOverMap);
   const showMGK = !hideHeader && (isMobileOrTablet || isPastHero);
   const showMenu = (isMobileOrTablet || isPastHero) && !hideHeader;
   const showDesktopNav = !isMobileOrTablet && !isPastHero && !hideHeader;

@@ -27,21 +27,19 @@ if (typeof window !== "undefined") {
 // Photo ratio: 3:4 (width:height), e.g. 1200 x 1600 px
 // Keep the building in the middle; tall photos work best.
 const heroPortrait = [
-  { src: "/assets/images/Homepage/Hero.png", alt: "Architectural detail 1", position: "50% 50%" },
-  { src: "/media/Hero/Image2.jpeg", alt: "Architectural detail 2", position: "50% 50%" },
-  { src: "/media/Hero/Image3.jpeg", alt: "Architectural detail 3", position: "50% 50%" },
-  { src: "/media/Hero/Image4.jpeg", alt: "Architectural detail 4", position: "50% 50%" },
-  { src: "/media/Hero/Image5.jpeg", alt: "Architectural detail 5", position: "50% 50%" },
+  { src: "/assets/images/hero1.jpg", alt: "Architectural detail 1", position: "50% 100%" },
+  { src: "/assets/images/hero2.jpg", alt: "Architectural detail 2", position: "50% 100%" },
+  { src: "/assets/images/hero3.jpg", alt: "Architectural detail 3", position: "50% 100%" },
+  { src: "/assets/images/hero4.jpg", alt: "Architectural detail 4", position: "50% 100%" },
+  { src: "/assets/images/hero5.jpg", alt: "Architectural detail 5", position: "50% 100%" },
 ];
-// heroLandscape: used when the screen is wider than tall (desktops, laptops, phones turned sideways)
-// Photo ratio: 2:1 (width:height), e.g. 2400 x 1200 px
-// Keep the building in the middle; wide photos work best.
+
 const heroLandscape = [
-  { src: "/assets/images/Homepage/Hero.png", alt: "Architectural detail 1", position: "50% 40%" },
-  { src: "/media/Hero/Image2.jpeg", alt: "Architectural detail 2", position: "50% 50%" },
-  { src: "/media/Hero/Image3.jpeg", alt: "Architectural detail 3", position: "50% 50%" },
-  { src: "/media/Hero/Image4.jpeg", alt: "Architectural detail 4", position: "50% 50%" },
-  { src: "/media/Hero/Image5.jpeg", alt: "Architectural detail 5", position: "50% 50%" },
+  { src: "/assets/images/hero1.jpg", alt: "Architectural detail 1", position: "50% 100%" },
+  { src: "/assets/images/hero2.jpg", alt: "Architectural detail 2", position: "50% 100%" },
+  { src: "/assets/images/hero3.jpg", alt: "Architectural detail 3", position: "50% 100%" },
+  { src: "/assets/images/hero4.jpg", alt: "Architectural detail 4", position: "50% 100%" },
+  { src: "/assets/images/hero5.jpg", alt: "Architectural detail 5", position: "50% 100%" },
 ];
 
 const Hero = () => {
@@ -154,7 +152,7 @@ const Hero = () => {
               </span>
             </Link>
 
-            <div className="grid w-full grid-cols-2 gap-4 md:ml-auto md:w-[min(30rem,70vw)] md:gap-7 lg:w-[min(30rem,36vw)]">
+                       <div className="grid w-full grid-cols-2 gap-[20px] md:ml-auto md:w-[min(30rem,70vw)] lg:w-[min(30rem,36vw)]">
               <p className="hero-copy text-pretty font-bold leading-[1.25] text-[clamp(0.7rem,0.45rem+0.7vw,1rem)]">
                 We design context‑driven architecture that transforms your vision into refined,
                 built form.

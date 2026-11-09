@@ -20,10 +20,10 @@ const sections = [
     widthClass: "md:w-[728px]",
     content: (
       <>
-        MCK is a multi-award winning Architecture Practice based in Sydney, Australia.
+        FABULLO is an architecture practice designing context-driven buildings and interiors. 
         <br />
         <br />
-        We specialise in bespoke design of high quality finish and detail that is responsive to context and client brief.
+        We specialise in bespoke design with high-quality finish and detail, shaped by the site, the brief and the people who will use the space.
       </>
     ),
   },
@@ -35,10 +35,10 @@ const sections = [
     widthClass: "md:w-[876px]",
     content: (
       <>
-        MCK has developed over the past two decades a knowledge and expertise in designing prestige buildings that has been awarded and acclaimed by the Australian Institute of Architects, the Institute of Interior Designers, and the Australian Design Council.
+        FABULLO was founded to design architecture that responds to place, light and the people who live in it. 
         <br />
         <br />
-        MCK has a portfolio of commercial and residential projects with a specialisation in one-off detached houses and adaptive reuse.
+        Our portfolio spans residential, commercial and unbuilt concept work. 
       </>
     ),
   },
@@ -52,19 +52,19 @@ const sections = [
       <>
         {/* Column 1 of Ethos manifesto */}
         <div className={`${ethosText} w-full md:flex-1 min-w-0 xl:flex-none xl:w-[578px]`}>
-          Architectural experience can be life changing. Phenomena in space and light. Volume and form delivering emotion and thought. Architecture is the embodiment of imagination. Engagement with it should be sublime.
-          It should bring happiness and delight. It should represent what we strive for and our common goal. It should be noble, awe-inspiring and magnificent.
+          Architecture can change how a person feels in a space. Light, volume and form shape emotion as much as function.
+          Detail matters. Every edge, material and junction is considered, because that is where a building is truly felt.
           <br />
           <br />
-          Responsive to site, context and end user needs. Environmentally sensitive and sustainable. Quality in finish and detail. Pleasure and benefit in function. Excitement in innovation.
+          Responsive to site, context and the people who use it. Environmentally sensitive and sustainable. Quality in finish and detail. Clarity in function. Care in every decision.
         </div>
 
         {/* Column 2 of Ethos manifesto */}
         <div className={`${ethosText} w-full md:flex-1 min-w-0 xl:flex-none xl:w-96`}>
-          All this is enveloped in building. The fabric and material that delivers the built form. This is achieved through collaboration. Of like minded people that dream, create, construct and finance. Teamwork, knowledge experience and pragmatism. To guide and see ideas come to fruition.
+          A building is the sum of many decisions. We work closely with clients, consultants and builders from concept to completion, so every idea is carried through with care.
           <br />
           <br />
-          Nurtured, with expertise, from conception to completion. Our service as Architects is to aim to deliver this manifesto. To assist in the journey to make idea become reality. Let’s make Architecture.
+          Our aim is simple: to turn your vision into refined, built form, and to make sure every detail belongs in its context. Let’s make architecture.
         </div>
       </>
     ),
@@ -173,7 +173,7 @@ const Profile = () => {
       {/* Component 2: Image & Section */}
       <section className="relative w-full h-[80svh] min-h-[420px] bg-zinc-400 overflow-hidden rounded-none md:h-[580px] xl:h-[750px] min-[1440px]:h-[800px]">
         <Image
-          src="/assets/images/Profile.webp"
+          src="/assets/images/profile.jpg"
           alt="Profile Background"
           fill
           className="object-cover grayscale rounded-none"
