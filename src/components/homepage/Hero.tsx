@@ -129,10 +129,10 @@ const Hero = () => {
             className="font-bold uppercase leading-[0.82] tracking-tighter"
             style={{ fontSize: "clamp(2.75rem, min(10.5vw, 17svh), 8rem)" }}
           >
-            <span className="block overflow-hidden pb-[0.08em]">
+                        <span className="block overflow-hidden pb-[0.08em] pr-[0.12em] -mr-[0.12em]">
               <span className="hero-title-line block">Detail</span>
             </span>
-            <span className="block overflow-hidden pb-[0.08em]">
+                      <span className="block overflow-hidden pb-[0.08em] pr-[0.12em] -mr-[0.12em]">
               <span className="hero-title-line block">Matters</span>
             </span>
           </h1>

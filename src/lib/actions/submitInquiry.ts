@@ -1,9 +1,6 @@
 // src/lib/actions/submitInquiry.ts
 'use server';
 
-import { getPayload } from 'payload';
-import config from '@/payload.config';
-
 export type InquiryInput = {
   firstName: string;
   surname: string;
@@ -35,23 +32,7 @@ export async function submitInquiry(data: InquiryInput) {
     const cleanSubject = sanitizeInput(data.subject);
     const cleanMessage = sanitizeInput(data.message);
 
-    // 3. Initialize Payload on the Server
-    const payload = await getPayload({ config });
-
-    // 4. Automatically write the clean entry to your local database leads archive [1.1]
-    const newLead = await payload.create({
-      collection: 'leads',
-      data: {
-        firstName: cleanFirstName,
-        surname: cleanSurname,
-        email: cleanEmail,
-        phone: cleanPhone,
-        subject: cleanSubject,
-        message: cleanMessage,
-      },
-    });
-
-    // 5. Fire Automated Email Alert via Resend REST API
+    // 3. Fire Automated Email Alert via Resend REST API
     const resendApiKey = process.env.RESEND_API_KEY;
     const notificationEmail = process.env.NOTIFICATION_EMAIL;
 
@@ -86,7 +67,7 @@ export async function submitInquiry(data: InquiryInput) {
             </p>
           </div>
           <div style="margin-top: 40px; border-top: 1px solid #e4e4e7; padding-top: 15px; font-size: 10px; color: #a1a1aa; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em;">
-            AUTOMATED TRANSMISSION VIA MGK-ARCHITECTS ENGINE. RECORD BACKED UP IN PAYLOAD LEADS DATABASE.
+            AUTOMATED TRANSMISSION VIA MGK-ARCHITECTS ENGINE.
           </div>
         </div>
       `;
@@ -100,7 +81,7 @@ export async function submitInquiry(data: InquiryInput) {
             'User-Agent': 'mgk-architects/1.0',
           },
           body: JSON.stringify({
-            from: 'MGK Architects <onboarding@resend.dev>',
+            from: process.env.RESEND_FROM_EMAIL || 'MGK Architects <onboarding@resend.dev>',
             to: [notificationEmail],
             subject: `[MGK INBOX]: ${cleanSubject} - ${cleanFirstName} ${cleanSurname}`,
             html: htmlEmailBody,
@@ -116,7 +97,7 @@ export async function submitInquiry(data: InquiryInput) {
       }
     }
 
-    // 6. Asynchronously Push Lead Data to Third-Party CRM (Monday.com / HubSpot / Slack) [1.1]
+    // 4. Asynchronously Push Lead Data to Third-Party CRM (Monday.com / HubSpot / Slack) [1.1]
     const crmWebhookUrl = process.env.CRM_WEBHOOK_URL;
     if (crmWebhookUrl) {
       try {
@@ -147,7 +128,7 @@ export async function submitInquiry(data: InquiryInput) {
       }
     }
 
-    return { success: true, leadId: newLead.id };
+    return { success: true };
 
   } catch (error: unknown) {
   console.error('SERVER ACTION ERROR: submitInquiry failed ->', error);

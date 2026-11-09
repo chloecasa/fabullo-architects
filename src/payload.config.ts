@@ -8,7 +8,7 @@ import { cloudinaryStorage } from 'payloadcms-storage-cloudinary'; // Import the
 
 import { Media } from './collections/Media';
 import { Projects } from './collections/Projects';
-import { Journal } from './collections/Journal';
+
 import { Leads } from './collections/Leads';
 import { Team } from './collections/Team'; 
 import { Awards } from './collections/Awards'; 
@@ -25,7 +25,7 @@ export default buildConfig({
   collections: [
     Media,
     Projects,
-    Journal,
+   
     Leads,
     Team,      
     Awards,    

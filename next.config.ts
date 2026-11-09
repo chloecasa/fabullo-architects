@@ -1,9 +1,10 @@
-// next.config.mjs
+import type { NextConfig } from 'next';
 import { withPayload } from '@payloadcms/next/withPayload';
 
-/** @type {import('next').NextConfig} */
-const nextConfig = {
-  // Your existing Next.js config options can go here if needed
+const nextConfig: NextConfig = {
+  images: {
+    remotePatterns: [{ protocol: 'https', hostname: 'cdn.sanity.io' }],
+  },
 };
 
 export default withPayload(nextConfig);

@@ -46,6 +46,7 @@ import Header from "@/components/ui/Header";
 import Footer from "@/components/ui/Footer";
 import CursorWord from "@/components/ui/CursorWord";
 import CookieBanner from "@/components/ui/CookieBanner";
+import CircleCursor from "@/components/ui/CircleCursor";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -66,6 +67,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </main>
 
             <CursorWord />
+             <CircleCursor />
             <Footer />
           </SmoothScroll>
         </MenuProvider>

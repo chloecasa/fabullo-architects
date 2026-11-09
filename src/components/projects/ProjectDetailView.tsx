@@ -5,19 +5,40 @@ import React, { useEffect, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import SplitType from "split-type";
 import { ProjectData } from "@/app/(app)/projects/[slug]/page";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// One shared reveal, used by the sequence AND the gallery so they feel like one page
+// Splits a paragraph into words. Each word is inline-block so it can move on its own.
+function splitWords(el: HTMLElement) {
+  const split = new SplitType(el, { types: "words", wordClass: "wd" });
+  split.words?.forEach((w) => {
+    w.style.display = "inline-block";
+  });
+  return split;
+}
+
+// Starting and ending states for the word animation.
+// Words rise from below, start blurred and transparent, and settle sharp.
+const WORD_HIDDEN_BELOW = { yPercent: 70, opacity: 0, filter: "blur(10px)" };
+const WORD_SETTLED = { yPercent: 0, opacity: 1, filter: "blur(0px)" };
+const WORD_LIFTED_OUT = { yPercent: -60, opacity: 0, filter: "blur(8px)" };
+
+// Shared reveal for images
 const REVEAL = { y: 40, duration: 1.1, ease: "power3.out" };
+
+const pad = (n: number) => String(n).padStart(2, "0");
 
 export default function ProjectDetailView({ project }: { project: ProjectData }) {
   const containerRef = useRef<HTMLElement>(null);
   const sequenceRef = useRef<HTMLElement>(null);
-  const galleryRef = useRef<HTMLDivElement>(null);
+  const galleryPinRef = useRef<HTMLElement>(null);
+  const scrollerRef = useRef<HTMLDivElement>(null);
+  const trackRef = useRef<HTMLDivElement>(null);
+  const counterRef = useRef<HTMLSpanElement>(null);
 
   const blindTop = useRef<HTMLDivElement>(null);
   const heroImageMaskRef = useRef<HTMLDivElement>(null);
@@ -25,10 +46,22 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
 
   const [selectedImg, setSelectedImg] = useState<string | null>(null);
 
-  // Slides that have an image, so captions and images always line up
-  const sequence = project.slides
-    .map((text, i) => ({ text, img: project.verticalImages[i] }))
-    .filter((item): item is { text: string; img: string } => Boolean(item.img));
+  // Images and paragraphs can be any count (at least 2 each).
+  const images = (project.verticalImages ?? []).filter(Boolean);
+  const texts = (project.slides ?? []).filter(Boolean);
+  const imageCount = images.length;
+  const textCount = texts.length;
+
+  // Each paragraph ("beat") is assigned to an image. Paragraphs are spread across
+  // the images in order. When there are more paragraphs than images, several share one image.
+  const beats = texts.map((text, t) => ({
+    text,
+    image: textCount > 0 ? Math.min(Math.floor((t * imageCount) / textCount), imageCount - 1) : 0,
+  }));
+
+  // For each image, the list of beat indexes that belong to it
+  const beatsByImage: number[][] = images.map(() => []);
+  beats.forEach((beat, bi) => beatsByImage[beat.image].push(bi));
 
   useGSAP(
     () => {
@@ -90,18 +123,7 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
           "-=0.55"
         );
 
-      gsap.to(heroImageRef.current, {
-        yPercent: -6,
-        ease: "none",
-        scrollTrigger: {
-          trigger: containerRef.current,
-          start: "top top",
-          end: "bottom top",
-          scrub: 1,
-        },
-      });
-
-      // ---------- SECTION 2: IMAGE SEQUENCE (no pinning, just flowing scroll) ----------
+      // ---------- SECTION 2: IMAGE SEQUENCE ----------
       const mm = gsap.matchMedia();
 
       mm.add(
@@ -112,33 +134,64 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
             "(max-width: 767px) and (prefers-reduced-motion: no-preference)",
         },
         (ctx) => {
-          const sequence = sequenceRef.current;
-          if (!sequence) return;
+          const root = sequenceRef.current;
+          if (!root) return;
 
-          // DESKTOP: caption stays put (sticky) and swaps softly as each image passes
+          // DESKTOP: the caption stays put on the left. Its words rise in blurred and
+          // settle sharp, and the old words lift out when the next paragraph arrives.
           if (ctx.conditions?.isDesktop) {
-            const captions = gsap.utils.toArray<HTMLElement>(".v-caption", sequence);
-            const frames = gsap.utils.toArray<HTMLElement>(".v-img-frame", sequence);
+            const captions = gsap.utils.toArray<HTMLElement>(".v-caption", root);
+            const frames = gsap.utils.toArray<HTMLElement>(".v-img-frame", root);
 
-            const showCaption = (active: number) => {
-              captions.forEach((el, idx) => {
-                gsap.to(el, {
-                  opacity: idx === active ? 1 : 0,
-                  y: idx === active ? 0 : idx < active ? -REVEAL.y / 2 : REVEAL.y / 2,
-                  duration: 0.9,
-                  ease: "power2.out",
-                  overwrite: "auto",
+            const wordSplits = captions.map(splitWords);
+            captions.forEach((c) => {
+              gsap.set(c.querySelectorAll(".wd"), WORD_HIDDEN_BELOW);
+            });
+
+            let current = -1;
+
+            const showCaption = (next: number) => {
+              if (next === current) return;
+              const prev = current;
+              current = next;
+              // Direction of travel: forward (1) or back up the page (-1)
+              const dir = prev === -1 || next > prev ? 1 : -1;
+
+              if (prev >= 0) {
+                const out = captions[prev].querySelectorAll(".wd");
+                gsap.killTweensOf(out);
+                gsap.to(out, {
+                  yPercent: WORD_LIFTED_OUT.yPercent * dir,
+                  opacity: 0,
+                  filter: WORD_LIFTED_OUT.filter,
+                  duration: 0.7,
+                  stagger: 0.03,
+                  ease: "power2.in",
                 });
-              });
+              }
+
+              if (next >= 0) {
+                const incoming = captions[next].querySelectorAll(".wd");
+                gsap.killTweensOf(incoming);
+                gsap.fromTo(
+                  incoming,
+                  {
+                    yPercent: WORD_HIDDEN_BELOW.yPercent * dir,
+                    opacity: 0,
+                    filter: WORD_HIDDEN_BELOW.filter,
+                  },
+                  {
+                    ...WORD_SETTLED,
+                    duration: 1.1,
+                    stagger: 0.045,
+                    ease: "power3.out",
+                    delay: prev >= 0 ? 0.3 : 0,
+                  }
+                );
+              }
             };
 
-            gsap.set(captions, { opacity: (i) => (i === 0 ? 1 : 0), y: 0 });
-
             frames.forEach((frame, i) => {
-              const img = frame.querySelector("img");
-              if (!img) return;
-
-              // Image fades up as it arrives
               gsap.set(frame, { opacity: 0, y: REVEAL.y });
               gsap.to(frame, {
                 opacity: 1,
@@ -148,56 +201,69 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
                 scrollTrigger: { trigger: frame, start: "top 88%", once: true },
               });
 
-              // Very slight drift inside the frame while it scrolls
-              gsap.set(img, { scale: 1.12 });
-              gsap.fromTo(
-                img,
-                { yPercent: -4 },
-                {
-                  yPercent: 4,
-                  ease: "none",
-                  scrollTrigger: {
-                    trigger: frame,
-                    start: "top bottom",
-                    end: "bottom top",
-                    scrub: 1,
-                  },
-                }
-              );
-
-              // Caption for this image takes over when it reaches mid screen
+              // Pick the paragraph for this image. If the image has several, they take turns
+              // as the image moves through the middle of the screen.
               ScrollTrigger.create({
                 trigger: frame,
                 start: "top 55%",
                 end: "bottom 55%",
-                onEnter: () => showCaption(i),
-                onEnterBack: () => showCaption(i),
+                onUpdate: (self) => {
+                  const list = beatsByImage[i];
+                  if (!list || list.length === 0) return;
+                  const k = Math.min(Math.floor(self.progress * list.length), list.length - 1);
+                  showCaption(list[k]);
+                },
+                onLeaveBack: () => {
+                  if (i === 0) showCaption(-1);
+                },
               });
             });
+
+            return () => {
+              wordSplits.forEach((s) => s.revert());
+            };
           }
 
-          // MOBILE: each slide fades up as it reaches the screen
+          // MOBILE: paragraph words rise in, then the image fades up, once, as each block reaches the screen
           if (ctx.conditions?.isMobile) {
-            const slides = gsap.utils.toArray<HTMLElement>(".m-slide", sequence);
+            const wraps = gsap.utils.toArray<HTMLElement>(".m-block-wrap", root);
+            const allSplits: SplitType[] = [];
 
-            slides.forEach((slide) => {
-              const text = slide.querySelector<HTMLElement>(".m-slide-text");
-              const block = slide.querySelector<HTMLElement>(".m-img-block");
-              if (!text || !block) return;
+            wraps.forEach((wrap) => {
+              const block = wrap.querySelector<HTMLElement>(".m-block");
+              const paragraphs = gsap.utils.toArray<HTMLElement>(".m-text", wrap);
+              const splits = paragraphs.map(splitWords);
+              allSplits.push(...splits);
 
-              gsap.set([text, block], { opacity: 0, y: REVEAL.y });
+              splits.forEach((s) => {
+                gsap.set(s.words ?? [], WORD_HIDDEN_BELOW);
+              });
+              if (block) gsap.set(block, { opacity: 0, y: REVEAL.y });
 
-              gsap
-                .timeline({
-                  scrollTrigger: { trigger: slide, start: "top 88%", once: true },
-                })
-                .to(text, {
-                  opacity: 1,
-                  y: 0,
-                  duration: REVEAL.duration,
-                  ease: REVEAL.ease,
-                })
-                .to(
+              const tl = gsap.timeline({
+                scrollTrigger: { trigger: wrap, start: "top 85%", once: true },
+              });
+
+              splits.forEach((s, k) => {
+                tl.fromTo(
+                  s.words ?? [],
+                  {
+                    yPercent: WORD_HIDDEN_BELOW.yPercent,
+                    opacity: 0,
+                    filter: WORD_HIDDEN_BELOW.filter,
+                  },
+                  {
+                    ...WORD_SETTLED,
+                    duration: 1,
+                    stagger: 0.04,
+                    ease: "power3.out",
+                  },
+                  k === 0 ? 0 : "+=0.15"
+                );
+              });
+
+              if (block) {
+                tl.to(
                   block,
                   {
                     opacity: 1,
@@ -205,44 +271,84 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
                     duration: REVEAL.duration,
                     ease: REVEAL.ease,
                   },
-                  "-=0.8"
+                  paragraphs.length > 0 ? "-=0.6" : 0
                 );
+              }
             });
+
+            return () => allSplits.forEach((s) => s.revert());
           }
         }
       );
 
-      // ---------- SECTION 3: GALLERY GRID (same reveal as the sequence) ----------
-      const items = gsap.utils.toArray<HTMLElement>(".g-item");
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      // ---------- SECTION 3: GALLERY (one image per screen) ----------
+      const galleryMm = gsap.matchMedia();
+      const total = project.horizontalGallery.length;
 
-      if (items.length > 0 && !reduceMotion) {
-        gsap.set(items, { opacity: 0, y: REVEAL.y });
+      const setCounter = (index: number) => {
+        if (counterRef.current) {
+          counterRef.current.textContent = `${pad(index + 1)} / ${pad(total)}`;
+        }
+      };
 
-        ScrollTrigger.batch(items, {
-          start: "top 88%",
-          once: true,
-          onEnter: (batch) =>
-            gsap.to(batch, {
-              opacity: 1,
-              y: 0,
-              duration: REVEAL.duration,
-              ease: REVEAL.ease,
-              stagger: 0.1,
-              overwrite: true,
-            }),
+      // DESKTOP: the section locks to the screen; scrolling down moves the images sideways
+      galleryMm.add("(min-width: 768px)", () => {
+        const section = galleryPinRef.current;
+        const scroller = scrollerRef.current;
+        const track = trackRef.current;
+        if (!section || !scroller || !track || total < 2) return;
+
+        const distance = () => track.scrollWidth - scroller.clientWidth;
+
+        gsap.to(track, {
+          x: () => -distance(),
+          ease: "none",
+          scrollTrigger: {
+            trigger: section,
+            start: "top top",
+            end: () => `+=${distance()}`,
+            pin: true,
+            scrub: 0.6,
+            anticipatePin: 1,
+            invalidateOnRefresh: true,
+            snap: {
+              snapTo: 1 / (total - 1),
+              duration: { min: 0.25, max: 0.6 },
+              delay: 0.08,
+              ease: "power2.inOut",
+            },
+            onUpdate: (self) => setCounter(Math.round(self.progress * (total - 1))),
+          },
         });
-      }
+
+        setCounter(0);
+      });
+
+      // PHONES: swipe sideways with snapping; scrolling down then carries on to the footer
+      galleryMm.add("(max-width: 767px)", () => {
+        const scroller = scrollerRef.current;
+        if (!scroller) return;
+
+        const onScroll = () => {
+          const index = Math.round(scroller.scrollLeft / Math.max(scroller.clientWidth, 1));
+          setCounter(Math.min(Math.max(index, 0), total - 1));
+        };
+
+        scroller.addEventListener("scroll", onScroll, { passive: true });
+        setCounter(0);
+
+        return () => scroller.removeEventListener("scroll", onScroll);
+      });
 
       ScrollTrigger.refresh();
     },
     { scope: containerRef }
   );
 
-  // Gallery images change the page height as they load, so refresh the scroll
-  // positions once when the last one is in.
+  // Images now take their natural height, so the page grows as they load.
+  // Measure the scroll positions again once the last one is in.
   useEffect(() => {
-    const imgs = Array.from(galleryRef.current?.querySelectorAll("img") ?? []);
+    const imgs = Array.from(containerRef.current?.querySelectorAll("img") ?? []);
     let pending = imgs.filter((img) => !img.complete).length;
     if (pending === 0) return;
 
@@ -263,7 +369,7 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         img.removeEventListener("error", done);
       });
     };
-  }, [project.horizontalGallery]);
+  }, [project]);
 
   return (
     <main
@@ -276,19 +382,18 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
       />
 
       {/* SECTION 1: HERO.
-          Everything is in normal flow (no vh-based absolute positions), so the
-          credits, consultants, team and title can never overlap each other or the
-          image. The section grows if the text is long. */}
+          The image spans the full width inside the side padding and is never cropped.
+          It is as tall as the image needs. The text below uses the same padding, so the
+          edges line up. Recommended ratio: 16:9 landscape (2400 x 1350 px). */}
       <section className="relative flex min-h-svh w-full flex-col overflow-hidden bg-white px-3 pb-5 pt-[11px] text-black rounded-none md:px-5 md:pb-8 md:pt-5">
-        {/* Hero image */}
-        <div
+               <div
           ref={heroImageMaskRef}
-          className="relative h-[46svh] w-full shrink-0 overflow-hidden bg-zinc-400 rounded-none md:h-[58svh] xl:h-[60svh]"
+          className="relative h-[46svh] w-full overflow-hidden rounded-none md:h-[58svh] xl:h-[60svh]"
         >
           <img
             ref={heroImageRef}
             src={project.heroImg}
-            className="h-full w-full object-cover will-change-transform rounded-none"
+            className="block h-full w-full object-cover will-change-transform rounded-none"
             alt={project.title}
           />
         </div>
@@ -298,15 +403,15 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
             md and up: credits top left, title bottom left, consultants + team on the right. */}
         <div className="mt-5 flex flex-1 flex-col gap-6 md:mt-6 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,28vw)] md:grid-rows-[auto_1fr] md:gap-x-10 md:gap-y-8">
           {/* Credits */}
-          <div className="project-hero-copy min-w-0 text-justify text-[11px] font-medium uppercase leading-[1.2] text-zinc-950 rounded-none md:col-start-1 md:row-start-1 md:max-w-xs md:text-xs xl:max-w-sm xl:text-sm">
+          <div className="project-hero-copy min-w-0 text-left text-[11px] font-normal uppercase leading-[1.2] text-zinc-950 rounded-none md:col-start-1 md:row-start-1 md:max-w-xs md:text-xs xl:max-w-sm xl:text-sm">
             {project.credits}
           </div>
 
           {/* Consultants + team */}
           <div className="flex min-w-0 flex-col gap-4 text-[11px] uppercase leading-tight text-zinc-950 rounded-none md:col-start-2 md:row-span-2 md:row-start-1 md:max-w-[430px] md:justify-self-end md:text-xs md:leading-5 xl:text-sm">
             <div className="project-hero-copy">
-              {project.consultants.map((item) => (
-                <div key={item.label}>
+              {project.consultants.map((item, i) => (
+                <div key={i}>
                   <span className="font-semibold">{item.label}</span>
                   <span className="font-normal"> - </span>
                   <span className="font-bold">{item.val}</span>
@@ -315,8 +420,8 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
             </div>
 
             <div className="project-hero-copy">
-              {project.team.map((item) => (
-                <div key={item.label}>
+              {project.team.map((item, i) => (
+                <div key={i}>
                   <span className="font-bold">{item.label}</span>
                   <span className="font-semibold"> - {item.val}</span>
                 </div>
@@ -340,20 +445,30 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
       </section>
 
       {/* SECTION 2: IMAGE SEQUENCE.
-          No pinning, so it scrolls like normal. On desktop the caption stays in place
-          on the left while the images scroll past on the right. */}
+          Desktop: caption sticks on the left while the images scroll past on the right.
+          Phones: each paragraph sits above its image. */}
       <section ref={sequenceRef} className="relative w-full bg-white rounded-none">
-        {/* MOBILE (and reduced motion): each paragraph sits above its image */}
+        {/* MOBILE (and reduced motion): paragraphs above each image */}
         <div className="flex flex-col gap-12 px-3 pt-12 md:hidden motion-reduce:md:flex">
-          {sequence.map(({ text, img }, i) => (
-            <div key={i} className="m-slide">
-              <p className="m-slide-text text-justify hyphens-auto text-black text-base font-semibold leading-snug uppercase rounded-none">
-                {text}
-              </p>
-              <div className="m-img-block mt-6 w-full aspect-[4/5] bg-zinc-400 overflow-hidden rounded-none">
+          {images.map((img, i) => (
+            <div key={i} className="m-block-wrap">
+              {beatsByImage[i].length > 0 && (
+                <div className="mb-6 flex flex-col gap-4">
+                  {beatsByImage[i].map((bi) => (
+                                      <p
+                      key={bi}
+                      className="m-text text-left text-[11px] font-normal leading-tight text-zinc-950 rounded-none"
+                    >
+                      {beats[bi].text}
+                    </p>
+                  ))}
+                </div>
+              )}
+              {/* RATIO: any ratio works, the image is never cropped (3:2 or 4:5 recommended) */}
+              <div className="m-block w-full overflow-hidden rounded-none">
                 <img
                   src={img}
-                  className="m-img w-full h-full object-cover rounded-none"
+                  className="block h-auto w-full rounded-none"
                   alt="Architectural sequence"
                 />
               </div>
@@ -366,27 +481,30 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
           {/* Captions share one grid cell, so only one is ever visible and none overlap */}
           <div className="sticky top-0 flex h-svh items-center self-start">
             <div className="grid w-full max-w-[34rem]">
-              {sequence.map(({ text }, i) => (
-                <p
+              {beats.map((beat, i) => (
+                                <p
                   key={i}
-                  style={{ opacity: i === 0 ? 1 : 0 }}
-                  className="v-caption col-start-1 row-start-1 text-justify [text-justify:inter-word] hyphens-auto text-[clamp(0.85rem,min(1.5vw,2.6svh),1.5rem)] font-semibold uppercase leading-tight text-black rounded-none"
+                  className="v-caption col-start-1 row-start-1 text-left text-[clamp(0.85rem,min(1.5vw,2.6svh),1.5rem)] font-normal leading-tight text-black rounded-none"
                 >
-                  {text}
+                  {beat.text}
                 </p>
               ))}
             </div>
           </div>
 
-          <div className="flex flex-col gap-[18svh] pt-[14svh]">
-            {sequence.map(({ img }, i) => (
+          <div className="flex flex-col gap-[18svh] pb-[14svh] pt-[14svh]">
+            {images.map((img, i) => (
               <div
                 key={i}
-                className="v-img-frame relative h-[76svh] max-h-[760px] w-full overflow-hidden bg-zinc-400 rounded-none"
+                className="v-img-frame flex w-full justify-center rounded-none"
               >
+                {/* RATIO: any ratio works and the image is never cropped.
+                    Best results: 3:2 landscape (1800 x 1200 px) or 4:5 portrait (1600 x 2000 px).
+                    It fills the column width, and is scaled down only if it would be
+                    taller than 80% of the screen. */}
                 <img
                   src={img}
-                  className="h-full w-full object-cover rounded-none"
+                  className="block h-auto max-h-[80svh] w-auto max-w-full object-contain rounded-none"
                   alt="Architectural sequence"
                 />
               </div>
@@ -395,32 +513,54 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         </div>
       </section>
 
-      {/* SECTION 3: GALLERY GRID.
-          Same fade-up as the sequence, and the gap above it matches the gap
-          between sequence images (3rem on phones, 18svh on desktop). */}
-      <section className="w-full bg-white px-3 pb-16 pt-12 rounded-none md:px-5 md:pb-24 md:pt-[18svh]">
-        <div
-          ref={galleryRef}
-          className="columns-2 gap-2 md:columns-3 md:gap-4 xl:columns-4"
+      {/* SECTION 3: GALLERY.
+          One image per screen. Every image keeps its own proportions (never cropped),
+          centred with padding around it. Desktop: the section locks and scrolling moves
+          the images sideways. Phones: swipe sideways, then scroll on to the footer. */}
+      {project.horizontalGallery.length > 0 && (
+        <section
+          ref={galleryPinRef}
+          className="relative h-svh w-full overflow-hidden bg-white rounded-none"
         >
-          {project.horizontalGallery.map((img, i) => (
-            <button
-              key={i}
-              type="button"
-              onClick={() => setSelectedImg(img)}
-              aria-label={`Open gallery image ${i + 1}`}
-              className="g-item group mb-2 block w-full cursor-pointer break-inside-avoid overflow-hidden border-0 bg-transparent p-0 md:mb-4 rounded-none"
+          <div
+            ref={scrollerRef}
+            className="h-full w-full snap-x snap-mandatory overflow-x-auto overflow-y-hidden overscroll-x-contain [container-type:inline-size] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden md:snap-none md:overflow-hidden"
+          >
+            <div ref={trackRef} className="flex h-full w-max will-change-transform">
+              {project.horizontalGallery.map((img, i) => (
+                <div
+                  key={i}
+                  className="flex h-full w-[100cqw] shrink-0 snap-center snap-always items-center justify-center px-5 pb-16 pt-16 md:px-20 md:pb-20 md:pt-20"
+                >
+                  <button
+                    type="button"
+                    onClick={() => setSelectedImg(img)}
+                    aria-label={`Open gallery image ${i + 1}`}
+                    className="flex max-h-full max-w-full cursor-pointer items-center justify-center border-0 bg-transparent p-0 rounded-none"
+                  >
+                    <img
+                      src={img}
+                      alt="gallery perspective"
+                      decoding="async"
+                      draggable={false}
+                      className="block h-auto max-h-[calc(100svh-8rem)] w-auto max-w-[calc(100vw-2.5rem)] object-contain grayscale transition-all duration-700 ease-out hover:grayscale-0 md:max-h-[calc(100svh-10rem)] md:max-w-[calc(100vw-10rem)] rounded-none"
+                    />
+                  </button>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="pointer-events-none absolute inset-x-0 bottom-5 z-10 text-center md:bottom-7">
+            <span
+              ref={counterRef}
+              className="font-mono text-[10px] uppercase tracking-widest text-black/50"
             >
-              <img
-                src={img}
-                alt="gallery perspective"
-                decoding="async"
-                className="block h-auto w-full grayscale transition-all duration-700 ease-out hover:grayscale-0 rounded-none"
-              />
-            </button>
-          ))}
-        </div>
-      </section>
+              01 / {pad(project.horizontalGallery.length)}
+            </span>
+          </div>
+        </section>
+      )}
 
       {selectedImg && (
         <InteractiveLightbox

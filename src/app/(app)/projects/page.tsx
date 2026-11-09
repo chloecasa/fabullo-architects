@@ -1,28 +1,21 @@
 // src/app/(app)/projects/page.tsx
-import { getPayload } from 'payload';
-import config from '@/payload.config';
-import Projects from "@/components/projects/Projects";
-import ContactSection from "@/components/contact/ContactSection";
+import { client } from '@/sanity/lib/client';
+import { projectsQuery } from '@/sanity/lib/queries';
+import Projects from '@/components/projects/Projects';
+import ContactSection from '@/components/contact/ContactSection';
 
 export const metadata = {
-  title: "Projects | FABULLO Architects",
-  description: "A portfolio of refined, context-driven architectural works.",
+  title: 'Projects | FABULLO Architects',
+  description: 'A portfolio of refined, context-driven architectural works.',
 };
 
 export default async function ProjectsPage() {
-  const payload = await getPayload({ config });
-
-  // Fetch all projects from Neon PostgreSQL via Payload Local API [1, 2]
-  const result = await payload.find({
-    collection: 'projects',
-    sort: '-createdAt',
-    depth: 1, // Populate the Media relationship to resolve image URLs [1]
-  });
+  // Fetch all projects from Sanity. The shape matches the old Payload docs.
+  const projects = await client.fetch(projectsQuery, {}, { next: { revalidate: 3600 } });
 
   return (
     <main>
-      {/* Pass the live database projects directly to your client component [2] */}
-      <Projects initialProjects={result.docs} />
+      <Projects initialProjects={projects} />
       <ContactSection />
     </main>
   );

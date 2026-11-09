@@ -125,9 +125,9 @@ const Map = () => {
   }, []);
 
   return (
-    <section
+      <section
       ref={wrapperRef}
-      data-hide-header
+      data-map-section
       className="flex w-full flex-col gap-12 bg-white py-12 rounded-none md:block md:gap-0 md:py-0"
     >
       {locations.map((location, index) => (

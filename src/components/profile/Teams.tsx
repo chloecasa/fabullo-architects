@@ -5,6 +5,7 @@ import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
+import SplitType from "split-type";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -21,23 +22,29 @@ interface TeamsProps {
   initialMembers: TeamMember[];
 }
 
+// Same word animation as the project paragraphs
+const WORD_HIDDEN_BELOW = { yPercent: 70, opacity: 0, filter: "blur(10px)" };
+const WORD_SETTLED = { yPercent: 0, opacity: 1, filter: "blur(0px)" };
+const WORD_LIFTED_OUT = { yPercent: -60, opacity: 0, filter: "blur(8px)" };
+
+function splitWords(el: HTMLElement) {
+  const split = new SplitType(el, { types: "words", wordClass: "wd" });
+  split.words?.forEach((w) => {
+    w.style.display = "inline-block";
+  });
+  return split;
+}
+
 const Teams = ({ initialMembers }: TeamsProps) => {
   const spotlightRef = useRef<HTMLElement>(null);
-
-  // Three tracks, one per column. Each track lives inside its own clipped frame,
-  // so text can never sit on top of a photo or another text block.
   const imgTrackRef = useRef<HTMLDivElement>(null);
-  const nameTrackRef = useRef<HTMLDivElement>(null);
-  const descTrackRef = useRef<HTMLDivElement>(null);
-
   const imgRefs = useRef<(HTMLDivElement | null)[]>([]);
   const nameRefs = useRef<(HTMLParagraphElement | null)[]>([]);
-  const descRefs = useRef<(HTMLDivElement | null)[]>([]);
+  const descRefs = useRef<(HTMLParagraphElement | null)[]>([]);
 
   const members = initialMembers || [];
 
-  // Scroll to a member. Uses the same mapping as the scroll render, so the
-  // destination always matches the portrait, name and description.
+  // Scroll to a member. Uses the same mapping as the scroll render.
   const scrollToMember = (index: number) => {
     if (members.length <= 1) return;
 
@@ -59,11 +66,11 @@ const Teams = ({ initialMembers }: TeamsProps) => {
   useEffect(() => {
     if (members.length === 0) return;
 
-    // If the user touches or wheels while a programmatic scroll runs, stop it
-    // so their gesture wins immediately.
     const stopAutoScroll = () => gsap.killTweensOf(window);
     window.addEventListener("touchstart", stopAutoScroll, { passive: true });
     window.addEventListener("wheel", stopAutoScroll, { passive: true });
+
+    const splits: SplitType[] = [];
 
     const ctx = gsap.context(() => {
       // REPEATABLE INTRO ANIMATION
@@ -84,50 +91,87 @@ const Teams = ({ initialMembers }: TeamsProps) => {
 
       const spotlight = spotlightRef.current;
       const imgTrack = imgTrackRef.current;
-      const nameTrack = nameTrackRef.current;
-      const descTrack = descTrackRef.current;
-      if (!spotlight || !imgTrack || !nameTrack || !descTrack) return;
+      if (!spotlight || !imgTrack) return;
 
       const total = members.length;
 
+      // Split each name and description into words
+      const nameSplits = nameRefs.current.slice(0, total).map((el) => (el ? splitWords(el) : null));
+      const descSplits = descRefs.current.slice(0, total).map((el) => (el ? splitWords(el) : null));
+      nameSplits.forEach((s) => s && splits.push(s));
+      descSplits.forEach((s) => s && splits.push(s));
+
+      // Only the first member's words are visible at the start
+      const setInitial = (list: (SplitType | null)[]) =>
+        list.forEach((s, i) => {
+          if (s) gsap.set(s.words ?? [], i === 0 ? WORD_SETTLED : WORD_HIDDEN_BELOW);
+        });
+      setInitial(nameSplits);
+      setInitial(descSplits);
+
       if (total === 1) {
         gsap.set(imgRefs.current[0], { scale: 1 });
-        gsap.set(nameRefs.current[0], { opacity: 1 });
-        gsap.set(descRefs.current[0], { opacity: 0.7 });
         return;
       }
 
-      // Measured sizes. Each row is exactly one frame tall, so moving a track by
-      // (index × rowHeight) puts that row exactly in its frame.
-      const sizes = { slot: 0, nameRow: 0, descRow: 0 };
+      let current = 0;
+      let slotH = 0;
 
-      const measure = () => {
-        sizes.slot = imgRefs.current[0]?.offsetHeight ?? 0;
-        sizes.nameRow = nameRefs.current[0]?.offsetHeight ?? 0;
-        sizes.descRow = descRefs.current[0]?.offsetHeight ?? 0;
+      // Lift the old member's words out and rise the new member's words in.
+      // dir = 1 when moving forward through the list, -1 when moving back.
+      const swap = (list: (SplitType | null)[], prev: number, next: number, dir: number) => {
+        const outWords = list[prev]?.words ?? [];
+        const inWords = list[next]?.words ?? [];
+        gsap.killTweensOf([...outWords, ...inWords]);
+
+        gsap.to(outWords, {
+          yPercent: WORD_LIFTED_OUT.yPercent * dir,
+          opacity: 0,
+          filter: WORD_LIFTED_OUT.filter,
+          duration: 0.7,
+          stagger: 0.03,
+          ease: "power2.in",
+        });
+
+        gsap.fromTo(
+          inWords,
+          {
+            yPercent: WORD_HIDDEN_BELOW.yPercent * dir,
+            opacity: 0,
+            filter: WORD_HIDDEN_BELOW.filter,
+          },
+          {
+            ...WORD_SETTLED,
+            duration: 1.1,
+            stagger: 0.045,
+            ease: "power3.out",
+            delay: 0.3,
+          }
+        );
       };
 
-      // One function drives all three columns from the same value.
-      // `f` is a fractional index: 2.5 means halfway between member 2 and 3.
+      const showMember = (next: number) => {
+        if (next === current) return;
+        const prev = current;
+        current = next;
+        const dir = next > prev ? 1 : -1;
+        swap(nameSplits, prev, next, dir);
+        swap(descSplits, prev, next, dir);
+      };
+
+      // Portraits move with the scroll. f is a fractional index: 2.5 means halfway between members 2 and 3.
       const render = (progress: number) => {
         const f = progress * (total - 1);
 
-        gsap.set(imgTrack, { y: -f * sizes.slot });
-        gsap.set(nameTrack, { y: -f * sizes.nameRow });
-        gsap.set(descTrack, { y: -f * sizes.descRow });
+        gsap.set(imgTrack, { y: -f * slotH });
 
         for (let i = 0; i < total; i++) {
-          // near = 1 when this member is centred, 0 when one full step away
           const near = 1 - Math.min(1, Math.abs(f - i));
-
           const img = imgRefs.current[i];
-          const name = nameRefs.current[i];
-          const desc = descRefs.current[i];
-
           if (img) gsap.set(img, { scale: 0.94 + 0.06 * near });
-          if (name) gsap.set(name, { opacity: 0.12 + 0.88 * near });
-          if (desc) gsap.set(desc, { opacity: 0.7 * near });
         }
+
+        showMember(Math.round(f));
       };
 
       ScrollTrigger.create({
@@ -137,10 +181,10 @@ const Teams = ({ initialMembers }: TeamsProps) => {
         end: () => `+=${window.innerHeight * Math.max(total - 1, 1)}`,
         pin: true,
         anticipatePin: 1,
-        scrub: 0.6, // small lag smooths out touch input
+        scrub: 0.6,
         invalidateOnRefresh: true,
         onRefresh: (self) => {
-          measure();
+          slotH = imgRefs.current[0]?.offsetHeight ?? 0;
           render(self.progress);
         },
         onUpdate: (self) => render(self.progress),
@@ -150,13 +194,14 @@ const Teams = ({ initialMembers }: TeamsProps) => {
     return () => {
       window.removeEventListener("touchstart", stopAutoScroll);
       window.removeEventListener("wheel", stopAutoScroll);
+      splits.forEach((s) => s.revert());
       ctx.revert();
     };
   }, [members]);
 
   return (
     <div className="bg-white text-black font-sans pb-32">
-      {/* Component 1: Intro Header Section */}
+      {/* Intro header */}
       <section
         className={[
           "team-header-section rounded-none",
@@ -205,17 +250,12 @@ const Teams = ({ initialMembers }: TeamsProps) => {
         </div>
       </section>
 
-      {/* Spotlight: pinned on all screens. Uses svh so mobile browser bars don't shift it. */}
+      {/* Spotlight: pinned while the portraits scroll. Uses svh so mobile browser bars don't shift it. */}
       {members.length > 0 && (
         <section
           ref={spotlightRef}
           className="relative w-full h-svh overflow-hidden touch-pan-y"
         >
-          {/*
-            Layout container.
-            Phones (portrait): stacked, image on top, name, then description.
-            Phones (landscape): row. Tablet and up: image left, name centre, description right.
-          */}
           <div
             className={[
               "absolute inset-0 flex flex-col justify-center gap-4 px-3",
@@ -223,7 +263,7 @@ const Teams = ({ initialMembers }: TeamsProps) => {
               "max-md:landscape:flex-row max-md:landscape:gap-5 max-md:landscape:px-5",
             ].join(" ")}
           >
-            {/* IMAGE FRAME: shows one portrait at a time */}
+            {/* IMAGE FRAME: scrolls one portrait at a time */}
             <div
               className={[
                 "relative shrink-0 aspect-[3/4] overflow-hidden bg-transparent rounded-none",
@@ -254,56 +294,54 @@ const Teams = ({ initialMembers }: TeamsProps) => {
               </div>
             </div>
 
-            {/* NAME FRAME: one name at a time, same index as the portrait */}
+                       {/* NAME FRAME: all names share one grid cell, so the frame grows to fit the longest one. Nothing is cut. */}
             <div
               className={[
-                "relative w-full h-20 overflow-hidden pointer-events-none rounded-none",
-                "md:h-25 md:flex-1 md:min-w-0",
-                "max-md:landscape:flex-1 max-md:landscape:h-20",
+                "relative grid w-full pointer-events-none",
+                "md:flex-1 md:min-w-0",
+                "max-md:landscape:flex-1",
               ].join(" ")}
             >
-              <div ref={nameTrackRef} className="absolute inset-x-0 top-0 flex flex-col will-change-transform">
-                {members.map((member, i) => (
+              {members.map((member, i) => (
+                <div
+                  key={member.id}
+                  className="col-start-1 row-start-1 flex items-center justify-center md:justify-start min-h-20 md:min-h-25 py-2 px-2"
+                >
                   <p
-                    key={member.id}
                     ref={(el) => {
                       nameRefs.current[i] = el;
                     }}
-                    className={[
-                      "flex items-center justify-center md:justify-start shrink-0 h-20 md:h-25 px-2 rounded-none",
-                      "text-center md:text-left font-bold uppercase tracking-tighter leading-[0.95]",
-                      "text-[clamp(1.25rem,6.5vw,2.25rem)] md:text-5xl xl:text-6xl min-[1440px]:text-6xl",
-                    ].join(" ")}
+                    className="text-center md:text-left font-bold uppercase tracking-tighter leading-[0.95] text-[clamp(1.25rem,6.5vw,2.25rem)] md:text-5xl xl:text-6xl min-[1440px]:text-6xl"
                   >
                     {member.name}
                   </p>
-                ))}
-              </div>
+                </div>
+              ))}
             </div>
 
-            {/* DESCRIPTION FRAME: same index as the portrait and name */}
+            {/* DESCRIPTION FRAME: same approach. Long descriptions wrap onto more lines instead of being cut. */}
             <div
               className={[
-                "relative w-full h-28 overflow-hidden pointer-events-none rounded-none",
-                "md:h-30 md:w-80 md:shrink-0",
-                "max-md:landscape:w-[38vw] max-md:landscape:h-28",
+                "relative grid w-full pointer-events-none",
+                "md:w-80 md:shrink-0",
+                "max-md:landscape:w-[38vw]",
               ].join(" ")}
             >
-              <div ref={descTrackRef} className="absolute inset-x-0 top-0 flex flex-col will-change-transform">
-                {members.map((member, i) => (
-                  <div
-                    key={member.id}
+              {members.map((member, i) => (
+                <div
+                  key={member.id}
+                  className="col-start-1 row-start-1 flex items-center justify-center md:justify-end min-h-28 md:min-h-30 py-2 px-1"
+                >
+                  <p
                     ref={(el) => {
                       descRefs.current[i] = el;
                     }}
-                    className="flex items-center justify-center md:justify-end shrink-0 h-28 md:h-30 px-1"
+                    className="text-xs leading-relaxed font-bold uppercase tracking-widest text-center md:text-right text-black/70"
                   >
-                    <p className="text-xs leading-relaxed font-bold uppercase tracking-widest text-center md:text-right text-black/70 rounded-none">
-                      {member.desc}
-                    </p>
-                  </div>
-                ))}
-              </div>
+                    {member.desc}
+                  </p>
+                </div>
+              ))}
             </div>
           </div>
         </section>

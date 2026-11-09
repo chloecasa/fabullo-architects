@@ -2,17 +2,19 @@
 
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useMenu } from "@/components/context/MenuProvider";
 
 const Header = () => {
   const { isOpen, setIsOpen } = useMenu();
+  const pathname = usePathname();
+  const isContact = pathname === "/contact";
+
   const [isMobileOrTablet, setIsMobileOrTablet] = useState(true);
   const [isPastHero, setIsPastHero] = useState(false);
   const [isFooterVisible, setIsFooterVisible] = useState(false);
   const [isLogoHovered, setIsLogoHovered] = useState(false);
   const [isMenuHovered, setIsMenuHovered] = useState(false);
-  const [isJournalPreviewOpen, setIsJournalPreviewOpen] = useState(false);
-  const [isOverHiddenSection, setIsOverHiddenSection] = useState(false);
 
   useEffect(() => {
     const updateHeader = () => {
@@ -22,17 +24,6 @@ const Header = () => {
       setIsMobileOrTablet(window.innerWidth < 1024);
       setIsPastHero(window.scrollY > window.innerHeight * 0.9);
       setIsFooterVisible(footerTop < window.innerHeight * 0.85);
-
-      // Any section marked data-hide-header (e.g. the contact maps) hides the header
-      // while it is under the header area at the top of the screen
-      const headerZone = 90;
-      const overHidden = Array.from(
-        document.querySelectorAll("[data-hide-header]")
-      ).some((el) => {
-        const rect = el.getBoundingClientRect();
-        return rect.top < headerZone && rect.bottom > 0;
-      });
-      setIsOverHiddenSection(overHidden);
     };
 
     updateHeader();
@@ -45,21 +36,11 @@ const Header = () => {
     };
   }, []);
 
-  // The journal preview panel dispatches "journalPreview" (true on open, false on close)
-  useEffect(() => {
-    const onJournalPreview = (e: Event) => {
-      setIsJournalPreviewOpen(Boolean((e as CustomEvent<boolean>).detail));
-    };
+  // Hide the header while the menu is open
+  if (isOpen) return null;
 
-    window.addEventListener("journalPreview", onJournalPreview);
-    return () => window.removeEventListener("journalPreview", onJournalPreview);
-  }, []);
-
-  // Hide the header while the menu or the journal preview is open
-  if (isOpen || isJournalPreviewOpen) return null;
-
-  // Phones and tablets: logo always visible. Desktop: logo appears after scrolling past the hero.
-  const hideHeader = isFooterVisible || isOverHiddenSection;
+  // On /contact the header is shown only on phones and tablets. The footer still hides it.
+  const hideHeader = isFooterVisible || (isContact && !isMobileOrTablet);
   const showMGK = !hideHeader && (isMobileOrTablet || isPastHero);
   const showMenu = (isMobileOrTablet || isPastHero) && !hideHeader;
   const showDesktopNav = !isMobileOrTablet && !isPastHero && !hideHeader;

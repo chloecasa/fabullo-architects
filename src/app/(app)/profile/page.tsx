@@ -1,11 +1,11 @@
 // src/app/(app)/profile/page.tsx
-import { getPayload } from 'payload';
-import config from '@/payload.config';
-import Profile from "@/components/profile/Profile"; // Restored your custom Profile wrapper
-import Teams from '@/components/profile/Teams';
-import Awards from '@/components/profile/Awards';
-import ContactSection from '@/components/contact/ContactSection';
-import { Metadata } from 'next';
+import Profile from "@/components/profile/Profile";
+import Teams from "@/components/profile/Teams";
+import Awards from "@/components/profile/Awards";
+import ContactSection from "@/components/contact/ContactSection";
+import { Metadata } from "next";
+import { client } from "@/sanity/lib/client";
+import { teamQuery, awardsQuery, booksQuery } from "@/sanity/lib/queries";
 
 export const metadata: Metadata = {
   title: "Profile | FABULLO Architects",
@@ -29,26 +29,13 @@ interface YearGroup {
   entries: AwardEntry[];
 }
 
-// Database-to-Frontend Team Profile Mapper
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const mapPayloadTeam = (docs: any[]): TeamMember[] => {
-  if (!docs || !Array.isArray(docs)) return [];
-
-  return docs.map((doc) => ({
-    id: doc.id,
-    name: doc.name,
-    img: doc.image?.url || '', // Resolves Media upload portrait URL [1]
-    desc: doc.desc || '',
-  }));
-};
-
-// High-Performance Grouping Reducer (Converts flat database rows into nested year arrays) [2]
+// Groups flat rows (one per award or book) into year blocks, newest year first
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const groupByYear = (docs: any[]): YearGroup[] => {
   if (!docs || !Array.isArray(docs)) return [];
 
   return docs.reduce((acc: YearGroup[], doc) => {
-    const year = doc.year || 'Unknown';
+    const year = doc.year || "Unknown";
     let group = acc.find((g) => g.year === year);
 
     if (!group) {
@@ -57,8 +44,8 @@ const groupByYear = (docs: any[]): YearGroup[] => {
     }
 
     group.entries.push({
-      recognition: doc.recognition || '',
-      project: doc.project || '',
+      recognition: doc.recognition || "",
+      project: doc.project || "",
     });
 
     return acc;
@@ -66,44 +53,25 @@ const groupByYear = (docs: any[]): YearGroup[] => {
 };
 
 export default async function ProfilePage() {
-  const payload = await getPayload({ config });
+  // Team, awards and books are already sorted by their queries
+  const teamRows = await client.fetch(teamQuery);
+const team: TeamMember[] = teamRows.map((member: { name: string; img: string; desc: string }, index: number) => ({
+  id: index + 1, // Teams.tsx expects a number; the list order is what matters
+  name: member.name,
+  img: member.img,
+  desc: member.desc,
+}));
+  const awards = await client.fetch(awardsQuery);
+  const books = await client.fetch(booksQuery);
 
-  // 1. Query your Team collection sorted by their sortOrder [2]
-  const teamResult = await payload.find({
-    collection: 'team',
-    sort: 'sortOrder',
-    depth: 1, // Resolves the staff portrait upload relationship [1]
-  });
-
-  // 2. Query your flat Awards collection sorted by year descending [2]
-  const awardsResult = await payload.find({
-    collection: 'awards',
-    sort: '-year',
-  });
-
-  // 3. Query your flat Books collection sorted by year descending [2]
-  const booksResult = await payload.find({
-    collection: 'books',
-    sort: '-year',
-  });
-
-  // Hydrate and map database results into flat/nested frontend components [2]
-  const dynamicMembers = mapPayloadTeam(teamResult.docs);
-  const dynamicAwards = groupByYear(awardsResult.docs);
-  const dynamicBooks = groupByYear(booksResult.docs);
+  const dynamicAwards = groupByYear(awards);
+  const dynamicBooks = groupByYear(books);
 
   return (
     <main>
-      {/* Restored: Renders the primary intro/bio block exactly as designed */}
       <Profile />
-      
-      {/* Renders the dynamic team spotlight ticker [2] */}
-      <Teams initialMembers={dynamicMembers} />
-      
-      {/* Renders the dynamic accordion year-groups list [2] */}
+      <Teams initialMembers={team} />
       <Awards initialAwards={dynamicAwards} initialBooks={dynamicBooks} />
-      
-      {/* Standard Footer Section [2] */}
       <ContactSection />
     </main>
   );

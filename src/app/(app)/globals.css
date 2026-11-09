@@ -79,15 +79,7 @@ body {
   color: var(--color-text-primary);
 }
 
-/* Styling for the Shane Weber Trail effect */
-.journal-mover-element {
-  position: fixed;
-  background-size: cover;
-  background-position: center;
-  pointer-events: none;
-  z-index: 1500;
-  will-change: transform, clip-path;
-}
+
 
 header {
   visibility: hidden; /* Prevent flash before GSAP kicks in */
@@ -138,4 +130,10 @@ body.video-open header {
 
 body.contact-page-active header {
   display: none !important;
+}
+@media (hover: hover) and (pointer: fine) {
+  html.has-circle-cursor,
+  html.has-circle-cursor * {
+    cursor: none !important;
+  }
 }

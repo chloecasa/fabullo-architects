@@ -245,8 +245,8 @@ const Navigation = ({ isOpen, onClose }: NavigationProps) => {
               <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/30 to-black/80" />
             </div>
 
-            {/* Search bar at the top */}
-            <nav className="search-anim relative z-10 flex w-full items-start rounded-none">
+                      {/* Search bar at the top. Desktop: Close sits at the top right, beside the search. */}
+            <nav className="search-anim relative z-10 flex w-full items-start justify-between gap-6 rounded-none">
               <div className="w-full max-w-[520px] rounded-none">
                 <input
                   type="text"
@@ -290,6 +290,15 @@ const Navigation = ({ isOpen, onClose }: NavigationProps) => {
                   </div>
                 )}
               </div>
+
+              {/* Desktop only: Close at the top right, on the same row as the search */}
+              <button
+                type="button"
+                onClick={closeMenu}
+                               className="-mr-3 hidden shrink-0 cursor-pointer border-none bg-transparent p-3 font-['LT_Superior'] text-xl font-bold uppercase leading-none tracking-[3px] text-white transition-opacity hover:opacity-40 lg:block"
+              >
+                [Close]
+              </button>
             </nav>
 
             <div className="relative z-10 rounded-none pb-5">
@@ -336,7 +345,7 @@ const Navigation = ({ isOpen, onClose }: NavigationProps) => {
                   <button
                     type="button"
                     onClick={closeMenu}
-                    className="-m-3 shrink-0 cursor-pointer border-none bg-transparent p-3 font-['LT_Superior'] text-sm font-bold uppercase leading-none tracking-[2px] text-white transition-opacity hover:opacity-40"
+                    className="-m-3 shrink-0 cursor-pointer border-none bg-transparent p-3 font-['LT_Superior'] text-sm font-bold uppercase leading-none tracking-[2px] text-white transition-opacity hover:opacity-40 lg:hidden"
                   >
                     [Close]
                   </button>
