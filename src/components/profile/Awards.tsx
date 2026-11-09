@@ -9,8 +9,6 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
-// --- Data Types ---
-
 interface AwardEntry {
   recognition: string;
   project: string;
@@ -23,6 +21,9 @@ interface YearGroup {
 
 // Shared inner width and side padding, so every row lines up with the intro text
 const ROW_INNER = "mx-auto w-full max-w-[1514px] px-3 md:px-5";
+
+// Plays when the element enters from below, reverses when it leaves upward
+const TOGGLE = "play reverse play reverse";
 
 // One year: a full-width tap target, with its entries below when open
 const YearItem = ({
@@ -197,7 +198,7 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
       const root = containerRef.current;
       if (!root || reduce) return;
 
-      // Intro: title and subtitle rise from a mask, once
+      // Intro: title and subtitle rise from a mask
       gsap.fromTo(
         ".awards-intro-reveal",
         { y: "115%" },
@@ -209,7 +210,7 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
           scrollTrigger: {
             trigger: ".awards-header-section",
             start: "top 90%",
-            once: true,
+            toggleActions: TOGGLE,
           },
         }
       );
@@ -223,12 +224,16 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
             scaleX: 1,
             duration: 1.2,
             ease: "power3.inOut",
-            scrollTrigger: { trigger: rule, start: "top 92%", once: true },
+            scrollTrigger: {
+              trigger: rule,
+              start: "top 92%",
+              toggleActions: TOGGLE,
+            },
           }
         );
       });
 
-      // Text: fades and rises once as each line enters the screen
+      // Text: fades and rises as each line enters the screen
       root.querySelectorAll<HTMLElement>(".award-text").forEach((el) => {
         gsap.fromTo(
           el,
@@ -238,10 +243,25 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
             y: 0,
             duration: 1,
             ease: "power3.out",
-            scrollTrigger: { trigger: el, start: "top 92%", once: true },
+            scrollTrigger: {
+              trigger: el,
+              start: "top 92%",
+              toggleActions: TOGGLE,
+            },
           }
         );
       });
+
+      // Measure again once the page, images and fonts have loaded,
+      // so the trigger points match the real layout
+      const refresh = () => ScrollTrigger.refresh();
+      window.addEventListener("load", refresh);
+      document.fonts?.ready.then(refresh);
+      refresh();
+
+      return () => {
+        window.removeEventListener("load", refresh);
+      };
     },
     { scope: containerRef }
   );

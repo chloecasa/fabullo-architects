@@ -4,6 +4,7 @@ import { useRef, useState, useEffect } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { setupScrollWipe } from "@/components/ui/useScrollWipe";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -34,13 +35,10 @@ const slides: BlogSlide[] = [
   },
 ];
 
-// Video reveal: closed on the right, open on the left
-const CLIP_CLOSED = "inset(0% 100% 0% 0%)";
-const CLIP_OPEN = "inset(0% 0% 0% 0%)";
-
 export default function HorizontalBlog() {
   const containerRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
+  const panelRef = useRef<HTMLDivElement>(null);
   const videoButtonRef = useRef<HTMLButtonElement>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
@@ -128,43 +126,37 @@ export default function HorizontalBlog() {
     return () => style.remove();
   }, [isVideoOpen]);
 
-  // ---------- ENTRANCE: wipe with zoom (C) ----------
-  // The video opens left to right on the way down, and closes right to left on the way up.
-  // While it opens, it settles from a slight zoom to full size.
-  // The title, subtitle and description rise in over the same scroll range.
+  // ---------- ENTRANCE: wipe with zoom ----------
+  // A white panel over the video slides off to the right, and the video settles from
+  // a slight zoom to full size. Text rises in over the same scroll range.
   useGSAP(
     () => {
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const section = sectionRef.current;
-      const clip = videoButtonRef.current;
+      const panel = panelRef.current;
       const video = videoRef.current;
-      if (!section || !clip || reduce) return;
+      if (!section || !panel) return;
+
+      setupScrollWipe(section, panel);
+
+      if (reduce) return;
 
       const range = {
         trigger: section,
         start: "top 85%",
-        end: "top 20%",
-        scrub: true,
+        end: "top 25%",
+        scrub: 0.5,
         invalidateOnRefresh: true,
       };
 
-      // Wipe: the video opens from the left
-      gsap.fromTo(
-        clip,
-        { clipPath: CLIP_CLOSED },
-        { clipPath: CLIP_OPEN, ease: "none", scrollTrigger: range }
-      );
-
-      // Zoom: the video settles from a slight zoom to full size as it opens
       if (video) {
         gsap.fromTo(
           video,
           { scale: 1.15 },
-          { scale: 1, ease: "none", scrollTrigger: range }
+          { scale: 1, ease: "none", force3D: true, scrollTrigger: range }
         );
       }
 
-      // Text: rises and fades in over the same range
       gsap.fromTo(
         ".hb-text",
         { opacity: 0, y: 40 },
@@ -218,7 +210,7 @@ export default function HorizontalBlog() {
                   "md:block md:h-full md:p-0",
                 ].join(" ")}
               >
-                {/* Component 1: Title ("FEATURED") */}
+                {/* Title ("FEATURED") */}
                 <h1
                   suppressHydrationWarning
                   className={[
@@ -238,7 +230,7 @@ export default function HorizontalBlog() {
                   {slide.title}
                 </h1>
 
-                {/* Component 2: Subtitle ("ON THE LOCAL PROJECT") */}
+                {/* Subtitle ("ON THE LOCAL PROJECT") */}
                 {slide.subtitle && (
                   <p
                     className={[
@@ -258,7 +250,7 @@ export default function HorizontalBlog() {
                   </p>
                 )}
 
-                {/* Component 3: Video. The wrapper is revealed by the wipe, the video inside zooms. */}
+                {/* Video, with the wipe panel on top */}
                 <button
                   ref={videoButtonRef}
                   type="button"
@@ -288,9 +280,15 @@ export default function HorizontalBlog() {
                     playsInline
                     className="h-full w-full object-cover rounded-none will-change-transform"
                   />
+
+                  <div
+                    ref={panelRef}
+                    aria-hidden="true"
+                    className="pointer-events-none absolute inset-0 z-10 bg-white"
+                  />
                 </button>
 
-                {/* Component 4: Description Paragraph */}
+                {/* Description */}
                 <p
                   className={[
                     "hb-text font-['LT_Superior'] font-bold text-black rounded-none",
