@@ -213,31 +213,32 @@ const Teams = ({ initialMembers }: TeamsProps) => {
             Our Team
           </h1>
 
-          <span
-            className={[
-              "team-intro-reveal font-light lowercase whitespace-nowrap opacity-60 rounded-none",
-              "text-[10px] min-[375px]:text-[11px] md:text-[16px] lg:text-[18px] xl:text-[20px] min-[1440px]:text-[22px]",
-            ].join(" ")}
-          >
-            the collective mind
-          </span>
+         <span
+  className={[
+    "team-intro-reveal font-light lowercase whitespace-nowrap opacity-60 rounded-none",
+    "text-[clamp(15px,4.2vw,16px)] md:text-[16px] lg:text-[18px] xl:text-[20px] min-[1440px]:text-[22px]",
+  ].join(" ")}
+>
+  the collective mind
+</span>
         </div>
 
-        <div className="overflow-hidden rounded-none">
-          <p
-            className={[
-              "team-intro-reveal font-medium opacity-50 text-justify rounded-none leading-normal",
-              "text-xs mt-3 max-w-[280px]",
-              "min-[375px]:text-xs min-[375px]:mt-3 min-[375px]:max-w-[340px]",
-              "md:text-sm md:mt-4 md:max-w-md",
-              "lg:text-sm lg:mt-4 lg:max-w-md",
-              "xl:text-base xl:mt-5 xl:max-w-xl",
-              "min-[1440px]:text-base min-[1440px]:mt-5 min-[1440px]:max-w-xl",
-            ].join(" ")}
-          >
-            A collective of designers, thinkers, and makers dedicated to the craft of the built environment.
-          </p>
-        </div>
+      <div className="overflow-hidden rounded-none">
+  <p
+    className={[
+      "team-intro-reveal font-medium opacity-50 text-justify rounded-none leading-normal",
+      "text-[15px] mt-3 max-w-[280px]",
+      "min-[375px]:text-[15px] min-[375px]:mt-3 min-[375px]:max-w-[340px]",
+      "md:text-sm md:mt-4 md:max-w-md",
+      "lg:text-sm lg:mt-4 lg:max-w-md",
+      "xl:text-base xl:mt-5 xl:max-w-xl",
+      "min-[1440px]:text-base min-[1440px]:mt-5 min-[1440px]:max-w-xl",
+    ].join(" ")}
+  >
+    A collective of designers, thinkers, and makers dedicated to the craft of the built environment.
+  </p>
+</div>
+     
       </section>
 
       {/* Spotlight: pinned while the portraits scroll. Uses svh so mobile browser bars don't shift it. */}

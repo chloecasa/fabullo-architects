@@ -152,15 +152,15 @@ const Hero = () => {
               </span>
             </Link>
 
-                            <div className="relative top-[40px] grid w-full grid-cols-2 gap-[20px] md:ml-auto md:w-[min(30rem,70vw)] lg:w-[min(30rem,36vw)]">
-              <p className="hero-copy min-w-0 text-pretty font-bold leading-[1.25] text-[clamp(0.7rem,0.45rem+0.7vw,1rem)] text-left">
-                We design context‑driven architecture that transforms your vision into refined,
-                built form.
-              </p>
-              <p className="hero-copy min-w-0 text-pretty font-bold leading-[1.25] text-[clamp(0.7rem,0.45rem+0.7vw,1rem)] text-left md:text-right">
-                We make sure your details are in context. We make and build with care.
-              </p>
-            </div>
+                           <div className="relative top-[40px] grid w-full grid-cols-2 gap-[20px] md:ml-auto md:w-[min(30rem,70vw)] lg:w-[min(30rem,36vw)]">
+  <p className="hero-copy min-w-0 text-pretty font-bold leading-[1.25] text-[15px] md:text-[clamp(0.7rem,0.45rem+0.7vw,1rem)] text-left">
+    We design context‑driven architecture that transforms your vision into refined,
+    built form.
+  </p>
+  <p className="hero-copy min-w-0 text-pretty font-bold leading-[1.25] text-[15px] md:text-[clamp(0.7rem,0.45rem+0.7vw,1rem)] text-left md:text-right">
+    We make sure your details are in context. We make and build with care.
+  </p>
+</div>
           </div>
         </div>
 
