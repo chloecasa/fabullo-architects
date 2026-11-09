@@ -232,6 +232,7 @@ const ContactPage = () => {
           />
 
           <div className="absolute left-[20px] bottom-[738px] w-[634px] max-w-[calc(100%-40px)] text-justify justify-start rounded-none">
+                     <div className="absolute left-[20px] top-[calc(50svh-290px)] w-[634px] max-w-[calc(100%-40px)] text-justify justify-start rounded-none">
             <span className="text-white text-xl font-bold font-['LT_Superior'] uppercase rounded-none">
               NOMINATED ARCHITECT MARK CASHMAN 6232
               <br />
@@ -240,6 +241,7 @@ const ContactPage = () => {
             <span className="text-white text-base font-medium font-['LT_Superior'] uppercase rounded-none">
               To find out more information about any of the projects on the website, or to talk about your project please contact our studio
             </span>
+          </div>
           </div>
         </div>
 

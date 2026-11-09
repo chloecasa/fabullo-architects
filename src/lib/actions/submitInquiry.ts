@@ -40,7 +40,7 @@ export async function submitInquiry(data: InquiryInput) {
       const htmlEmailBody = `
         <div style="font-family: sans-serif; max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #e4e4e7; color: #000000; background-color: #ffffff;">
           <h2 style="font-size: 20px; font-weight: bold; text-transform: uppercase; letter-spacing: -0.03em; border-bottom: 2px solid #000000; padding-bottom: 10px; margin-top: 0;">
-            [MGK INBOX]: NEW CLIENT INQUIRY
+            [FABULLO INBOX]: NEW CLIENT INQUIRY
           </h2>
           <table style="width: 100%; border-collapse: collapse; margin-top: 20px; font-size: 14px;">
             <tr style="border-bottom: 1px solid #e4e4e7;">
@@ -67,7 +67,7 @@ export async function submitInquiry(data: InquiryInput) {
             </p>
           </div>
           <div style="margin-top: 40px; border-top: 1px solid #e4e4e7; padding-top: 15px; font-size: 10px; color: #a1a1aa; font-family: monospace; text-transform: uppercase; letter-spacing: 0.1em;">
-            AUTOMATED TRANSMISSION VIA MGK-ARCHITECTS ENGINE.
+            AUTOMATED TRANSMISSION VIA FABULLO-ARCHITECTS ENGINE.
           </div>
         </div>
       `;
@@ -78,12 +78,12 @@ export async function submitInquiry(data: InquiryInput) {
           headers: {
             'Content-Type': 'application/json',
             'Authorization': `Bearer ${resendApiKey}`,
-            'User-Agent': 'mgk-architects/1.0',
+            'User-Agent': 'fabullo-architects/1.0',
           },
           body: JSON.stringify({
-            from: process.env.RESEND_FROM_EMAIL || 'MGK Architects <onboarding@resend.dev>',
+            from: process.env.RESEND_FROM_EMAIL || 'FABULLO Architects <onboarding@resend.dev>',
             to: [notificationEmail],
-            subject: `[MGK INBOX]: ${cleanSubject} - ${cleanFirstName} ${cleanSurname}`,
+            subject: `[FABULLO INBOX]: ${cleanSubject} - ${cleanFirstName} ${cleanSurname}`,
             html: htmlEmailBody,
           }),
         });
@@ -105,7 +105,7 @@ export async function submitInquiry(data: InquiryInput) {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
-            'User-Agent': 'mgk-architects/1.0',
+            'User-Agent': 'fabullo-architects/1.0',
           },
           body: JSON.stringify({
             firstName: cleanFirstName,
@@ -114,7 +114,7 @@ export async function submitInquiry(data: InquiryInput) {
             phone: cleanPhone,
             subject: cleanSubject,
             message: cleanMessage,
-            source: 'MGK Architects Website',
+            source: 'FABULLO Architects Website',
           }),
         });
 

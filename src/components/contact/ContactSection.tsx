@@ -5,7 +5,7 @@ import { useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
-import SubscribeModal from "@/components/contact/SubscribeModal";
+
 import { setupScrollWipe, refreshSoon } from "@/components/ui/useScrollWipe";
 
 if (typeof window !== "undefined") {
@@ -173,10 +173,7 @@ const ContactSection = () => {
         </Link>
       </div>
 
-      <SubscribeModal
-        isOpen={isSubscribeOpen}
-        onClose={() => setIsSubscribeOpen(false)}
-      />
+    
     </section>
   );
 };
