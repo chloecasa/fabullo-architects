@@ -8,7 +8,7 @@ import { schemaTypes } from './src/sanity/schemaTypes';
 
 export default defineConfig({
   name: 'default',
-  title: 'MGK Architects',
+  title: 'FABULLO',
   basePath: '/studio', // the editing studio lives at /studio
   projectId,
   dataset,
