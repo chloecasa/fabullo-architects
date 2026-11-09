@@ -57,7 +57,7 @@ const YearItem = ({
   );
 
   return (
-    <div className="w-full border-b border-black">
+    <div className="relative w-full">
       <button
         type="button"
         onClick={() => setIsOpen((v) => !v)}
@@ -66,7 +66,7 @@ const YearItem = ({
         className="group relative block w-full min-h-12 cursor-pointer touch-manipulation text-left active:bg-black/5 transition-colors focus-visible:outline-2 focus-visible:outline-offset-[-2px] focus-visible:outline-black"
       >
         <div
-          className={`${ROW_INNER} grid grid-cols-[1fr_auto] md:grid-cols-[1fr_2fr_1fr] items-center py-3 md:py-4`}
+          className={`${ROW_INNER} award-text grid grid-cols-[1fr_auto] md:grid-cols-[1fr_2fr_1fr] items-center py-3 md:py-4`}
         >
           <span className="text-base font-semibold">{group.year}</span>
           <span className="hidden md:block" />
@@ -84,6 +84,12 @@ const YearItem = ({
           className="pointer-events-none absolute bottom-0 left-0 h-px w-full origin-left scale-x-0 bg-black transition-transform duration-500 ease-out group-hover:scale-x-100"
         />
       </button>
+
+      {/* Static rule under the year: draws in on scroll */}
+      <span
+        aria-hidden
+        className="award-rule pointer-events-none absolute bottom-0 left-0 h-px w-full origin-left bg-black"
+      />
 
       {isOpen && (
         <div id={panelId} ref={panelRef}>
@@ -136,20 +142,26 @@ const AwardSection = ({
   return (
     <div className="w-full">
       {/* Section header. Column labels only show on tablet and up; phones show labels inside each row. */}
-      <div className="w-full border-b border-black">
+      <div className="relative w-full">
         <div
           className={`${ROW_INNER} grid grid-cols-[1fr_auto] md:grid-cols-[1fr_2fr_1fr] items-end pb-2 md:pb-3`}
         >
-          <h2 className="text-2xl min-[375px]:text-3xl md:text-4xl font-medium lowercase leading-none">
+          <h2 className="award-text text-2xl min-[375px]:text-3xl md:text-4xl font-medium lowercase leading-none">
             {title}
           </h2>
-          <span className="hidden md:block text-base font-bold lowercase text-center leading-none">
+          <span className="award-text hidden md:block text-base font-bold lowercase text-center leading-none">
             {columnHeaders.col2}
           </span>
-          <span className="hidden md:block text-base font-bold lowercase text-right leading-none">
+          <span className="award-text hidden md:block text-base font-bold lowercase text-right leading-none">
             {columnHeaders.col3}
           </span>
         </div>
+
+        {/* Rule under the section title: draws in on scroll */}
+        <span
+          aria-hidden
+          className="award-rule pointer-events-none absolute bottom-0 left-0 h-px w-full origin-left bg-black"
+        />
       </div>
 
       {data.length === 0 && (
@@ -179,8 +191,13 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
   const awardsData = initialAwards || [];
   const booksData = initialBooks || [];
 
-   useGSAP(
+  useGSAP(
     () => {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const root = containerRef.current;
+      if (!root || reduce) return;
+
+      // Intro: title and subtitle rise from a mask, once
       gsap.fromTo(
         ".awards-intro-reveal",
         { y: "115%" },
@@ -196,6 +213,35 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
           },
         }
       );
+
+      // Rules: draw from left to right as each one enters the screen
+      root.querySelectorAll<HTMLElement>(".award-rule").forEach((rule) => {
+        gsap.fromTo(
+          rule,
+          { scaleX: 0 },
+          {
+            scaleX: 1,
+            duration: 1.2,
+            ease: "power3.inOut",
+            scrollTrigger: { trigger: rule, start: "top 92%", once: true },
+          }
+        );
+      });
+
+      // Text: fades and rises once as each line enters the screen
+      root.querySelectorAll<HTMLElement>(".award-text").forEach((el) => {
+        gsap.fromTo(
+          el,
+          { opacity: 0, y: 24 },
+          {
+            opacity: 1,
+            y: 0,
+            duration: 1,
+            ease: "power3.out",
+            scrollTrigger: { trigger: el, start: "top 92%", once: true },
+          }
+        );
+      });
     },
     { scope: containerRef }
   );

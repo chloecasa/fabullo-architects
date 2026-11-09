@@ -6,6 +6,7 @@ import Footer from "@/components/ui/Footer";
 
 import CircleCursor from "@/components/ui/CircleCursor";
 import CookieBanner from "@/components/ui/CookieBanner";
+import ScrollToTopOnRoute from "@/components/ui/ScrollToTopOnRoute";
 
 export default function AppLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -20,7 +21,7 @@ export default function AppLayout({ children }: { children: React.ReactNode }) {
             {children}
           </main>
 
-     
+       <ScrollToTopOnRoute />
           <CircleCursor />
           <Footer />
         </SmoothScroll>

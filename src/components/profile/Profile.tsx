@@ -3,13 +3,15 @@
 import { useState, useRef, useEffect } from "react";
 import Image from "next/image";
 import gsap from "gsap";
-import { RevealWrapper } from "@/components/ui/RevealWrapper";
+import { useGSAP } from "@gsap/react";
 
 const bodyText =
   "text-left md:text-justify text-black font-semibold font-['LT_Superior'] text-base leading-relaxed md:text-sm md:leading-[1.4] lg:text-sm xl:text-xl xl:leading-tight";
 
 const ethosText =
   "text-left md:text-justify text-black font-semibold font-['LT_Superior'] text-base leading-relaxed md:text-sm lg:text-base xl:text-xl";
+
+const STRIP_COUNT = 8;
 
 const sections = [
   {
@@ -20,7 +22,7 @@ const sections = [
     widthClass: "md:w-[728px]",
     content: (
       <>
-        FABULLO is an architecture practice designing context-driven buildings and interiors. 
+        FABULLO is an architecture practice designing context-driven buildings and interiors.
         <br />
         <br />
         We specialise in bespoke design with high-quality finish and detail, shaped by the site, the brief and the people who will use the space.
@@ -35,10 +37,10 @@ const sections = [
     widthClass: "md:w-[876px]",
     content: (
       <>
-        FABULLO was founded to design architecture that responds to place, light and the people who live in it. 
+        FABULLO was founded to design architecture that responds to place, light and the people who live in it.
         <br />
         <br />
-        Our portfolio spans residential, commercial and unbuilt concept work. 
+        Our portfolio spans residential, commercial and unbuilt concept work.
       </>
     ),
   },
@@ -72,6 +74,9 @@ const sections = [
 ];
 
 const Profile = () => {
+  const containerRef = useRef<HTMLElement>(null);
+  const blindsRef = useRef<HTMLDivElement>(null);
+
   const [activeSection, setActiveSection] = useState<string | null>(null);
   // Keeps the last opened section so content doesn't vanish while the panel slides out
   const [lastActiveId, setLastActiveId] = useState<string>("who");
@@ -89,6 +94,38 @@ const Profile = () => {
     setActiveSection(id);
     setLastActiveId(id);
   };
+
+  // ---------- PAGE ENTRANCE: vertical blinds (C) ----------
+  // White blinds cover the page, then retract one after another from left to right,
+  // revealing the page underneath. They are removed once the reveal has finished.
+  useGSAP(
+    () => {
+      const overlay = blindsRef.current;
+      if (!overlay) return;
+
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      if (reduce) {
+        overlay.style.display = "none";
+        return;
+      }
+
+      const strips = overlay.querySelectorAll(".profile-blind");
+
+      gsap.set(strips, { scaleY: 1, transformOrigin: "top" });
+
+      gsap.to(strips, {
+        scaleY: 0,
+        duration: 1.1,
+        ease: "power4.inOut",
+        stagger: { each: 0.08, from: "start" },
+        delay: 0.15,
+        onComplete: () => {
+          overlay.style.display = "none";
+        },
+      });
+    },
+    { scope: containerRef }
+  );
 
   // Animate the panel with one timeline at a time, so fast taps don't fight each other
   useEffect(() => {
@@ -134,41 +171,50 @@ const Profile = () => {
   }, []);
 
   return (
-    <main className="w-full bg-white rounded-none">
-      <RevealWrapper>
-        {/* Component 1: Intro Header Section */}
-        <section
-          className={[
-            "w-full bg-white relative overflow-hidden flex items-end rounded-none",
-            "h-[140px] px-[12px] pb-[16px]",
-            "min-[375px]:h-[160px] min-[375px]:px-[12px] min-[375px]:pb-[20px]",
-            "md:h-[220px] md:px-[20px] md:pb-[24px]",
-            "lg:h-[220px] lg:px-[20px] lg:pb-[24px]",
-            "xl:h-[280px] xl:px-[20px] xl:pb-[32px]",
-            "min-[1440px]:h-[280px] min-[1440px]:px-[20px] min-[1440px]:pb-[32px]",
-          ].join(" ")}
-        >
-          <div className="flex items-baseline gap-1.5 md:gap-2 xl:gap-3 rounded-none">
-            <h1
-              className={[
-                "font-bold uppercase leading-[0.75] tracking-tighter text-black rounded-none",
-                "text-[44px] min-[375px]:text-[56px] md:text-[110px] lg:text-[130px] xl:text-[180px] min-[1440px]:text-[200px]",
-              ].join(" ")}
-            >
-              Profile
-            </h1>
+    <main ref={containerRef} className="w-full bg-white rounded-none">
+      {/* Blinds: a fixed white overlay that retracts on entry, then is hidden */}
+      <div
+        ref={blindsRef}
+        aria-hidden="true"
+        className="pointer-events-none fixed inset-0 z-60 flex"
+      >
+        {Array.from({ length: STRIP_COUNT }).map((_, i) => (
+          <div key={i} className="profile-blind flex-1 bg-white" />
+        ))}
+      </div>
 
-            <span
-              className={[
-                "font-normal lowercase text-black opacity-80 rounded-none",
-                "text-xs min-[375px]:text-sm md:text-[16px] lg:text-[18px] xl:text-[22px] min-[1440px]:text-[24px]",
-              ].join(" ")}
-            >
-              know who we are
-            </span>
-          </div>
-        </section>
-      </RevealWrapper>
+      {/* Component 1: Intro Header Section */}
+      <section
+        className={[
+          "w-full bg-white relative overflow-hidden flex items-end rounded-none",
+          "h-[140px] px-[12px] pb-[16px]",
+          "min-[375px]:h-[160px] min-[375px]:px-[12px] min-[375px]:pb-[20px]",
+          "md:h-[220px] md:px-[20px] md:pb-[24px]",
+          "lg:h-[220px] lg:px-[20px] lg:pb-[24px]",
+          "xl:h-[280px] xl:px-[20px] xl:pb-[32px]",
+          "min-[1440px]:h-[280px] min-[1440px]:px-[20px] min-[1440px]:pb-[32px]",
+        ].join(" ")}
+      >
+        <div className="flex items-baseline gap-1.5 md:gap-2 xl:gap-3 rounded-none">
+          <h1
+            className={[
+              "font-bold uppercase leading-[0.75] tracking-tighter text-black rounded-none",
+              "text-[44px] min-[375px]:text-[56px] md:text-[110px] lg:text-[130px] xl:text-[180px] min-[1440px]:text-[200px]",
+            ].join(" ")}
+          >
+            Profile
+          </h1>
+
+          <span
+            className={[
+              "font-normal lowercase text-black opacity-80 rounded-none",
+              "text-xs min-[375px]:text-sm md:text-[16px] lg:text-[18px] xl:text-[22px] min-[1440px]:text-[24px]",
+            ].join(" ")}
+          >
+            know who we are
+          </span>
+        </div>
+      </section>
 
       {/* Component 2: Image & Section */}
       <section className="relative w-full h-[80svh] min-h-[420px] bg-zinc-400 overflow-hidden rounded-none md:h-[580px] xl:h-[750px] min-[1440px]:h-[800px]">
@@ -183,7 +229,7 @@ const Profile = () => {
 
         <div className="absolute inset-0 bg-black/50 z-[1] rounded-none" />
 
-        {/* Section buttons (hover lift only applies on devices that hover, Tailwind v4 default) */}
+        {/* Section buttons (hover lift only applies on devices that hover) */}
         <div
           className={`absolute inset-0 z-10 transition-opacity duration-500 rounded-none ${
             activeSection ? "opacity-0 pointer-events-none" : "opacity-100"

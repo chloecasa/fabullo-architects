@@ -24,8 +24,11 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
     // Smooth scrolling is off for users who asked for reduced motion
     if (!reduce) {
       lenis = new Lenis({
-        lerp: 0.1,
-        duration: 1.2,
+        // Continuous follow: the page trails your input and never hits a hard stop.
+        // A lower value gives a softer, slower settle.
+        lerp: 0.06,
+        // Each wheel notch moves less, so sections take more scrolling to pass.
+        wheelMultiplier: 0.7,
         smoothWheel: true,
       });
 
@@ -35,12 +38,11 @@ export default function SmoothScroll({ children }: { children: React.ReactNode }
 
     gsap.ticker.lagSmoothing(0);
 
-    // CRITICAL: Sort and Refresh
-    // This ensures that IntroSequence (Top) is calculated before UnifiedTransition (Bottom)
+    // Sort and refresh so the sections are measured in the right order
     const refreshTimer = setTimeout(() => {
       ScrollTrigger.sort();
       ScrollTrigger.refresh();
-    }, 1000); // Increased delay slightly to ensure Hero images are loaded
+    }, 1000);
 
     return () => {
       clearTimeout(refreshTimer);

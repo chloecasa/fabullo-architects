@@ -5,7 +5,6 @@ import Image from "next/image";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import SplitType from "split-type";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger, ScrollToPlugin);
@@ -22,18 +21,11 @@ interface TeamsProps {
   initialMembers: TeamMember[];
 }
 
-// Same word animation as the project paragraphs
-const WORD_HIDDEN_BELOW = { yPercent: 70, opacity: 0, filter: "blur(10px)" };
-const WORD_SETTLED = { yPercent: 0, opacity: 1, filter: "blur(0px)" };
-const WORD_LIFTED_OUT = { yPercent: -60, opacity: 0, filter: "blur(8px)" };
-
-function splitWords(el: HTMLElement) {
-  const split = new SplitType(el, { types: "words", wordClass: "wd" });
-  split.words?.forEach((w) => {
-    w.style.display = "inline-block";
-  });
-  return split;
-}
+// Wipe states, the same as the project paragraphs.
+// A name or description is visible when its clip-path is fully open.
+const CLIP_SHOWN = "inset(0% 0% 0% 0%)";
+const CLIP_HIDDEN_BELOW = "inset(100% 0% 0% 0%)"; // the wipe comes up from the bottom
+const CLIP_HIDDEN_ABOVE = "inset(0% 0% 100% 0%)"; // the wipe leaves toward the top
 
 const Teams = ({ initialMembers }: TeamsProps) => {
   const spotlightRef = useRef<HTMLElement>(null);
@@ -70,7 +62,8 @@ const Teams = ({ initialMembers }: TeamsProps) => {
     window.addEventListener("touchstart", stopAutoScroll, { passive: true });
     window.addEventListener("wheel", stopAutoScroll, { passive: true });
 
-    const splits: SplitType[] = [];
+    // The current member's wipe. Kept here so cleanup can stop it.
+    let swapTl: gsap.core.Timeline | null = null;
 
     const ctx = gsap.context(() => {
       // REPEATABLE INTRO ANIMATION
@@ -95,19 +88,17 @@ const Teams = ({ initialMembers }: TeamsProps) => {
 
       const total = members.length;
 
-      // Split each name and description into words
-      const nameSplits = nameRefs.current.slice(0, total).map((el) => (el ? splitWords(el) : null));
-      const descSplits = descRefs.current.slice(0, total).map((el) => (el ? splitWords(el) : null));
-      nameSplits.forEach((s) => s && splits.push(s));
-      descSplits.forEach((s) => s && splits.push(s));
+      // Names and descriptions, one element per member
+      const nameEls = nameRefs.current.slice(0, total);
+      const descEls = descRefs.current.slice(0, total);
 
-      // Only the first member's words are visible at the start
-      const setInitial = (list: (SplitType | null)[]) =>
-        list.forEach((s, i) => {
-          if (s) gsap.set(s.words ?? [], i === 0 ? WORD_SETTLED : WORD_HIDDEN_BELOW);
-        });
-      setInitial(nameSplits);
-      setInitial(descSplits);
+      // Only the first member's name and description are visible at the start
+      nameEls.forEach((el, i) => {
+        if (el) gsap.set(el, { clipPath: i === 0 ? CLIP_SHOWN : CLIP_HIDDEN_BELOW });
+      });
+      descEls.forEach((el, i) => {
+        if (el) gsap.set(el, { clipPath: i === 0 ? CLIP_SHOWN : CLIP_HIDDEN_BELOW });
+      });
 
       if (total === 1) {
         gsap.set(imgRefs.current[0], { scale: 1 });
@@ -117,46 +108,45 @@ const Teams = ({ initialMembers }: TeamsProps) => {
       let current = 0;
       let slotH = 0;
 
-      // Lift the old member's words out and rise the new member's words in.
-      // dir = 1 when moving forward through the list, -1 when moving back.
-      const swap = (list: (SplitType | null)[], prev: number, next: number, dir: number) => {
-        const outWords = list[prev]?.words ?? [];
-        const inWords = list[next]?.words ?? [];
-        gsap.killTweensOf([...outWords, ...inWords]);
-
-        gsap.to(outWords, {
-          yPercent: WORD_LIFTED_OUT.yPercent * dir,
-          opacity: 0,
-          filter: WORD_LIFTED_OUT.filter,
-          duration: 0.7,
-          stagger: 0.03,
-          ease: "power2.in",
-        });
-
-        gsap.fromTo(
-          inWords,
-          {
-            yPercent: WORD_HIDDEN_BELOW.yPercent * dir,
-            opacity: 0,
-            filter: WORD_HIDDEN_BELOW.filter,
-          },
-          {
-            ...WORD_SETTLED,
-            duration: 1.1,
-            stagger: 0.045,
-            ease: "power3.out",
-            delay: 0.3,
-          }
-        );
-      };
-
+      // Changes one member at a time. The previous change finishes first, so the
+      // outgoing and incoming text never overlap, even when scrolling quickly.
       const showMember = (next: number) => {
         if (next === current) return;
+
+        // Finish any change that is still running
+        if (swapTl) swapTl.progress(1);
+
         const prev = current;
         current = next;
-        const dir = next > prev ? 1 : -1;
-        swap(nameSplits, prev, next, dir);
-        swap(descSplits, prev, next, dir);
+        // forward = moving down the list; backward = moving back up
+        const forward = next > prev;
+
+        const outNodes = [nameEls[prev], descEls[prev]].filter(Boolean) as HTMLElement[];
+        const inNodes = [nameEls[next], descEls[next]].filter(Boolean) as HTMLElement[];
+
+        swapTl = gsap.timeline();
+
+        // 1. The outgoing name and description wipe out
+        if (outNodes.length) {
+          swapTl.to(outNodes, {
+            clipPath: forward ? CLIP_HIDDEN_ABOVE : CLIP_HIDDEN_BELOW,
+            duration: 0.6,
+            ease: "power2.in",
+          });
+        }
+
+        // 2. The incoming name and description wipe in, after the outgoing ones have gone
+        if (inNodes.length) {
+          swapTl.fromTo(
+            inNodes,
+            { clipPath: forward ? CLIP_HIDDEN_BELOW : CLIP_HIDDEN_ABOVE },
+            {
+              clipPath: CLIP_SHOWN,
+              duration: 0.9,
+              ease: "power3.out",
+            }
+          );
+        }
       };
 
       // Portraits move with the scroll. f is a fractional index: 2.5 means halfway between members 2 and 3.
@@ -194,7 +184,7 @@ const Teams = ({ initialMembers }: TeamsProps) => {
     return () => {
       window.removeEventListener("touchstart", stopAutoScroll);
       window.removeEventListener("wheel", stopAutoScroll);
-      splits.forEach((s) => s.revert());
+      swapTl?.kill();
       ctx.revert();
     };
   }, [members]);
@@ -294,7 +284,7 @@ const Teams = ({ initialMembers }: TeamsProps) => {
               </div>
             </div>
 
-                       {/* NAME FRAME: all names share one grid cell, so the frame grows to fit the longest one. Nothing is cut. */}
+            {/* NAME FRAME: all names share one grid cell, so the frame grows to fit the longest one. Nothing is cut. */}
             <div
               className={[
                 "relative grid w-full pointer-events-none",

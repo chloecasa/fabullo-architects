@@ -7,10 +7,10 @@ import { useRouter, usePathname } from "next/navigation";
 import { useLenis } from "lenis/react";
 
 const previewByPath: Record<string, string> = {
-  "/": "/media/menu/home.jpeg",
-  "/projects": "/media/menu/projects.jpeg",
-  "/profile": "/assets/images/Profile.webp",
-  "/contact": "/media/menu/contact.jpeg",
+  "/": "/assets/images/hero5.jpg",
+  "/projects": "/assets/images/hero3.jpg",
+  "/profile": "/assets/images/profile.jpg",
+  "/contact": "/assets/images/contact.jpg",
 };
 
 const navLinks = ["Home", "Projects", "Profile", "Contact"];

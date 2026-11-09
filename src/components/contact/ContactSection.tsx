@@ -11,29 +11,49 @@ if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
 }
 
+// Image clip: closed on the right, open on the left
+const CLIP_CLOSED = "inset(0% 100% 0% 0%)";
+const CLIP_OPEN = "inset(0% 0% 0% 0%)";
+
 const ContactSection = () => {
   const [isSubscribeOpen, setIsSubscribeOpen] = useState(false);
 
   const sectionRef = useRef<HTMLElement>(null);
-  const revealRef = useRef<HTMLDivElement>(null);
+  const imageRef = useRef<HTMLDivElement>(null);
+  const copyRef = useRef<HTMLParagraphElement>(null);
+  const linkRef = useRef<HTMLAnchorElement>(null);
 
-  useGSAP(() => {
-    gsap.fromTo(
-      revealRef.current,
-      { yPercent: 100 },
-      {
-        yPercent: 0,
-        ease: "none",
-        scrollTrigger: {
-          trigger: sectionRef.current,
-          start: "top bottom",
-          end: "top top",
-          scrub: true,
-          invalidateOnRefresh: true,
-        },
-      }
-    );
-  }, []);
+  useGSAP(
+    () => {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const section = sectionRef.current;
+      const image = imageRef.current;
+      if (!section || !image || reduce) return;
+
+      const range = {
+        trigger: section,
+        start: "top 85%",
+        end: "top 20%",
+        scrub: true,
+        invalidateOnRefresh: true,
+      };
+
+      // Image: opens left to right on the way down, closes right to left on the way up
+      gsap.fromTo(
+        image,
+        { clipPath: CLIP_CLOSED },
+        { clipPath: CLIP_OPEN, ease: "none", scrollTrigger: range }
+      );
+
+      // Text: rises and fades in with the same scroll range
+      gsap.fromTo(
+        [copyRef.current, linkRef.current],
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, ease: "none", scrollTrigger: range }
+      );
+    },
+    { scope: sectionRef }
+  );
 
   return (
     <section
@@ -51,17 +71,17 @@ const ContactSection = () => {
       ].join(" ")}
     >
       <div
-        ref={revealRef}
         className={[
-          "relative w-full will-change-transform",
+          "relative w-full",
           // Mobile: stacked column with side padding
           "flex flex-col gap-6 px-4",
           // Tablet and up: absolute layout
           "md:block md:px-0 md:h-full",
         ].join(" ")}
       >
-        {/* Image */}
+        {/* Image: revealed by the wipe */}
         <div
+          ref={imageRef}
           className={[
             "relative w-full aspect-[4/3] overflow-hidden",
             "md:absolute md:left-0 md:aspect-auto",
@@ -80,6 +100,7 @@ const ContactSection = () => {
 
         {/* Paragraph */}
         <p
+          ref={copyRef}
           className={[
             "relative w-full max-w-[420px] text-left font-['LT_Superior'] font-bold text-black/70 text-[15px] leading-snug",
             "md:absolute md:max-w-none md:text-justify md:leading-tight",
@@ -95,6 +116,7 @@ const ContactSection = () => {
 
         {/* Get in touch link */}
         <Link
+          ref={linkRef}
           href="/contact"
           scroll={true}
           data-cursor="click"

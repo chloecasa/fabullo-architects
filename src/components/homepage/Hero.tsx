@@ -122,7 +122,7 @@ const Hero = () => {
       className="relative flex min-h-svh w-full flex-col overflow-hidden bg-white px-[12px] pb-[12px] pt-[52px] text-black md:px-[18px] md:pb-[18px] md:pt-[60px] lg:p-[20px]"
       >
         {/* Top block: title on the left, copy (and CTA on desktop) on the right */}
-        <div className="relative z-20 flex flex-col gap-5 lg:flex-row lg:items-stretch lg:justify-between">
+               <div className="relative z-20 -mb-[12px] flex flex-col gap-5 lg:flex-row lg:items-stretch lg:justify-between">
           <h1
             className="font-bold uppercase leading-[0.82] tracking-tighter"
             style={{ fontSize: "clamp(2.75rem, min(10.5vw, 17svh), 8rem)" }}
@@ -152,12 +152,12 @@ const Hero = () => {
               </span>
             </Link>
 
-                       <div className="grid w-full grid-cols-2 gap-[20px] md:ml-auto md:w-[min(30rem,70vw)] lg:w-[min(30rem,36vw)]">
-              <p className="hero-copy text-pretty font-bold leading-[1.25] text-[clamp(0.7rem,0.45rem+0.7vw,1rem)]">
+                            <div className="relative top-[40px] grid w-full grid-cols-2 gap-[20px] md:ml-auto md:w-[min(30rem,70vw)] lg:w-[min(30rem,36vw)]">
+              <p className="hero-copy min-w-0 text-pretty font-bold leading-[1.25] text-[clamp(0.7rem,0.45rem+0.7vw,1rem)] text-left">
                 We design context‑driven architecture that transforms your vision into refined,
                 built form.
               </p>
-              <p className="hero-copy text-pretty font-bold leading-[1.25] text-[clamp(0.7rem,0.45rem+0.7vw,1rem)]">
+              <p className="hero-copy min-w-0 text-pretty font-bold leading-[1.25] text-[clamp(0.7rem,0.45rem+0.7vw,1rem)] text-left md:text-right">
                 We make sure your details are in context. We make and build with care.
               </p>
             </div>
@@ -165,9 +165,9 @@ const Hero = () => {
         </div>
 
         {/* Image: takes all remaining height, so the bottom gap equals the padding */}
-        <div
+                <div
           ref={imageMaskRef}
-          className="relative z-10 mt-[40px] md:mt-[60px] min-h-[38svh] flex-1 overflow-hidden bg-white"
+          className="relative top-[40px] z-10 mt-[20px] mb-[40px] min-h-[38svh] flex-1 overflow-hidden bg-white"
         >
           <div ref={imageRef} className="absolute inset-x-0 -top-[10%] h-[120%] will-change-transform">
             {slides.map((img, i) => (

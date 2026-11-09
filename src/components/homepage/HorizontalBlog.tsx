@@ -34,22 +34,19 @@ const slides: BlogSlide[] = [
   },
 ];
 
+// Video reveal: closed on the right, open on the left
+const CLIP_CLOSED = "inset(0% 100% 0% 0%)";
+const CLIP_OPEN = "inset(0% 0% 0% 0%)";
+
 export default function HorizontalBlog() {
   const containerRef = useRef<HTMLDivElement>(null);
+  const sectionRef = useRef<HTMLElement>(null);
   const videoButtonRef = useRef<HTMLButtonElement>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
   const pointerRef = useRef<{ x: number; y: number } | null>(null);
   const insideVideoRef = useRef(false);
 
-  const [isReady, setIsReady] = useState(false);
   const [isVideoOpen, setIsVideoOpen] = useState(false);
-
-  useEffect(() => {
-    const handle = requestAnimationFrame(() => {
-      setIsReady(true);
-    });
-
-    return () => cancelAnimationFrame(handle);
-  }, []);
 
   // Keeps the custom cursor label in sync with the video frame while scrolling.
   // Browsers don't fire mouseleave when the page scrolls under a still pointer,
@@ -131,52 +128,59 @@ export default function HorizontalBlog() {
     return () => style.remove();
   }, [isVideoOpen]);
 
+  // ---------- ENTRANCE: wipe with zoom (C) ----------
+  // The video opens left to right on the way down, and closes right to left on the way up.
+  // While it opens, it settles from a slight zoom to full size.
+  // The title, subtitle and description rise in over the same scroll range.
   useGSAP(
     () => {
-      if (!isReady) return;
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const section = sectionRef.current;
+      const clip = videoButtonRef.current;
+      const video = videoRef.current;
+      if (!section || !clip || reduce) return;
 
-      const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const sections = gsap.utils.toArray<HTMLElement>(".blog-section");
+      const range = {
+        trigger: section,
+        start: "top 85%",
+        end: "top 20%",
+        scrub: true,
+        invalidateOnRefresh: true,
+      };
 
-      sections.forEach((section, index) => {
-        const innerContainer = section.querySelector(".section-container");
+      // Wipe: the video opens from the left
+      gsap.fromTo(
+        clip,
+        { clipPath: CLIP_CLOSED },
+        { clipPath: CLIP_OPEN, ease: "none", scrollTrigger: range }
+      );
 
-        if (!reduceMotion) {
-          gsap.fromTo(
-            innerContainer,
-            { yPercent: 100 },
-            {
-              yPercent: 0,
-              ease: "none",
-              scrollTrigger: {
-                trigger: section,
-                start: "top bottom",
-                end: "top 20%",
-                scrub: true,
-                invalidateOnRefresh: true,
-              },
-            }
-          );
-        }
+      // Zoom: the video settles from a slight zoom to full size as it opens
+      if (video) {
+        gsap.fromTo(
+          video,
+          { scale: 1.15 },
+          { scale: 1, ease: "none", scrollTrigger: range }
+        );
+      }
 
-        if (index === sections.length - 1) return;
+      // Text: rises and fades in over the same range
+      gsap.fromTo(
+        ".hb-text",
+        { opacity: 0, y: 40 },
+        { opacity: 1, y: 0, ease: "none", scrollTrigger: range }
+      );
 
-        ScrollTrigger.create({
-          trigger: section,
-          start: "bottom bottom",
-          end: "bottom top",
-          pin: true,
-          pinSpacing: false,
-          invalidateOnRefresh: true,
-          anticipatePin: 1,
-        });
-      });
+      // Measure again once the page and fonts have finished loading
+      const refresh = () => ScrollTrigger.refresh();
+      window.addEventListener("load", refresh);
+      document.fonts?.ready.then(refresh);
 
-      const timer = setTimeout(() => ScrollTrigger.refresh(), 500);
-
-      return () => clearTimeout(timer);
+      return () => {
+        window.removeEventListener("load", refresh);
+      };
     },
-    { scope: containerRef, dependencies: [isReady] }
+    { scope: containerRef }
   );
 
   return (
@@ -185,9 +189,10 @@ export default function HorizontalBlog() {
         {slides.map((slide) => (
           <section
             key={slide.id}
+            ref={sectionRef}
             className={[
               "blog-section relative w-full overflow-hidden bg-white rounded-none",
-              // Phones: height comes from content. Tablet and up: fixed heights (unchanged)
+              // Phones: height comes from content. Tablet and up: fixed heights
               // 03. Tablet Port (768x1024)
               "md:h-[1024px]",
               // 04. Tablet Land (1024x768)
@@ -198,10 +203,10 @@ export default function HorizontalBlog() {
               "min-[1440px]:h-[1441px]",
             ].join(" ")}
           >
-            {/* Phones: relative (takes up space). Tablet and up: absolute fill (unchanged) */}
+            {/* Phones: relative (takes up space). Tablet and up: absolute fill */}
             <div
               className={`
-                section-container relative md:absolute md:inset-0 will-change-transform rounded-none
+                section-container relative md:absolute md:inset-0 rounded-none
                 ${slide.bgColor} ${slide.textColor}
               `}
             >
@@ -217,7 +222,7 @@ export default function HorizontalBlog() {
                 <h1
                   suppressHydrationWarning
                   className={[
-                    "font-['LT_Superior'] font-medium uppercase leading-none text-black rounded-none italic",
+                    "hb-text font-['LT_Superior'] font-medium uppercase leading-none text-black rounded-none italic",
                     "text-[clamp(2.75rem,15vw,4.5rem)] mb-6 break-words",
                     "md:absolute md:mb-0",
                     // 03. Tablet Port (768x1024)
@@ -237,7 +242,7 @@ export default function HorizontalBlog() {
                 {slide.subtitle && (
                   <p
                     className={[
-                      "self-end text-right font-['LT_Superior'] font-bold text-black/70 text-sm mb-6",
+                      "hb-text self-end text-right font-['LT_Superior'] font-bold text-black/70 text-sm mb-6",
                       "md:self-auto md:text-justify md:absolute md:mb-0 md:text-base md:w-auto",
                       // 03. Tablet Port (768x1024)
                       "md:left-auto md:right-[20px] md:top-[238px]",
@@ -253,7 +258,7 @@ export default function HorizontalBlog() {
                   </p>
                 )}
 
-                {/* Component 3: Video Cover Trigger Button */}
+                {/* Component 3: Video. The wrapper is revealed by the wipe, the video inside zooms. */}
                 <button
                   ref={videoButtonRef}
                   type="button"
@@ -275,19 +280,20 @@ export default function HorizontalBlog() {
                   aria-label="View Local Project video"
                 >
                   <video
+                    ref={videoRef}
                     src={slide.videoClip}
                     autoPlay
                     muted
                     loop
                     playsInline
-                    className="h-full w-full object-cover rounded-none"
+                    className="h-full w-full object-cover rounded-none will-change-transform"
                   />
                 </button>
 
                 {/* Component 4: Description Paragraph */}
                 <p
                   className={[
-                    "font-['LT_Superior'] font-bold text-black rounded-none",
+                    "hb-text font-['LT_Superior'] font-bold text-black rounded-none",
                     "w-full text-base leading-snug text-left",
                     "md:absolute md:text-justify md:text-base",
                     // 03. Tablet Port (768x1024)
@@ -328,17 +334,6 @@ export default function HorizontalBlog() {
             className="absolute inset-0 z-10 cursor-none bg-transparent"
             aria-label="Close video"
           />
-
-          {/* Visible close button */}
-          <button
-            type="button"
-            data-cursor="close"
-            onClick={() => setIsVideoOpen(false)}
-            className="absolute bottom-6 right-6 z-20 min-h-11 cursor-none rounded-full border border-white/20 bg-white/10 px-4 py-3 font-mono text-xs uppercase tracking-wider text-white backdrop-blur-md"
-            aria-label="Close video"
-          >
-            Close
-          </button>
         </div>
       )}
     </>
