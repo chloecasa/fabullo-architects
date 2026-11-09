@@ -232,7 +232,7 @@ const ContactPage = () => {
           />
 
           <div className="absolute left-[20px] bottom-[738px] w-[634px] max-w-[calc(100%-40px)] text-justify justify-start rounded-none">
-                     <div className="absolute left-[20px] top-[calc(50svh-290px)] w-[634px] max-w-[calc(100%-40px)] text-justify justify-start rounded-none">
+                             <div className="absolute left-[20px] top-[54svh] w-[634px] max-w-[calc(100%-40px)] text-justify justify-start rounded-none">
             <span className="text-white text-xl font-bold font-['LT_Superior'] uppercase rounded-none">
               NOMINATED ARCHITECT MARK CASHMAN 6232
               <br />

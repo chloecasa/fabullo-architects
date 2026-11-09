@@ -22,8 +22,8 @@ const Footer = () => {
   const bottomBarRef = useRef<HTMLDivElement>(null);
   const pathname = usePathname();
 
-  // Keep ScrollTrigger in step with smooth scrolling
-  useLenis(() => ScrollTrigger.update());
+  // Keep ScrollTrigger in step with smooth scrolling, and get the Lenis instance for scrolling to the top
+  const lenis = useLenis(() => ScrollTrigger.update());
 
   // Page height changes late (images, maps, fonts), so measure again after each page change
   useEffect(() => {
@@ -136,9 +136,27 @@ const Footer = () => {
     { scope: containerRef }
   );
 
+  // If a footer link points to the page you're already on, scroll to the top instead of doing nothing
+  const handleFooterClick = (e: React.MouseEvent<HTMLElement>) => {
+    const link = (e.target as HTMLElement).closest("a");
+    if (!link) return;
+
+    const href = link.getAttribute("href");
+    if (!href || href !== pathname) return;
+
+    e.preventDefault();
+
+    if (lenis) {
+      lenis.scrollTo(0, { duration: 1.2 });
+    } else {
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    }
+  };
+
   return (
     <footer
       ref={containerRef}
+      onClick={handleFooterClick}
       className="relative z-0 flex min-h-svh w-full flex-col overflow-hidden border-none bg-black text-white shadow-none md:h-svh md:min-h-[760px]"
     >
       <div
@@ -160,7 +178,7 @@ const Footer = () => {
             <RollLink href="/" className="block py-2.5 md:py-0">Home</RollLink>
             <RollLink href="/projects" className="block py-2.5 md:py-0">Projects</RollLink>
             <RollLink href="/profile" className="block py-2.5 md:py-0">Profile</RollLink>
-            <RollLink href="/contact" className="block py-2.5 md:py-0">Contact</RollLink>
+            
           </nav>
 
           <div className="flex flex-col text-lg font-semibold uppercase sm:text-xl md:absolute md:left-[81vw] md:top-10 md:gap-5 md:text-2xl">
@@ -174,7 +192,7 @@ const Footer = () => {
         {/* Brand name: fitted to the full width with 20px padding on each side */}
         <div
           ref={brandWrapRef}
-                    className="mt-auto flex w-full items-end whitespace-nowrap font-bold uppercase leading-[0.72] tracking-[-0.06em] md:absolute md:bottom-12 md:left-5 md:right-5 md:mt-0 md:w-auto"
+          className="mt-auto flex w-full items-end whitespace-nowrap font-bold uppercase leading-[0.72] tracking-[-0.06em] md:absolute md:bottom-12 md:left-5 md:right-5 md:mt-0 md:w-auto"
         >
           <span ref={mgkRef} className="relative inline-block origin-bottom-left text-[20vw]">
             FABULLO
