@@ -6,7 +6,7 @@ import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
 import SubscribeModal from "@/components/contact/SubscribeModal";
-import { setupScrollWipe } from "@/components/ui/useScrollWipe";
+import { setupScrollWipe, refreshSoon } from "@/components/ui/useScrollWipe";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -26,29 +26,37 @@ const ContactSection = () => {
       const panel = panelRef.current;
       if (!section || !panel) return;
 
+      // Measure the page once it has settled, so the trigger points are correct
+      // even when this section comes after pinned sections (as on Profile)
+      const stopRefresh = refreshSoon();
+
       // Image: revealed left to right on the way down, closed again on the way up
       setupScrollWipe(section, panel);
 
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      if (reduce) return;
+      if (!reduce) {
+        // Text: rises and fades in over the same scroll range
+        gsap.fromTo(
+          [copyRef.current, linkRef.current],
+          { opacity: 0, y: 40 },
+          {
+            opacity: 1,
+            y: 0,
+            ease: "none",
+            scrollTrigger: {
+              trigger: section,
+              start: "top 85%",
+              end: "top 25%",
+              scrub: 0.5,
+              invalidateOnRefresh: true,
+            },
+          }
+        );
+      }
 
-      // Text: rises and fades in over the same scroll range
-      gsap.fromTo(
-        [copyRef.current, linkRef.current],
-        { opacity: 0, y: 40 },
-        {
-          opacity: 1,
-          y: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: section,
-            start: "top 85%",
-            end: "top 25%",
-            scrub: 0.5,
-            invalidateOnRefresh: true,
-          },
-        }
-      );
+      return () => {
+        stopRefresh();
+      };
     },
     { scope: sectionRef }
   );

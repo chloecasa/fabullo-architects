@@ -33,10 +33,30 @@ export function setupScrollWipe(
         trigger,
         start: options?.start ?? "top 85%",
         end: options?.end ?? "top 25%",
-        // Light smoothing removes stutter without adding noticeable delay
         scrub: 0.5,
         invalidateOnRefresh: true,
       },
     }
   );
+}
+
+// Measures the page again after mount, after images and fonts have loaded,
+// and once more shortly after. Returns a cleanup function.
+export function refreshSoon(): () => void {
+  if (typeof window === "undefined") return () => {};
+
+  const frame = requestAnimationFrame(() => ScrollTrigger.refresh());
+  const t1 = window.setTimeout(() => ScrollTrigger.refresh(), 400);
+  const t2 = window.setTimeout(() => ScrollTrigger.refresh(), 1200);
+  const onLoad = () => ScrollTrigger.refresh();
+
+  window.addEventListener("load", onLoad);
+  document.fonts?.ready.then(onLoad);
+
+  return () => {
+    cancelAnimationFrame(frame);
+    window.clearTimeout(t1);
+    window.clearTimeout(t2);
+    window.removeEventListener("load", onLoad);
+  };
 }

@@ -5,6 +5,7 @@ import Link from "next/link";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { refreshSoon } from "@/components/ui/useScrollWipe";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -29,118 +30,51 @@ const IntroSequence: React.FC = () => {
         return;
       }
 
-      gsap.fromTo(
-        title,
-        { opacity: 0, y: 32 },
-        {
-          opacity: 1,
-          y: 0,
-          ease: "none",
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+      // Measure the page once it has settled, so the trigger points are correct
+      const stopRefresh = refreshSoon();
+
+      if (!reduce) {
+        // One timeline for the whole block. Each piece is placed on it in order,
+        // so the scroll only scrubs one value instead of six.
+        const tl = gsap.timeline({
+          defaults: { ease: "power3.out" },
           scrollTrigger: {
-            trigger: title,
-            start: "top 90%",
-            end: "top 70%",
-            scrub: 1,
+            trigger: section,
+            start: "top 88%",
+            end: "top 35%",
+            // Light smoothing: follows the scroll without adding a slow trailing feel
+            scrub: 0.5,
             invalidateOnRefresh: true,
           },
-        }
-      );
+        });
 
-      gsap.fromTo(
-        firstText,
-        { opacity: 0, y: 32 },
-        {
-          opacity: 1,
-          y: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: firstText,
-            start: "top 90%",
-            end: "top 65%",
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        }
-      );
+        tl.fromTo(title, { opacity: 0, y: 32 }, { opacity: 1, y: 0 }, 0)
+          .fromTo(firstText, { opacity: 0, y: 32 }, { opacity: 1, y: 0 }, 0.12)
+          .fromTo(firstLine, { scaleX: 0 }, { scaleX: 1, transformOrigin: "left center" }, 0.2)
+          // The image uses transform only (a clip-path repaints every frame, which is what made it jumpy)
+          .fromTo(
+            image,
+            { opacity: 0, y: 40, scale: 1.04 },
+            { opacity: 1, y: 0, scale: 1 },
+            0.3
+          )
+          .fromTo(secondText, { opacity: 0, y: 32 }, { opacity: 1, y: 0 }, 0.5)
+          .fromTo(secondLine, { scaleX: 0 }, { scaleX: 1, transformOrigin: "left center" }, 0.6);
+      } else {
+        gsap.set([title, firstText, firstLine, image, secondText, secondLine], {
+          clearProps: "all",
+        });
+      }
 
-      gsap.fromTo(
-        firstLine,
-        { scaleX: 0, transformOrigin: "left center" },
-        {
-          scaleX: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: firstLine,
-            start: "top 92%",
-            end: "top 72%",
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        }
-      );
-
-      gsap.fromTo(
-        image,
-        {
-          opacity: 0,
-          clipPath: "inset(100% 0% 0% 0%)",
-          scale: 1.04,
-        },
-        {
-          opacity: 1,
-          clipPath: "inset(0% 0% 0% 0%)",
-          scale: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: image,
-            start: "top 92%",
-            end: "top 62%",
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        }
-      );
-
-      gsap.fromTo(
-        secondText,
-        { opacity: 0, y: 32 },
-        {
-          opacity: 1,
-          y: 0,
-          ease: "none",
-          scrollTrigger: {
-            trigger: secondText,
-            start: "top 90%",
-            end: "top 65%",
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        }
-      );
-
-      gsap.fromTo(
-        secondLine,
-        { scaleX: 0, transformOrigin: "left center" },
-        {
-          scaleX: 1,
-          ease: "none",
-          scrollTrigger: {
-            trigger: secondLine,
-            start: "top 92%",
-            end: "top 72%",
-            scrub: 1,
-            invalidateOnRefresh: true,
-          },
-        }
-      );
-
-      ScrollTrigger.create({
+      // Header colour: switch while this section is on screen
+      const headerTrigger = ScrollTrigger.create({
         trigger: section,
         start: "top top",
         end: "bottom top",
         onToggle: (self) => {
           const header = document.getElementById("main-header");
-
           if (!header) return;
 
           if (self.isActive) {
@@ -152,6 +86,11 @@ const IntroSequence: React.FC = () => {
           }
         },
       });
+
+      return () => {
+        stopRefresh();
+        headerTrigger.kill();
+      };
     },
     { scope: sectionRef }
   );
@@ -162,33 +101,36 @@ const IntroSequence: React.FC = () => {
       className="relative z-20 w-full overflow-hidden bg-white text-black rounded-none"
     >
       {/* Phones: flow layout, height from content. Tablet and up: fixed heights (unchanged) */}
-      <div className={[
-        "relative mx-auto w-full max-w-[1440px] flex flex-col",
-        "px-[12px] pt-[80px] pb-[56px]",
-        "md:block md:p-0",
-        // 03. Tablet Port (768x1024)
-        "md:h-[1024px]",
-        // 04. Tablet Land (1024x768)
-        "lg:h-[768px]",
-        // 05. Desktop Base (1280x800)
-        "xl:h-[1523px]",
-        // 06. Original Widescreen (1440x794)
-        "min-[1440px]:h-[1523px]",
-      ].join(" ")}>
-
-        {/* Component 1: Title ("WHAT WE DO") */}
-        <div className={[
-          "intro-title will-change-transform justify-start text-black font-bold font-['LT_Superior'] text-xl mb-6",
-          "md:absolute md:mb-0 md:text-3xl",
+      <div
+        className={[
+          "relative mx-auto w-full max-w-[1440px] flex flex-col",
+          "px-[12px] pt-[80px] pb-[56px]",
+          "md:block md:p-0",
           // 03. Tablet Port (768x1024)
-          "md:left-[20px] md:top-[187px]",
+          "md:h-[1024px]",
           // 04. Tablet Land (1024x768)
-          "lg:left-[20px] lg:top-[114px]",
+          "lg:h-[768px]",
           // 05. Desktop Base (1280x800)
-          "xl:left-[20px] xl:top-[208px] xl:text-4xl",
+          "xl:h-[1523px]",
           // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[20px] min-[1440px]:top-[208px] min-[1440px]:text-[74px]",
-        ].join(" ")}>
+          "min-[1440px]:h-[1523px]",
+        ].join(" ")}
+      >
+        {/* Component 1: Title ("WHAT WE DO") */}
+        <div
+          className={[
+            "intro-title will-change-transform justify-start text-black font-bold font-['LT_Superior'] text-xl mb-6",
+            "md:absolute md:mb-0 md:text-3xl",
+            // 03. Tablet Port (768x1024)
+            "md:left-[20px] md:top-[187px]",
+            // 04. Tablet Land (1024x768)
+            "lg:left-[20px] lg:top-[114px]",
+            // 05. Desktop Base (1280x800)
+            "xl:left-[20px] xl:top-[208px] xl:text-4xl",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:left-[20px] min-[1440px]:top-[208px] min-[1440px]:text-[74px]",
+          ].join(" ")}
+        >
           <Link
             href="/profile"
             className="block font-['LT_Superior'] uppercase leading-[0.85] text-black transition-opacity duration-300 hover:opacity-40 no-underline"
@@ -198,43 +140,47 @@ const IntroSequence: React.FC = () => {
         </div>
 
         {/* Component 2: Copy Paragraph 1 */}
-        <div className={[
-          "intro-text-one text-left md:text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
-          "md:absolute",
-          // 03. Tablet Port (768x1024)
-          "md:left-[455px] md:top-[187px] md:w-[288px] md:text-xl",
-          // 04. Tablet Land (1024x768)
-          "lg:left-[622px] lg:top-[114px] lg:w-[384px] lg:text-xl",
-          // 05. Desktop Base (1280x800)
-          "xl:left-[776px] xl:top-[208px] xl:w-[484px] xl:text-3xl",
-          // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[710px] min-[1440px]:top-[208px] min-[1440px]:w-[713px] min-[1440px]:text-4xl",
-        ].join(" ")}>
+        <div
+          className={[
+            "intro-text-one text-left md:text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
+            "md:absolute",
+            // 03. Tablet Port (768x1024)
+            "md:left-[455px] md:top-[187px] md:w-[288px] md:text-xl",
+            // 04. Tablet Land (1024x768)
+            "lg:left-[622px] lg:top-[114px] lg:w-[384px] lg:text-xl",
+            // 05. Desktop Base (1280x800)
+            "xl:left-[776px] xl:top-[208px] xl:w-[484px] xl:text-3xl",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:left-[710px] min-[1440px]:top-[208px] min-[1440px]:w-[713px] min-[1440px]:text-4xl",
+          ].join(" ")}
+        >
           We design refined, context‑driven homes and commercial spaces shaped
           by clarity, craftsmanship, and purpose. We focus on what you need, how
           you live, and how your site works.
         </div>
 
         {/* Component 3: Divider Line 1 */}
-        <div className={[
-          "intro-line-one h-px w-full my-8 md:my-0 origin-left bg-black",
-          "md:absolute",
-          // 03. Tablet Port (768x1024)
-          "md:left-[455px] md:top-[401px] md:w-[288px]",
-          // 04. Tablet Land (1024x768)
-          "lg:left-[622px] lg:top-[268px] lg:w-[384px]",
-          // 05. Desktop Base (1280x800)
-          "xl:left-[776px] xl:top-[482px] xl:w-[484px]",
-          // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[707px] min-[1440px]:top-[456px] min-[1440px]:w-[713px]",
-        ].join(" ")} />
+        <div
+          className={[
+            "intro-line-one h-px w-full my-8 md:my-0 origin-left bg-black",
+            "md:absolute",
+            // 03. Tablet Port (768x1024)
+            "md:left-[455px] md:top-[401px] md:w-[288px]",
+            // 04. Tablet Land (1024x768)
+            "lg:left-[622px] lg:top-[268px] lg:w-[384px]",
+            // 05. Desktop Base (1280x800)
+            "xl:left-[776px] xl:top-[482px] xl:w-[484px]",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:left-[707px] min-[1440px]:top-[456px] min-[1440px]:w-[713px]",
+          ].join(" ")}
+        />
 
-        {/* Component 4: Image Mask & Source */}
+        {/* Component 4: Image */}
         <img
           src="/assets/images/intro.jpg"
           alt="Architectural detail"
           className={[
-            "intro-image object-cover will-change-[clip-path,transform] block w-full aspect-[3/4] mb-8 md:mb-0 rounded-none",
+            "intro-image object-cover will-change-transform block w-full aspect-[3/4] mb-8 md:mb-0 rounded-none",
             "md:absolute md:aspect-auto",
             // 03. Tablet Port (768x1024)
             "md:left-[20px] md:top-[506px] md:w-[288px] md:h-[384px]",
@@ -248,36 +194,40 @@ const IntroSequence: React.FC = () => {
         />
 
         {/* Component 5: Copy Paragraph 2 */}
-        <div className={[
-          "intro-text-two text-left md:text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
-          "md:absolute",
-          // 03. Tablet Port (768x1024)
-          "md:left-[455px] md:top-[502px] md:w-[288px] md:text-xl",
-          // 04. Tablet Land (1024x768)
-          "lg:left-[622px] lg:top-[301px] lg:w-[384px] lg:text-xl",
-          // 05. Desktop Base (1280x800)
-          "xl:left-[776px] xl:top-[772px] xl:w-[484px] xl:text-3xl",
-          // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[710px] min-[1440px]:top-[752px] min-[1440px]:w-[710px] min-[1440px]:text-4xl",
-        ].join(" ")}>
+        <div
+          className={[
+            "intro-text-two text-left md:text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
+            "md:absolute",
+            // 03. Tablet Port (768x1024)
+            "md:left-[455px] md:top-[502px] md:w-[288px] md:text-xl",
+            // 04. Tablet Land (1024x768)
+            "lg:left-[622px] lg:top-[301px] lg:w-[384px] lg:text-xl",
+            // 05. Desktop Base (1280x800)
+            "xl:left-[776px] xl:top-[772px] xl:w-[484px] xl:text-3xl",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:left-[710px] min-[1440px]:top-[752px] min-[1440px]:w-[710px] min-[1440px]:text-4xl",
+          ].join(" ")}
+        >
           Every project is guided by context, material clarity, and functional
           precision. From first sketch to final detail, we deliver architecture
           that is responsive, enduring, and built to a high standard.
         </div>
 
         {/* Component 6: Divider Line 2 */}
-        <div className={[
-          "intro-line-two h-px w-full my-8 md:my-0 origin-left bg-black",
-          "md:absolute",
-          // 03. Tablet Port (768x1024)
-          "md:left-[455px] md:top-[715px] md:w-[288px]",
-          // 04. Tablet Land (1024x768)
-          "lg:left-[622px] lg:top-[455px] lg:w-[384px]",
-          // 05. Desktop Base (1280x800)
-          "xl:left-[776px] xl:top-[1046px] xl:w-[484px]",
-          // 06. Original Widescreen (1440x794)
-          "min-[1440px]:left-[707px] min-[1440px]:top-[1040px] min-[1440px]:w-[713px]",
-        ].join(" ")} />
+        <div
+          className={[
+            "intro-line-two h-px w-full my-8 md:my-0 origin-left bg-black",
+            "md:absolute",
+            // 03. Tablet Port (768x1024)
+            "md:left-[455px] md:top-[715px] md:w-[288px]",
+            // 04. Tablet Land (1024x768)
+            "lg:left-[622px] lg:top-[455px] lg:w-[384px]",
+            // 05. Desktop Base (1280x800)
+            "xl:left-[776px] xl:top-[1046px] xl:w-[484px]",
+            // 06. Original Widescreen (1440x794)
+            "min-[1440px]:left-[707px] min-[1440px]:top-[1040px] min-[1440px]:w-[713px]",
+          ].join(" ")}
+        />
       </div>
     </section>
   );

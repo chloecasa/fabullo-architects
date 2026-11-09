@@ -4,6 +4,7 @@ import { useId, useRef, useState } from "react";
 import gsap from "gsap";
 import { ScrollTrigger } from "gsap/ScrollTrigger";
 import { useGSAP } from "@gsap/react";
+import { refreshSoon } from "@/components/ui/useScrollWipe";
 
 if (typeof window !== "undefined") {
   gsap.registerPlugin(ScrollTrigger);
@@ -22,8 +23,9 @@ interface YearGroup {
 // Shared inner width and side padding, so every row lines up with the intro text
 const ROW_INNER = "mx-auto w-full max-w-[1514px] px-3 md:px-5";
 
-// Plays when the element enters from below, reverses when it leaves upward
-const TOGGLE = "play reverse play reverse";
+// Plays once when the element enters the screen from below, and stays visible
+// as you keep scrolling. It hides again only if you scroll back above its start.
+const TOGGLE = "play none play reverse";
 
 // One year: a full-width tap target, with its entries below when open
 const YearItem = ({
@@ -196,7 +198,15 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
     () => {
       const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
       const root = containerRef.current;
-      if (!root || reduce) return;
+      if (!root) return;
+
+      // Measure the page once it has settled, so the trigger points match the real layout
+      const stopRefresh = refreshSoon();
+
+      // With reduced motion, everything is shown straight away
+      if (reduce) {
+        return () => stopRefresh();
+      }
 
       // Intro: title and subtitle rise from a mask
       gsap.fromTo(
@@ -252,16 +262,7 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
         );
       });
 
-      // Measure again once the page, images and fonts have loaded,
-      // so the trigger points match the real layout
-      const refresh = () => ScrollTrigger.refresh();
-      window.addEventListener("load", refresh);
-      document.fonts?.ready.then(refresh);
-      refresh();
-
-      return () => {
-        window.removeEventListener("load", refresh);
-      };
+      return () => stopRefresh();
     },
     { scope: containerRef }
   );

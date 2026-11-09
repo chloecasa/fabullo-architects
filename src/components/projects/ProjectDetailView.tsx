@@ -218,7 +218,7 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         }
       };
 
-      // DESKTOP: the section locks to the screen; scrolling down moves the images sideways
+     
       galleryMm.add("(min-width: 768px)", () => {
         const section = galleryPinRef.current;
         const scroller = scrollerRef.current;
@@ -235,21 +235,15 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
             start: "top top",
             end: () => `+=${distance()}`,
             pin: true,
-            scrub: 0.6,
-            anticipatePin: 1,
+            scrub: 0.5,
             invalidateOnRefresh: true,
-            snap: {
-              snapTo: 1 / (total - 1),
-              duration: { min: 0.25, max: 0.6 },
-              delay: 0.08,
-              ease: "power2.inOut",
-            },
             onUpdate: (self) => setCounter(Math.round(self.progress * (total - 1))),
           },
         });
 
         setCounter(0);
       });
+        
 
       // PHONES: swipe sideways with snapping; scrolling down then carries on to the footer
       galleryMm.add("(max-width: 767px)", () => {
