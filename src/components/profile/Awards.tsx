@@ -208,19 +208,21 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
         return () => stopRefresh();
       }
 
-      // Intro: title and subtitle rise from a mask
+      // Intro: title and subtitle rise from their mask. This is scrubbed to the scroll,
+      // so it plays going down and reverses going up.
       gsap.fromTo(
         ".awards-intro-reveal",
         { y: "115%" },
         {
           y: "0%",
-          duration: 1.2,
-          stagger: 0.1,
-          ease: "power3.out",
+          ease: "none",
+          stagger: 0.12,
           scrollTrigger: {
             trigger: ".awards-header-section",
-            start: "top 90%",
-            toggleActions: TOGGLE,
+            start: "top 95%",
+            end: "top 50%",
+            scrub: 0.5,
+            invalidateOnRefresh: true,
           },
         }
       );
