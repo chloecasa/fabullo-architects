@@ -323,12 +323,12 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
             md and up: credits top left, title bottom left, consultants + team on the right. */}
         <div className="mt-5 flex flex-1 flex-col gap-6 md:mt-6 md:grid md:grid-cols-[minmax(0,1fr)_minmax(0,28vw)] md:grid-rows-[auto_1fr] md:gap-x-10 md:gap-y-8">
           {/* Credits */}
-          <div className="project-hero-copy min-w-0 text-left text-[11px] font-normal uppercase leading-[1.2] text-zinc-950 rounded-none md:col-start-1 md:row-start-1 md:max-w-xs md:text-xs xl:max-w-sm xl:text-sm">
+          <div className="project-hero-copy min-w-0 text-left text-[15px] font-normal uppercase leading-[1.2] text-zinc-950 rounded-none md:col-start-1 md:row-start-1 md:max-w-xs md:text-xs xl:max-w-sm xl:text-sm">
             {project.credits}
           </div>
 
           {/* Consultants + team */}
-          <div className="flex min-w-0 flex-col gap-4 text-[11px] uppercase leading-tight text-zinc-950 rounded-none md:col-start-2 md:row-span-2 md:row-start-1 md:max-w-[430px] md:justify-self-end md:text-xs md:leading-5 xl:text-sm">
+          <div className="flex min-w-0 flex-col gap-4 text-[15px] uppercase leading-tight text-zinc-950 rounded-none md:col-start-2 md:row-span-2 md:row-start-1 md:max-w-[430px] md:justify-self-end md:text-xs md:leading-5 xl:text-sm">
             <div className="project-hero-copy">
               {project.consultants.map((item, i) => (
                 <div key={i}>
