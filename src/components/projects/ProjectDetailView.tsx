@@ -266,31 +266,23 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
     { scope: containerRef }
   );
 
-  // Images take their natural height, so the page grows as they load.
-  // Measure the scroll positions again once the last one is in.
-  useEffect(() => {
-    const imgs = Array.from(containerRef.current?.querySelectorAll("img") ?? []);
-    let pending = imgs.filter((img) => !img.complete).length;
-    if (pending === 0) return;
+ useEffect(() => {
+  const imgs = Array.from(containerRef.current?.querySelectorAll("img") ?? []);
+  const refresh = () => ScrollTrigger.refresh();
 
-    const done = () => {
-      pending -= 1;
-      if (pending === 0) ScrollTrigger.refresh();
-    };
+  imgs.forEach((img) => {
+    if (img.complete) return;
+    img.addEventListener("load", refresh);
+    img.addEventListener("error", refresh);
+  });
 
+  return () => {
     imgs.forEach((img) => {
-      if (img.complete) return;
-      img.addEventListener("load", done, { once: true });
-      img.addEventListener("error", done, { once: true });
+      img.removeEventListener("load", refresh);
+      img.removeEventListener("error", refresh);
     });
-
-    return () => {
-      imgs.forEach((img) => {
-        img.removeEventListener("load", done);
-        img.removeEventListener("error", done);
-      });
-    };
-  }, [project]);
+  };
+}, [project]);
 
   return (
     <main
@@ -409,7 +401,7 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
             </div>
           </div>
 
-          <div className="flex flex-col gap-[18svh] pb-[14svh] pt-[14svh]">
+          <div className="flex flex-col gap-[18svh] pb-[14svh] pt-[14svh] pr-5">
             {images.map((img, i) => (
               <div key={i} className="v-img-frame flex w-full justify-center rounded-none">
                 {/* RATIO: any ratio works and the image is never cropped.
@@ -606,12 +598,12 @@ function InteractiveLightbox({ img, onClose }: { img: string; onClose: () => voi
           transition: isDragging ? "none" : "transform 200ms ease-out",
         }}
       >
-        <img
-          src={img}
-          alt=""
-          draggable={false}
-          className="pointer-events-none max-h-[80svh] max-w-[90vw] object-contain shadow-2xl"
-        />
+       <img
+  src={img}
+  loading="eager"
+  className="block h-auto max-h-[80svh] w-auto max-w-full object-contain rounded-none"
+  alt="Architectural sequence"
+/>
       </div>
 
       {/* Zoom bar */}
