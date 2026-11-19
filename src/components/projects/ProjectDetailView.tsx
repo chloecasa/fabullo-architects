@@ -21,6 +21,30 @@ const REVEAL = { y: 40, duration: 1.1, ease: "power3.out" };
 
 const pad = (n: number) => String(n).padStart(2, "0");
 
+// Wait until every image inside the root has loaded and decoded, so the
+// scroll positions are measured from the final layout. Gives up after 6 seconds.
+const waitForImages = (root: HTMLElement | null) => {
+  if (!root) return Promise.resolve();
+
+  const imgs = Array.from(root.querySelectorAll("img"));
+
+  const loaded = imgs.map((img) =>
+    img.complete
+      ? Promise.resolve()
+      : new Promise<void>((resolve) => {
+          img.addEventListener("load", () => resolve(), { once: true });
+          img.addEventListener("error", () => resolve(), { once: true });
+        })
+  );
+
+  const decoded = imgs.map((img) => img.decode?.().catch(() => {}) ?? Promise.resolve());
+
+  const all = Promise.all([...loaded, ...decoded]).then(() => {});
+  const timeout = new Promise<void>((resolve) => window.setTimeout(resolve, 6000));
+
+  return Promise.race([all, timeout]);
+};
+
 export default function ProjectDetailView({ project }: { project: ProjectData }) {
   const containerRef = useRef<HTMLElement>(null);
   const sequenceRef = useRef<HTMLElement>(null);
@@ -52,11 +76,10 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
   const beatsByImage: number[][] = images.map(() => []);
   beats.forEach((beat, bi) => beatsByImage[beat.image].push(bi));
 
+  // ---------- HERO ----------
+  // Runs straight away. It does not depend on the scroll positions below.
   useGSAP(
     () => {
-      // ---------- HERO ARRIVAL: settle ----------
-      // The photo starts zoomed in and blurred, sharpens and settles,
-      // then the title rises line by line and the details fade in.
       const arrivalTl = gsap.timeline();
 
       gsap.set(".project-hero-title-line", { yPercent: 110 });
@@ -80,16 +103,28 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
           { opacity: 1, y: 0, duration: 0.75, stagger: 0.08, ease: "power4.out" },
           "-=0.7"
         );
+    },
+    { scope: containerRef }
+  );
 
-      // ---------- SECTION 2: IMAGE SEQUENCE ----------
-      const mm = gsap.matchMedia();
+  // ---------- SEQUENCE + GALLERY ----------
+  // These triggers measure the page, so they are created only after all images have loaded.
+  useEffect(() => {
+    let cancelled = false;
+   let mm: ReturnType<typeof gsap.matchMedia> | null = null;
+let galleryMm: ReturnType<typeof gsap.matchMedia> | null = null;
+
+    const setup = () => {
+      if (cancelled) return;
+
+      mm = gsap.matchMedia();
 
       mm.add(
         {
           isDesktop: "(min-width: 768px) and (prefers-reduced-motion: no-preference)",
           isMobile: "(max-width: 767px) and (prefers-reduced-motion: no-preference)",
         },
-        (ctx) => {
+        (ctx: { conditions?: Record<string, boolean> }) => {
           const root = sequenceRef.current;
           if (!root) return;
 
@@ -208,8 +243,8 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         }
       );
 
-      // ---------- SECTION 3: GALLERY (one image per screen) ----------
-      const galleryMm = gsap.matchMedia();
+      // ---------- GALLERY (one image per screen) ----------
+      galleryMm = gsap.matchMedia();
       const total = project.horizontalGallery.length;
 
       const setCounter = (index: number) => {
@@ -218,7 +253,6 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         }
       };
 
-     
       galleryMm.add("(min-width: 768px)", () => {
         const section = galleryPinRef.current;
         const scroller = scrollerRef.current;
@@ -243,7 +277,6 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
 
         setCounter(0);
       });
-        
 
       // PHONES: swipe sideways with snapping; scrolling down then carries on to the footer
       galleryMm.add("(max-width: 767px)", () => {
@@ -261,28 +294,27 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
         return () => scroller.removeEventListener("scroll", onScroll);
       });
 
+      // Final measurement once everything is in place
       ScrollTrigger.refresh();
-    },
-    { scope: containerRef }
-  );
+    };
 
- useEffect(() => {
-  const imgs = Array.from(containerRef.current?.querySelectorAll("img") ?? []);
-  const refresh = () => ScrollTrigger.refresh();
+    // Wait for the images, then set up the triggers from the final layout
+    waitForImages(containerRef.current).then(setup);
 
-  imgs.forEach((img) => {
-    if (img.complete) return;
-    img.addEventListener("load", refresh);
-    img.addEventListener("error", refresh);
-  });
+    return () => {
+      cancelled = true;
+      mm?.revert();
+      galleryMm?.revert();
+    };
+  }, [project]);
 
-  return () => {
-    imgs.forEach((img) => {
-      img.removeEventListener("load", refresh);
-      img.removeEventListener("error", refresh);
-    });
-  };
-}, [project]);
+  // If the window finishes loading (fonts, late assets), measure again
+  useEffect(() => {
+    const refresh = () => ScrollTrigger.refresh();
+    window.addEventListener("load", refresh);
+    document.fonts?.ready.then(refresh);
+    return () => window.removeEventListener("load", refresh);
+  }, [project]);
 
   return (
     <main
@@ -305,6 +337,7 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
           <img
             ref={heroImageRef}
             src={project.heroImg}
+            loading="eager"
             className="block h-full w-full object-cover will-change-transform rounded-none"
             alt={project.title}
           />
@@ -367,7 +400,7 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
               {beatsByImage[i].length > 0 && (
                 <div className="mb-6 flex flex-col gap-4">
                   {beatsByImage[i].map((bi) => (
-                                        <p
+                    <p
                       key={bi}
                       className="m-text text-left text-[15px] font-normal leading-relaxed text-zinc-950 rounded-none min-[375px]:text-base"
                     >
@@ -378,7 +411,12 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
               )}
               {/* RATIO: any ratio works, the image is never cropped (3:2 or 4:5 recommended) */}
               <div className="m-block w-full overflow-hidden rounded-none">
-                <img src={img} className="block h-auto w-full rounded-none" alt="Architectural sequence" />
+                <img
+                  src={img}
+                  loading="eager"
+                  className="block h-auto w-full rounded-none"
+                  alt="Architectural sequence"
+                />
               </div>
             </div>
           ))}
@@ -401,7 +439,7 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
             </div>
           </div>
 
-          <div className="flex flex-col gap-[18svh] pb-[14svh] pt-[14svh] pr-5">
+         <div className="flex flex-col gap-[18svh] pb-[14svh] pt-[14svh]">
             {images.map((img, i) => (
               <div key={i} className="v-img-frame flex w-full justify-center rounded-none">
                 {/* RATIO: any ratio works and the image is never cropped.
@@ -409,18 +447,11 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
                     It fills the column width, and is scaled down only if it would be
                     taller than 80% of the screen. */}
                 <img
-  src={img}
-  alt="gallery perspective"
-  decoding="async"
-  draggable={false}
-  className="block h-auto max-h-[calc(100svh-8rem)] w-auto max-w-[calc(100vw-2.5rem)] object-contain grayscale transition-all duration-700 ease-out hover:grayscale-0 md:max-h-[calc(100svh-10rem)] md:max-w-[calc(100vw-10rem)] rounded-none opacity-0"
-  ref={(el) => {
-    // Cached images can finish before React attaches onLoad, so check on mount too
-    if (el && el.complete) el.style.opacity = "1";
-  }}
-  onLoad={(e) => (e.currentTarget.style.opacity = "1")}
-  onError={(e) => (e.currentTarget.style.opacity = "1")}
-/>
+                  src={img}
+                  loading="eager"
+                  className="block h-auto max-h-[80svh] w-auto max-w-full object-contain rounded-none"
+                  alt="Architectural sequence"
+                />
               </div>
             ))}
           </div>
@@ -455,6 +486,7 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
                     <img
                       src={img}
                       alt="gallery perspective"
+                      loading="eager"
                       decoding="async"
                       draggable={false}
                       className="block h-auto max-h-[calc(100svh-8rem)] w-auto max-w-[calc(100vw-2.5rem)] object-contain grayscale transition-all duration-700 ease-out hover:grayscale-0 md:max-h-[calc(100svh-10rem)] md:max-w-[calc(100vw-10rem)] rounded-none"
@@ -598,12 +630,12 @@ function InteractiveLightbox({ img, onClose }: { img: string; onClose: () => voi
           transition: isDragging ? "none" : "transform 200ms ease-out",
         }}
       >
-       <img
-  src={img}
-  loading="eager"
-  className="block h-auto max-h-[80svh] w-auto max-w-full object-contain rounded-none"
-  alt="Architectural sequence"
-/>
+        <img
+          src={img}
+          alt=""
+          draggable={false}
+          className="pointer-events-none max-h-[80svh] max-w-[90vw] object-contain shadow-2xl"
+        />
       </div>
 
       {/* Zoom bar */}
