@@ -180,8 +180,8 @@ const IntroSequence: React.FC = () => {
 
         {/* Component 2: Copy Paragraph 1 */}
         <div
-          className={[
-            "intro-text-one text-left md:text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
+       className={[
+  "intro-text-one text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
             "md:absolute",
             // 03. Tablet Port (768x1024)
             "md:left-[455px] md:top-[187px] md:w-[288px] md:text-xl",
@@ -237,7 +237,7 @@ const IntroSequence: React.FC = () => {
         {/* Component 5: Copy Paragraph 2 */}
         <div
           className={[
-            "intro-text-two text-left md:text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
+  "intro-text-two text-justify font-['LT_Superior'] font-bold leading-snug md:leading-tight text-black will-change-transform justify-start text-base",
             "md:absolute",
             // 03. Tablet Port (768x1024)
             "md:left-[455px] md:top-[502px] md:w-[288px] md:text-xl",

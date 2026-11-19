@@ -279,15 +279,17 @@ const Awards = ({ initialAwards, initialBooks }: AwardsProps) => {
       <div
         className={`awards-header-section ${ROW_INNER} pt-[73px] pb-6 min-[375px]:pt-[80px] min-[375px]:pb-8 md:pt-[110px] md:pb-12 xl:pb-16`}
       >
-        <div className="flex items-baseline gap-1.5 md:gap-2 xl:gap-3 mb-2 overflow-hidden">
-          <h1 className="awards-intro-reveal font-bold uppercase leading-[0.8] tracking-tighter text-[40px] min-[375px]:text-[52px] md:text-[96px] lg:text-[110px] xl:text-[120px] min-[1440px]:text-[130px]">
-            Recognitions
-          </h1>
+      <div className="-mt-3 -mb-1 overflow-hidden pt-3 pb-1">
+  <div className="mb-2 flex w-fit flex-col items-end gap-1 md:flex-row md:items-baseline md:gap-2 xl:gap-3">
+    <h1 className="awards-intro-reveal font-bold uppercase leading-[0.8] tracking-tighter whitespace-nowrap text-[clamp(30px,12vw,52px)] md:text-[96px] lg:text-[110px] xl:text-[120px] min-[1440px]:text-[130px]">
+      Recognitions
+    </h1>
 
-          <span className="awards-intro-reveal font-light lowercase whitespace-nowrap opacity-60 text-[10px] min-[375px]:text-[11px] md:text-[16px] lg:text-[18px] xl:text-[20px] min-[1440px]:text-[22px]">
-            achievements &amp; publications
-          </span>
-        </div>
+    <span className="awards-intro-reveal font-light lowercase whitespace-nowrap opacity-60 text-right md:text-left text-[13px] min-[375px]:text-[14px] md:text-[16px] lg:text-[18px] xl:text-[20px] min-[1440px]:text-[22px]">
+      achievements &amp; publications
+    </span>
+  </div>
+</div>
 
         <div className="overflow-hidden">
           <p className="awards-intro-reveal font-medium opacity-50 leading-normal text-base mt-3 max-w-[340px] md:text-sm md:mt-4 md:max-w-md xl:text-base xl:mt-5 xl:max-w-xl">

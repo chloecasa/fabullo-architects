@@ -53,10 +53,25 @@ const PLACEHOLDER_GALLERY = [1, 2, 3, 4, 5].map(
 const toRows = (rows: { label?: string; val?: string }[] | null | undefined) =>
   (rows ?? []).map((r) => ({ label: r.label ?? '', val: r.val ?? '' }));
 
+// Ask Sanity's image CDN for a resized, compressed copy instead of the original file.
+const sized = (url: string | null | undefined, width: number) => {
+  if (!url) return '';
+  if (!url.startsWith('https://cdn.sanity.io/')) return url; // leave placeholders alone
+  const sep = url.includes('?') ? '&' : '?';
+  return `${url}${sep}w=${width}&q=80&auto=format`;
+};
 const mapSanityProject = (doc: SanityProject): ProjectData => ({
   title: doc.title || 'Placeholder Project',
   year: doc.year || '2026',
-  heroImg: doc.heroImg || PLACEHOLDER_HERO,
+ heroImg: sized(doc.heroImg, 2000) || PLACEHOLDER_HERO,
+
+verticalImages: doc.verticalImages?.length
+  ? doc.verticalImages.map((url) => sized(url, 1600))
+  : PLACEHOLDER_VERTICAL,
+
+horizontalGallery: doc.horizontalGallery?.length
+  ? doc.horizontalGallery.map((url) => sized(url, 1800))
+  : PLACEHOLDER_GALLERY,
   credits:
     doc.credits ||
     'Placeholder credits: photography, drawings, and site notes for testing the layout.',
@@ -73,12 +88,7 @@ const mapSanityProject = (doc: SanityProject): ProjectData => ({
         { label: 'MEP', val: 'Placeholder Firm' },
       ],
   slides: doc.slides?.length ? doc.slides : PLACEHOLDER_SLIDES,
-  verticalImages: doc.verticalImages?.length
-    ? doc.verticalImages.map((url) => url || '')
-    : PLACEHOLDER_VERTICAL,
-  horizontalGallery: doc.horizontalGallery?.length
-    ? doc.horizontalGallery.map((url) => url || '')
-    : PLACEHOLDER_GALLERY,
+
 });
 
 const fetchOptions = { next: { revalidate: 3600 } };

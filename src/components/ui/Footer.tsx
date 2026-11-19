@@ -175,17 +175,17 @@ const Footer = () => {
         {/* Nav + social: two columns on phones, fixed columns on desktop */}
         <div className="flex justify-between gap-8 md:block">
           <nav className="flex flex-col text-lg font-semibold uppercase sm:text-xl md:absolute md:left-[61vw] md:top-10 md:gap-5 md:text-2xl">
-            <RollLink href="/" className="block py-2.5 md:py-0">Home</RollLink>
-            <RollLink href="/projects" className="block py-2.5 md:py-0">Projects</RollLink>
-            <RollLink href="/profile" className="block py-2.5 md:py-0">Profile</RollLink>
+            <RollLink href="/" className="block py-1 md:py-0">Home</RollLink>
+            <RollLink href="/projects" className="block py-1 md:py-0">Projects</RollLink>
+            <RollLink href="/profile" className="block py-1 md:py-0">Profile</RollLink>
             
           </nav>
 
           <div className="flex flex-col text-lg font-semibold uppercase sm:text-xl md:absolute md:left-[81vw] md:top-10 md:gap-5 md:text-2xl">
-            <RollLink href="https://instagram.com/yourhandle" className="block py-2.5 md:py-0">Instagram</RollLink>
-            <RollLink href="https://facebook.com" className="block py-2.5 md:py-0">Facebook</RollLink>
-            <RollLink href="mailto:hello@mgkarchitects.com" className="block py-2.5 md:py-0">Email</RollLink>
-            <RollLink href="https://x.com" className="block py-2.5 md:py-0">X</RollLink>
+            <RollLink href="https://instagram.com/yourhandle" className="block py-1 md:py-0">Instagram</RollLink>
+            <RollLink href="https://facebook.com" className="block py-1 md:py-0">Facebook</RollLink>
+            <RollLink href="mailto:hello@mgkarchitects.com" className="block py-1 md:py-0">Email</RollLink>
+            <RollLink href="https://x.com" className="block py-1 md:py-0">X</RollLink>
           </div>
         </div>
 
@@ -201,10 +201,10 @@ const Footer = () => {
         </div>
       </div>
 
-      {/* Bottom bar: stacked with a small gap on phones, one row on desktop */}
+      {/* Bottom bar: one row on every screen size, with a gap between items */}
       <div
         ref={bottomBarRef}
-        className="absolute bottom-0 left-0 flex w-full flex-col gap-1.5 border-t border-white/70 bg-black px-5 py-3 font-['LT_Superior'] text-[10px] font-normal uppercase text-white md:h-12 md:flex-row md:items-center md:justify-between md:gap-6 md:py-0"
+        className="absolute bottom-0 left-0 flex w-full flex-row items-center justify-between gap-3 whitespace-nowrap border-t border-white/70 bg-black px-5 py-3 font-['LT_Superior'] text-[10px] font-normal uppercase text-white md:h-12 md:gap-6 md:py-0"
       >
         <div className="normal-case">© FABULLO ARCHITECTS / 2025</div>
 

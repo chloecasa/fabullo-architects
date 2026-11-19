@@ -297,7 +297,7 @@ export default function HorizontalBlog() {
                 <p
                   className={[
                     "hb-text font-['LT_Superior'] font-bold text-black rounded-none",
-                    "w-full text-base leading-snug text-left",
+                   "w-full text-base leading-snug text-justify",
                     "md:absolute md:text-justify md:text-base",
                     // 03. Tablet Port (768x1024)
                     "md:left-[20px] md:top-[773px] md:w-72",

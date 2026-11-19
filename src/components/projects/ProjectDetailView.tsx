@@ -417,10 +417,18 @@ export default function ProjectDetailView({ project }: { project: ProjectData })
                     It fills the column width, and is scaled down only if it would be
                     taller than 80% of the screen. */}
                 <img
-                  src={img}
-                  className="block h-auto max-h-[80svh] w-auto max-w-full object-contain rounded-none"
-                  alt="Architectural sequence"
-                />
+  src={img}
+  alt="gallery perspective"
+  decoding="async"
+  draggable={false}
+  className="block h-auto max-h-[calc(100svh-8rem)] w-auto max-w-[calc(100vw-2.5rem)] object-contain grayscale transition-all duration-700 ease-out hover:grayscale-0 md:max-h-[calc(100svh-10rem)] md:max-w-[calc(100vw-10rem)] rounded-none opacity-0"
+  ref={(el) => {
+    // Cached images can finish before React attaches onLoad, so check on mount too
+    if (el && el.complete) el.style.opacity = "1";
+  }}
+  onLoad={(e) => (e.currentTarget.style.opacity = "1")}
+  onError={(e) => (e.currentTarget.style.opacity = "1")}
+/>
               </div>
             ))}
           </div>

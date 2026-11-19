@@ -203,25 +203,28 @@ const Teams = ({ initialMembers }: TeamsProps) => {
           "min-[1440px]:px-[20px] min-[1440px]:pt-[110px] min-[1440px]:pb-16",
         ].join(" ")}
       >
-        <div className="flex items-baseline gap-1.5 md:gap-2 xl:gap-3 mb-2 overflow-hidden">
-          <h1
-            className={[
-              "team-intro-reveal font-bold uppercase leading-[0.8] tracking-tighter rounded-none",
-              "text-[40px] min-[375px]:text-[52px] md:text-[96px] lg:text-[110px] xl:text-[120px] min-[1440px]:text-[130px]",
-            ].join(" ")}
-          >
-            Our Team
-          </h1>
+      <div className="-mt-3 -mb-1 overflow-hidden pt-3 pb-1">
+  <div className="mb-2 flex w-fit flex-col items-end gap-1 md:flex-row md:items-baseline md:gap-2 xl:gap-3">
+    <h1
+      className={[
+        "team-intro-reveal font-bold uppercase leading-[0.8] tracking-tighter rounded-none whitespace-nowrap",
+        "text-[clamp(30px,12vw,52px)] md:text-[96px] lg:text-[110px] xl:text-[120px] min-[1440px]:text-[130px]",
+      ].join(" ")}
+    >
+      Our Team
+    </h1>
 
-         <span
-  className={[
-    "team-intro-reveal font-light lowercase whitespace-nowrap opacity-60 rounded-none",
-    "text-[clamp(15px,4.2vw,16px)] md:text-[16px] lg:text-[18px] xl:text-[20px] min-[1440px]:text-[22px]",
-  ].join(" ")}
->
-  the collective mind
-</span>
-        </div>
+    <span
+      className={[
+        "team-intro-reveal font-light lowercase whitespace-nowrap opacity-60 rounded-none",
+        "text-right md:text-left",
+        "text-[13px] min-[375px]:text-[14px] md:text-[16px] lg:text-[18px] xl:text-[20px] min-[1440px]:text-[22px]",
+      ].join(" ")}
+    >
+      the collective mind
+    </span>
+  </div>
+</div>
 
       <div className="overflow-hidden rounded-none">
   <p
