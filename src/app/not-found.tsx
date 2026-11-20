@@ -4,24 +4,19 @@ import RollLink from "@/components/ui/RollLink";
 
 export default function NotFound() {
   return (
-    <section className="flex min-h-svh w-full flex-col justify-between bg-white px-[12px] pb-10 pt-[90px] text-black md:px-[20px] md:pt-[120px]">
-      <div>
-        <p className="font-mono text-[10px] uppercase tracking-widest text-black/50">
-          Error 404
-        </p>
-        <h1 className="mt-4 font-bold uppercase leading-[0.8] tracking-tighter text-[clamp(7rem,30vw,24rem)]">
+    <section className="flex min-h-[100svh] w-full flex-col bg-white px-3 pb-[max(2.5rem,env(safe-area-inset-bottom))] pt-[90px] text-black md:px-5 md:pt-[120px]">
+      <div className="flex flex-1 items-center justify-center">
+        <h1
+          className="whitespace-nowrap text-center font-bold uppercase leading-[0.8] tracking-tighter text-[clamp(4.5rem,28vw,22rem)]"
+        >
           404
         </h1>
       </div>
 
-      <div className="flex flex-col gap-8 md:flex-row md:items-end md:justify-between">
-        <p className="max-w-md text-left text-sm font-normal leading-snug md:text-base">
-          This page doesn&apos;t exist, or it has moved.
-        </p>
-
+      <div className="flex justify-end">
         <RollLink
           href="/projects"
-          className="text-2xl font-semibold uppercase md:text-4xl"
+          className="text-[clamp(1.25rem,5vw,2.25rem)] font-semibold uppercase"
         >
           [See projects] ↗
         </RollLink>
